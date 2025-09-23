@@ -280,6 +280,38 @@ export const getAllStages = async () => {
 };
 
 
+// export const analyzeResume = async (file, jobId = null) => {
+//   try {
+//     const formData = new FormData();
+//     formData.append("resume", file);
+    
+//     if (jobId) {
+//       formData.append("jobId", jobId);
+//     }
+    
+//     const response = await axios.post(
+//       "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/resumes/analyze",
+//       formData,
+//       {
+//         ...getAuthHeader(),
+//         headers: {
+//           ...getAuthHeader().headers,
+//           'Content-Type': 'multipart/form-data',
+//            'ngrok-skip-browser-warning': 'true'
+
+//         }
+//       }
+//     );
+//     return response.data; // This returns the entire response including success flag
+//   } catch (error) {
+//     // Make sure to return the error response if available
+//     if (error.response) {
+//       throw error.response.data;
+//     }
+//     throw error;
+//   }
+// };
+
 export const analyzeResume = async (file, jobId = null) => {
   try {
     const formData = new FormData();
@@ -296,15 +328,13 @@ export const analyzeResume = async (file, jobId = null) => {
         ...getAuthHeader(),
         headers: {
           ...getAuthHeader().headers,
-          'Content-Type': 'multipart/form-data',
-           'ngrok-skip-browser-warning': 'true'
-
+          'ngrok-skip-browser-warning': 'true'
+          // remove 'Content-Type': 'multipart/form-data'
         }
       }
     );
-    return response.data; // This returns the entire response including success flag
+    return response.data; 
   } catch (error) {
-    // Make sure to return the error response if available
     if (error.response) {
       throw error.response.data;
     }
