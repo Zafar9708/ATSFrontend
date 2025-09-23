@@ -179,7 +179,11 @@ import AdminDashboard from '../pages/Admin/AdminDashboard';
 import Unauthorized from '../pages/Unauthorized';
 import { useUser } from '../contexts/UserContext';
 import Profile from '../pages/Profile';
-
+import VendorLogin from '../pages/Vendor/vendorLogin';
+import VendorRegister from '../pages/Vendor/VendorRegister';
+import NotificationCenter from '../pages/NotificationCenter';
+import VendorUploadPage from '../services/Vendor/VendorUploadPage';
+import VendorCandidatesPage from '../pages/Vendor/VendorCandidates';
 // Create a wrapper component for routes that need MainLayout
 const LayoutWrapper = ({ children,width }) => {
  
@@ -196,6 +200,11 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<LoginForm />} />
+      <Route path="/vendor-login" element={<VendorLogin />} />
+      <Route path="/vendor/register" element={<VendorRegister />} />
+      <Route path="/vendor/upload/:token" element={<VendorUploadPage />} />
+
+
       <Route path="/forgot-password" element={<ForgotPasswordForm />} />
       <Route path="/first-login" element={<FirstLogin />} />
       <Route path="/register" element={<RegisterForm />} />
@@ -354,6 +363,34 @@ const AppRoutes = () => {
         }
        
       />
+
+       <Route
+        path="/notifications"
+        element={
+
+          <ProtectedRoute >
+            <LayoutWrapper  >
+              <NotificationCenter />
+            </LayoutWrapper>
+          </ProtectedRoute>
+
+        }
+       
+      />
+      <Route
+        path="/total-vendors"
+        element={
+
+          <ProtectedRoute >
+            <LayoutWrapper  >
+              <VendorCandidatesPage />
+            </LayoutWrapper>
+          </ProtectedRoute>
+
+        }
+       
+      />
+      
       
     </Routes>
   );

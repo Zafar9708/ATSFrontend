@@ -1,6 +1,6 @@
 // import axios from "axios";
 
-// const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1/location';
+// const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/location';
 
 // const getAuthHeaders = () => {
 //   const token = localStorage.getItem('token');
@@ -34,7 +34,7 @@
 // services/Jobs/locationService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1/location';
+const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/location';
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {

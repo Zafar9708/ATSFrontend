@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Added useNavigate
 import {
   Typography,
   Grid,
@@ -10,8 +11,10 @@ import {
   Paper,
   Stack,
   IconButton,
+  Button,
+  Dialog, // Added Button component
 } from "@mui/material";
-import { ViewModule, ViewList } from "@mui/icons-material";
+import { ViewModule, ViewList, ArrowBack } from "@mui/icons-material"; // Added ArrowBack icon
 // import jobService from "../../services/jobService";
 import { getJobById } from "../../services/Jobs/jobsService";
 
@@ -48,6 +51,7 @@ const InfoItem = ({ label, value }) => (
 
 const JobInfo = () => {
   const { id: jobId } = useParams();
+  const navigate = useNavigate(); // Initialize navigate function
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -79,6 +83,14 @@ const JobInfo = () => {
     setView(newView);
   };
 
+  const handleBack = () => {
+    navigate(-1); // Go back one step in history
+  };
+
+  const handleVendor=()=>{
+
+  }
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={6}>
@@ -89,17 +101,38 @@ const JobInfo = () => {
 
   if (error) {
     return (
-      <Typography align="center" mt={6} color="error">
-        {error}
-      </Typography>
+      <Box p={2}>
+        <Button 
+          startIcon={<ArrowBack />} 
+          onClick={handleBack}
+          sx={{ mb: 2 }}
+        >
+          Back
+        </Button>
+        <Typography align="center" mt={6} color="error">
+          {error}
+        </Typography>
+      </Box>
+      
+      
+      
     );
   }
 
   if (!job) {
     return (
-      <Typography align="center" mt={6} color="error">
-        Job not found.
-      </Typography>
+      <Box p={2}>
+        <Button 
+          startIcon={<ArrowBack />} 
+          onClick={handleBack}
+          sx={{ mb: 2 }}
+        >
+          Back
+        </Button>
+        <Typography align="center" mt={6} color="error">
+          Job not found.
+        </Typography>
+      </Box>
     );
   }
 
@@ -115,6 +148,24 @@ const JobInfo = () => {
 
   return (
     <Box p={2} maxWidth="full" mx="auto">
+      {/* Back Button */}
+      <Button 
+        startIcon={<ArrowBack />} 
+        onClick={handleBack}
+        sx={{ mb: 2 }}
+      >
+        Back
+      </Button>
+      {/* <Box display="flex" justifyContent="flex-end" sx={{mb:4}}>
+        <Button variant="outlined" onClick={handleVendor}>
+          Vendors
+        </Button>
+      </Box> */}
+
+      <Dialog>
+        
+      </Dialog>
+      
       <Paper elevation={3} sx={{ borderRadius: 4, p: 4 }}>
         <Stack spacing={3}>
           {/* Main Heading */}

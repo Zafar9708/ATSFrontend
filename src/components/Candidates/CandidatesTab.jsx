@@ -54,6 +54,8 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import { useTheme } from '@mui/material/styles';
 import BulkUploadDialog from "./BulkUploadDialog"; 
 import CloseIcon from '@mui/icons-material/Close';
+import {  ArrowBack } from "@mui/icons-material"; // Added ArrowBack icon
+
 
 import AddCandidateForm from "./AddCandidateForm";
 import ScheduleOfflineInterviewForm from "../../pages/Interview/ScheduleOfflineInterviewForm";
@@ -660,6 +662,10 @@ const CandidatesTab = () => {
         }
     };
 
+    const handleBack = () => {
+    navigate(-1); // Go back one step in history
+  };
+
     const handleStageCardClick = (stage) => {
         if (stage === 'sourced') {
             setFilters({
@@ -700,7 +706,7 @@ const CandidatesTab = () => {
     }
 
     return (
-        <Box sx={{ p: 1,mt:3 }}>
+        <Box sx={{ p: 1,mt:0 }}>
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={6000}
@@ -711,9 +717,18 @@ const CandidatesTab = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+             <Button 
+        startIcon={<ArrowBack />} 
+        onClick={handleBack}
+        sx={{ mb:0 }}
+      >
+        Back
+      </Button>
 
             {/* Header */}
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 ,  width: "100%"}}>
+
+                
                 <Typography variant="h5" sx={{ fontWeight: 600 }}>
                     All Candidates
                 </Typography>

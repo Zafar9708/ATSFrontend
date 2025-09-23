@@ -6,6 +6,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import HelpIcon from '@mui/icons-material/Help';
+import BusinessIcon from '@mui/icons-material/Business'; // for vendors/companies
 import FeedbackIcon from '@mui/icons-material/Feedback';
 import WorkIcon from '@mui/icons-material/Work';
 import TaskIcon from '@mui/icons-material/Task';
@@ -82,12 +83,14 @@ const Sidebar = () => {
           { icon: <WorkIcon />, text: 'Jobs', path: '/jobs' },
           { icon: <GroupIcon />, text: 'Candidates', path: '/all/candidates' },
           { icon: <TodayIcon />, text: 'Interviews', path: '/total-interviews' },
-          { icon: <NotificationsIcon />, text: 'Notifications', path: '/dashboard/notifications' },
+          { icon: <BusinessIcon />, text: 'Vendors', path: '/total-vendors' },
+
+          { icon: <NotificationsIcon />, text: 'Notifications', path: '/notifications' },
           { icon: <BarChartIcon />, text: 'Reports', path: '/dashboard/reports' },
           { icon: <TaskIcon />, text: 'Tasks', path: '/tasks' },
           { icon: <SettingsIcon />, text: 'Settings', path: '/dashboard/settings' },
           { icon: <HelpIcon />, text: 'Help', path: '/dashboard/help' },
-          { icon: <FeedbackIcon />, text: 'Feedback', path: '/dashboard/feedback' },
+          // { icon: <FeedbackIcon />, text: 'Feedback', path: '/dashboard/feedback' },
         ].map((item, index) => {
           const roleBasedPath = getRoleBasedPath(item.path);
           const isActive =

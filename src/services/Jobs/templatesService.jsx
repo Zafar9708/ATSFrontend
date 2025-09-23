@@ -1,6 +1,6 @@
 // import axios from 'axios';
 
-// const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1/templates';
+// const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/templates';
 
 // export const fetchJobTemplates = async () => {
 //     try {
@@ -15,7 +15,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1/templates';
+const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/templates';
 
 export const fetchJobTemplates = async () => {
     try {

@@ -39,7 +39,7 @@
 // } from "@mui/icons-material";
 // import axios from "axios";
 
-// // const API_BASE = "https://93de38340e46.ngrok-free.app/api/v1/offline/interviews";
+// // const API_BASE = "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews";
 
 // const EmailTemplateTab = ({
 //     candidate,
@@ -262,7 +262,7 @@
 //                     const fetchTimezones = async () => {
 //                         try {
 //                             const token=localStorage.getItem('token')
-//                             const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/interviews/timezones",{
+//                             const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/timezones",{
 //                                 headers:{
 //                                     Authorization:`Bearer ${token}`
 //                                 }
@@ -277,7 +277,7 @@
 //                     const fetchDurations = async () => {
 //                         try {
 //                             const token=localStorage.getItem('token')
-//                             const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/interviews/durations",{
+//                             const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/durations",{
 //                                 headers:{
 //                                     Authorization:`Bearer ${token}`
 //                                 }
@@ -291,7 +291,7 @@
 
 //                     const fetchInterviewers = async () => {
 //                         try {
-//                             const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/interviewers");
+//                             const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviewers");
 //                             return res.data;
 //                         } catch (error) {
 //                             console.error("Error fetching interviewers:", error);
@@ -301,7 +301,7 @@
 
 //                     const fetchTemplates = async () => {
 //                         try {
-//                             const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/email-templates");
+//                             const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/email-templates");
 //                             return res.data;
 //                         } catch (error) {
 //                             console.error("Error fetching templates:", error);
@@ -313,7 +313,7 @@
 
 //                         try {
 //                             const token=localStorage.getItem('token')
-//                             const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/offline/interviews/utils/rounds",{
+//                             const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews/utils/rounds",{
 //                                 headers:{
 //                                     Authorization:`Bearer ${token}`
 //                                 }
@@ -386,7 +386,7 @@
 //         try {
 //             setLoading(true);
 //             const token=localStorage.getItem('token')
-//             const response = await axios.post("https://93de38340e46.ngrok-free.app/api/v1/interviewers",{
+//             const response = await axios.post("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviewers",{
 //                 headers:{
 //                     Authorization:`Bearer ${token}`
 //                 }
@@ -479,7 +479,7 @@
 
 //             console.log("Submitting interview data:", JSON.stringify(requestData, null, 2));
 //             const token=localStorage.getItem('token')
-//             const response = await axios.post("https://93de38340e46.ngrok-free.app/api/v1/offline/interviews/", requestData, {
+//             const response = await axios.post("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews/", requestData, {
 //                 headers: {
 //                     Authorization:`Bearer ${token}`,
 //                     'Content-Type': 'application/json'
@@ -1194,7 +1194,7 @@ const ScheduleOfflineInterviewForm = ({ open, onClose, candidate, user }) => {
                     const fetchTimezones = async () => {
                         try {
                             const token = localStorage.getItem('token');
-                            const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/interviews/timezones", {
+                            const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/timezones", {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'ngrok-skip-browser-warning': 'true'
@@ -1217,7 +1217,7 @@ const ScheduleOfflineInterviewForm = ({ open, onClose, candidate, user }) => {
                     const fetchDurations = async () => {
                         try {
                             const token = localStorage.getItem('token');
-                            const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/interviews/durations", {
+                            const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/durations", {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'ngrok-skip-browser-warning': 'true'
@@ -1240,7 +1240,7 @@ const ScheduleOfflineInterviewForm = ({ open, onClose, candidate, user }) => {
                     const fetchInterviewers = async () => {
                         try {
                             const token = localStorage.getItem('token');
-                            const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/interviewers", {
+                            const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviewers", {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'ngrok-skip-browser-warning': 'true'
@@ -1258,7 +1258,7 @@ const ScheduleOfflineInterviewForm = ({ open, onClose, candidate, user }) => {
                     const fetchTemplates = async () => {
                         try {
                             const token = localStorage.getItem('token');
-                            const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/email-templates", {
+                            const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/email-templates", {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'ngrok-skip-browser-warning': 'true'
@@ -1276,7 +1276,7 @@ const ScheduleOfflineInterviewForm = ({ open, onClose, candidate, user }) => {
                     const fetchRounds = async () => {
                         try {
                             const token = localStorage.getItem('token');
-                            const res = await axios.get("https://93de38340e46.ngrok-free.app/api/v1/offline/interviews/utils/rounds", {
+                            const res = await axios.get("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews/utils/rounds", {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'ngrok-skip-browser-warning': 'true'
@@ -1356,7 +1356,7 @@ const ScheduleOfflineInterviewForm = ({ open, onClose, candidate, user }) => {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const response = await axios.post("https://93de38340e46.ngrok-free.app/api/v1/interviewers", newInterviewer, {
+            const response = await axios.post("https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviewers", newInterviewer, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                    'ngrok-skip-browser-warning': 'true'
@@ -1429,7 +1429,7 @@ const ScheduleOfflineInterviewForm = ({ open, onClose, candidate, user }) => {
 
             const token = localStorage.getItem('token');
             const response = await axios.post(
-                "https://93de38340e46.ngrok-free.app/api/v1/offline/interviews/",
+                "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews/",
                 requestData,
                 {
                     headers: {

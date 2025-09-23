@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1/job';
+const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/job';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
@@ -41,7 +41,7 @@ export const getJobById = async (jobId) => {
 
 export const fetchNotesByJob = async (jobId) => {
   try {
-    const response = await axios.get(`https://93de38340e46.ngrok-free.app/api/v1/notes/${jobId}`,{
+    const response = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/notes/${jobId}`,{
       headers:{
            'ngrok-skip-browser-warning': 'true'
       }
@@ -57,7 +57,7 @@ export const fetchNotesByJob = async (jobId) => {
 export const createNote = async (jobId, content) => {
   try {
     const response = await axios.post(
-      `https://93de38340e46.ngrok-free.app/api/v1/notes/${jobId}`,{
+      `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/notes/${jobId}`,{
         headers:{
                 'ngrok-skip-browser-warning': 'true'
         }
@@ -75,7 +75,7 @@ export const createNote = async (jobId, content) => {
 export const updateNote = async (noteId, content) => {
   try {
     const response = await axios.put(
-      `https://93de38340e46.ngrok-free.app/api/v1/notes/${noteId}`,{
+      `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/notes/${noteId}`,{
         headers:{
                 'ngrok-skip-browser-warning': 'true'
         }
@@ -93,7 +93,7 @@ export const updateNote = async (noteId, content) => {
 export const deleteNote = async (noteId) => {
   try {
     const response = await axios.delete(
-      `https://93de38340e46.ngrok-free.app/api/v1/notes/${noteId}`,
+      `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/notes/${noteId}`,
       {
         headers:{
                 'ngrok-skip-browser-warning': 'true'

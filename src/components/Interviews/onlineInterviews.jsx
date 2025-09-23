@@ -80,7 +80,7 @@
 //     const fetchInterviews = async () => {
 //       try {
 //         const token=localStorage.getItem("token")
-//         const response = await axios.get('https://93de38340e46.ngrok-free.app/api/v1/interviews/interviews/schedule',{
+//         const response = await axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/interviews/schedule',{
 //             headers:{
 //                 Authorization:`Bearer ${token}`
 //             }
@@ -635,7 +635,7 @@ const OnlineInterviews = ({ searchTerm, statusFilter, selectedDate }) => {
         const token = localStorage.getItem("token");
         console.log('Token from localStorage:', token ? 'Found' : 'Not found');
         
-        const response = await axios.get('https://93de38340e46.ngrok-free.app/api/v1/interviews/interviews/schedule', {
+        const response = await axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/interviews/schedule', {
           headers: {
             Authorization: `Bearer ${token}`,
             'ngrok-skip-browser-warning': 'true'

@@ -1,6 +1,6 @@
 // import axios from "axios";
 
-// const API_BASE_URL = "https://93de38340e46.ngrok-free.app/api/v1";
+// const API_BASE_URL = "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1";
 
 // const getAuthHeader = () => {
 //   const token = localStorage.getItem("token");
@@ -153,7 +153,7 @@
 
 import axios from "axios";
 
-const API_BASE_URL = "https://93de38340e46.ngrok-free.app/api/v1";
+const API_BASE_URL = "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1";
 
 const getAuthHeader = () => {
   const token = localStorage.getItem("token");
@@ -290,7 +290,7 @@ export const analyzeResume = async (file, jobId = null) => {
     }
     
     const response = await axios.post(
-      `${API_BASE_URL}/candidates/resumes/analyze`,
+      "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/resumes/analyze",
       formData,
       {
         ...getAuthHeader(),

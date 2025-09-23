@@ -1,3 +1,5 @@
+
+
 // import React, { useState, useEffect } from 'react';
 // import {
 //   Box,
@@ -117,7 +119,7 @@
 
 //   const filteredJobs = jobs.filter(job => {
 //     const matchesSearch = job.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || 
-//                          job.jobDesc.toLowerCase().includes(searchTerm.toLowerCase());
+//     job.jobDesc.toLowerCase().includes(searchTerm.toLowerCase());
 //     const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
 //     return matchesSearch && matchesStatus;
 //   });
@@ -201,11 +203,10 @@
 //   }
 
 //   return (
-//     <Box sx={{ 
-//       p: 5, 
+//     <Box sx={{
 //       height: '100%', 
 //       minHeight: '100vh',
-   
+//       marginRight:'40px',
 //     //   backgroundColor: theme.palette.background.default,
 //       backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))'
 //     }}>
@@ -217,7 +218,7 @@
 //       )}
 
 //       {/* Header */}
-//       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+//       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} mr={6}>
 //         <Box>
 //           <Typography variant="h4" fontWeight="700" color="text.primary" sx={{ mb: 0.5 }}>
 //             Recruiter Dashboard
@@ -277,15 +278,14 @@
 //         </Box>
 //       </Box>
 
-//       <Grid container spacing={3}>
+//       <Grid container spacing={3}  width={'100%'} >
 //         {/* Left Column - 70% width */}
-//         <Grid item xs={12} md={8}>
+//         <Grid item xs={12} md={8}  width={'100%'}>
 //           {/* Stats Cards */}
 //           <Grid container spacing={3} sx={{ mb: 3 }}>
-//             <Grid item xs={12} sm={4}>
+//             <Grid item xs={12} sm={4}  width={'31%'} >
 //               <Card sx={{ 
 //                 p: 2, 
-//                 height: '100%', 
 //                 borderRadius: 3,
 //                 background: `linear-gradient(195deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
 //                 color: 'white',
@@ -308,14 +308,15 @@
 //                   <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{totalJobs}</Typography>
 //                   <Box display="flex" alignItems="center">
 //                     <TrendingUpIcon sx={{ mr: 1 }} />
-//                     <Typography variant="body2">+15% from last month</Typography>
+//                     <Typography variant="body2">0</Typography>
 //                   </Box>
 //                 </Box>
 //               </Card>
 //             </Grid>
-//             <Grid item xs={12} sm={4}>
+//             <Grid item xs={12} sm={4}  width={'31%'}>
 //               <Card sx={{ 
 //                 p: 2, 
+
 //                 height: '100%', 
 //                 borderRadius: 3,
 //                 background: `linear-gradient(195deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
@@ -339,12 +340,14 @@
 //                   <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{activeJobs}</Typography>
 //                   <Box display="flex" alignItems="center">
 //                     <ActiveIcon sx={{ mr: 1 }} />
-//                     <Typography variant="body2">{Math.round((activeJobs/totalJobs)*100)}% of total</Typography>
+//                     {/* <Typography variant="body2">{Math.round((activeJobs/totalJobs)*100)}% of total</Typography> */}
+//                                         <Typography variant="body2">0</Typography>
+
 //                   </Box>
 //                 </Box>
 //               </Card>
 //             </Grid>
-//             <Grid item xs={12} sm={4}>
+//             <Grid item xs={12} sm={4}  width={'31%'}>
 //               <Card sx={{ 
 //                 p: 2, 
 //                 height: '100%', 
@@ -370,7 +373,9 @@
 //                   <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{closedJobs}</Typography>
 //                   <Box display="flex" alignItems="center">
 //                     <InactiveIcon sx={{ mr: 1 }} />
-//                     <Typography variant="body2">{Math.round((closedJobs/totalJobs)*100)}% of total</Typography>
+//                     {/* <Typography variant="body2">{Math.round((closedJobs/totalJobs)*100)}% of total</Typography> */}
+//                                         <Typography variant="body2">0</Typography>
+
 //                   </Box>
 //                 </Box>
 //               </Card>
@@ -381,13 +386,14 @@
 //           <Card sx={{ 
 //             p: 2, 
 //             mb: 3, 
+//             mr:5,
 //             borderRadius: 3,
 //             boxShadow: theme.shadows[1],
 //             backgroundColor: theme.palette.background.paper,
 //             border: `1px solid ${theme.palette.divider}`
 //           }}>
 //             <Grid container spacing={2} alignItems="center">
-//               <Grid item xs={12} md={8}>
+//               <Grid item xs={12} md={8} width={'65%'}>
 //                 <TextField
 //                   fullWidth
 //                   placeholder="Search jobs by title or description..."
@@ -408,7 +414,7 @@
 //                   }}
 //                 />
 //               </Grid>
-//               <Grid item xs={12} md={4}>
+//               <Grid item xs={12} md={4} width={'30%'}>
 //                 <TextField
 //                   select
 //                   fullWidth
@@ -439,6 +445,7 @@
 //           {/* Jobs Table */}
 //           <Card sx={{ 
 //             p: 0, 
+//             mr:5,
 //             borderRadius: 3,
 //             boxShadow: theme.shadows[1],
 //             backgroundColor: theme.palette.background.paper,
@@ -565,10 +572,11 @@
 //         </Grid>
 
 //         {/* Right Column - 30% width */}
-//         <Grid item xs={12} md={4}>
+//         <Grid item xs={12} md={4} mr={3} display={'flex'} gap={'35px'} flexDirection={'row'} width={'100%'}>
 //           {/* Job Status Distribution */}
 //           <Card sx={{ 
-//             p: 3, 
+//             p: 3,
+//             width:'48%', 
 //             mb: 3,
 //             height: 320,
 //             borderRadius: 3,
@@ -609,7 +617,8 @@
 
 //           {/* Job Type Distribution */}
 //           <Card sx={{ 
-//             p: 3, 
+//             width:'48%',
+//             p: 1, 
 //             mb: 3,
 //             height: 320,
 //             borderRadius: 3,
@@ -648,18 +657,20 @@
 //               </ResponsiveContainer>
 //             </Box>
 //           </Card>
-
+// </Grid>
 //           {/* Quick Actions */}
 //           <Card sx={{ 
 //             p: 3,
+//             mr:4,
+//             width:'100%',
 //             borderRadius: 3,
 //             boxShadow: theme.shadows[1],
 //             backgroundColor: theme.palette.background.paper,
 //             border: `1px solid ${theme.palette.divider}`
 //           }}>
 //             <Typography variant="h6" fontWeight="600" mb={2}>Quick Actions</Typography>
-//             <Grid container spacing={2}>
-//               <Grid item xs={12}>
+//             <Grid container spacing={2} >
+//               <Grid item xs={12} width={'60%'} ml={'15px'}>
 //                 <Button
 //                   fullWidth
 //                   variant="contained"
@@ -679,7 +690,7 @@
 //                   Post New Job
 //                 </Button>
 //               </Grid>
-//               <Grid item xs={12}>
+//               <Grid item xs={12} width={'30%'}>
 //                 <Button
 //                   fullWidth
 //                   variant="outlined"
@@ -701,7 +712,7 @@
 //             </Grid>
 //           </Card>
 //         </Grid>
-//       </Grid>
+    
 
 //       {/* Add Job Dialog */}
 //       <Dialog
@@ -934,9 +945,9 @@
 //   );
 // };
 
-// export default RecruiterDashboard;
+// export default RecruiterDashboard; 
 
-//--shikha code 
+
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -1015,18 +1026,43 @@ const RecruiterDashboard = () => {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  // Sample data for charts
-  const jobStatusData = [
-    { name: 'Active', value: 75 },
-    { name: 'Closed', value: 25 },
-  ];
+  // Calculate job status data based on real API response
+  const getJobStatusData = () => {
+    if (!jobs || jobs.length === 0) return [];
+    
+    const statusCounts = {};
+    
+    // Count jobs by status
+    jobs.forEach(job => {
+      const status = job.status || 'Unknown';
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+    
+    // Convert to array format for the chart
+    return Object.entries(statusCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+  };
 
-  const jobTypeData = [
-    { name: 'Full-time', value: 60 },
-    { name: 'Part-time', value: 20 },
-    { name: 'Contract', value: 15 },
-    { name: 'Remote', value: 5 },
-  ];
+  // Calculate job type data based on real API response
+  const getJobTypeData = () => {
+    if (!jobs || jobs.length === 0) return [];
+    
+    const typeCounts = {};
+    
+    // Count jobs by type
+    jobs.forEach(job => {
+      const type = job.jobFormId?.jobType || 'Unknown';
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
+    });
+    
+    // Convert to array format for the chart
+    return Object.entries(typeCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+  };
 
   const COLORS = [theme.palette.success.main, theme.palette.error.main, theme.palette.warning.main, theme.palette.info.main];
 
@@ -1145,7 +1181,6 @@ const RecruiterDashboard = () => {
       height: '100%', 
       minHeight: '100vh',
       marginRight:'40px',
-    //   backgroundColor: theme.palette.background.default,
       backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))'
     }}>
       {/* Error Alert */}
@@ -1216,12 +1251,12 @@ const RecruiterDashboard = () => {
         </Box>
       </Box>
 
-      <Grid container spacing={3}  width={'100%'} >
+      <Grid container spacing={3} width={'100%'} >
         {/* Left Column - 70% width */}
-        <Grid item xs={12} md={8}  width={'100%'}>
+        <Grid item xs={12} md={8} width={'100%'}>
           {/* Stats Cards */}
           <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={4}  width={'31%'} >
+            <Grid item xs={12} sm={4} width={'31%'} >
               <Card sx={{ 
                 p: 2, 
                 borderRadius: 3,
@@ -1251,10 +1286,9 @@ const RecruiterDashboard = () => {
                 </Box>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={4}  width={'31%'}>
+            <Grid item xs={12} sm={4} width={'31%'}>
               <Card sx={{ 
                 p: 2, 
-
                 height: '100%', 
                 borderRadius: 3,
                 background: `linear-gradient(195deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
@@ -1278,14 +1312,12 @@ const RecruiterDashboard = () => {
                   <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{activeJobs}</Typography>
                   <Box display="flex" alignItems="center">
                     <ActiveIcon sx={{ mr: 1 }} />
-                    {/* <Typography variant="body2">{Math.round((activeJobs/totalJobs)*100)}% of total</Typography> */}
-                                        <Typography variant="body2">0</Typography>
-
+                    <Typography variant="body2">{totalJobs > 0 ? Math.round((activeJobs/totalJobs)*100) : 0}% of total</Typography>
                   </Box>
                 </Box>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={4}  width={'31%'}>
+            <Grid item xs={12} sm={4} width={'31%'}>
               <Card sx={{ 
                 p: 2, 
                 height: '100%', 
@@ -1311,9 +1343,7 @@ const RecruiterDashboard = () => {
                   <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{closedJobs}</Typography>
                   <Box display="flex" alignItems="center">
                     <InactiveIcon sx={{ mr: 1 }} />
-                    {/* <Typography variant="body2">{Math.round((closedJobs/totalJobs)*100)}% of total</Typography> */}
-                                        <Typography variant="body2">0</Typography>
-
+                    <Typography variant="body2">{totalJobs > 0 ? Math.round((closedJobs/totalJobs)*100) : 0}% of total</Typography>
                   </Box>
                 </Box>
               </Card>
@@ -1405,7 +1435,7 @@ const RecruiterDashboard = () => {
                   Showing {filteredJobs.length} of {jobs.length} jobs
                 </Typography>
                 <Chip 
-                  label={`${Math.round((filteredJobs.length/jobs.length)*100)}%`} 
+                  label={`${jobs.length > 0 ? Math.round((filteredJobs.length/jobs.length)*100) : 0}%`} 
                   size="small" 
                   sx={{ 
                     backgroundColor: theme.palette.action.selected,
@@ -1524,39 +1554,47 @@ const RecruiterDashboard = () => {
           }}>
             <Typography variant="h6" fontWeight="600" mb={2}>Job Status Distribution</Typography>
             <Box height={250}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={jobStatusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {jobStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip 
-                    contentStyle={{
-                      borderRadius: 8,
-                      backgroundColor: theme.palette.background.paper,
-                      border: `1px solid ${theme.palette.divider}`,
-                      boxShadow: theme.shadows[2]
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              {getJobStatusData().length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={getJobStatusData()}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {getJobStatusData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip 
+                      contentStyle={{
+                        borderRadius: 8,
+                        backgroundColor: theme.palette.background.paper,
+                        border: `1px solid ${theme.palette.divider}`,
+                        boxShadow: theme.shadows[2]
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                  <Typography variant="body2" color="text.secondary">
+                    No job data available
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </Card>
 
           {/* Job Type Distribution */}
           <Card sx={{ 
             width:'48%',
-            p: 1, 
+            p: 3, 
             mb: 3,
             height: 320,
             borderRadius: 3,
@@ -1566,91 +1604,99 @@ const RecruiterDashboard = () => {
           }}>
             <Typography variant="h6" fontWeight="600" mb={2}>Job Type Distribution</Typography>
             <Box height={250}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={jobTypeData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                    {jobTypeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <ChartTooltip 
-                    contentStyle={{
-                      borderRadius: 8,
-                      backgroundColor: theme.palette.background.paper,
-                      border: `1px solid ${theme.palette.divider}`,
-                      boxShadow: theme.shadows[2]
-                    }}
-                  />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              {getJobTypeData().length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={getJobTypeData()}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {getJobTypeData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip 
+                      contentStyle={{
+                        borderRadius: 8,
+                        backgroundColor: theme.palette.background.paper,
+                        border: `1px solid ${theme.palette.divider}`,
+                        boxShadow: theme.shadows[2]
+                      }}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                  <Typography variant="body2" color="text.secondary">
+                    No job data available
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </Card>
-</Grid>
-          {/* Quick Actions */}
-          <Card sx={{ 
-            p: 3,
-            mr:4,
-            width:'100%',
-            borderRadius: 3,
-            boxShadow: theme.shadows[1],
-            backgroundColor: theme.palette.background.paper,
-            border: `1px solid ${theme.palette.divider}`
-          }}>
-            <Typography variant="h6" fontWeight="600" mb={2}>Quick Actions</Typography>
-            <Grid container spacing={2} >
-              <Grid item xs={12} width={'60%'} ml={'15px'}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddDialogOpen}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    backgroundColor: theme.palette.primary.main,
-                    '&:hover': {
-                      backgroundColor: theme.palette.primary.dark,
-                      boxShadow: theme.shadows[2]
-                    },
-                    boxShadow: theme.shadows[1]
-                  }}
-                >
-                  Post New Job
-                </Button>
-              </Grid>
-              <Grid item xs={12} width={'30%'}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<PeopleIcon />}
-                  onClick={handleViewJobsPage}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    borderColor: theme.palette.divider,
-                    '&:hover': {
-                      backgroundColor: theme.palette.action.hover,
-                      borderColor: theme.palette.primary.main
-                    }
-                  }}
-                >
-                  View Jobs Page
-                </Button>
-              </Grid>
-            </Grid>
-          </Card>
         </Grid>
-    
+
+        {/* Quick Actions */}
+        <Card sx={{ 
+          p: 3,
+          mr:4,
+          width:'100%',
+          borderRadius: 3,
+          boxShadow: theme.shadows[1],
+          backgroundColor: theme.palette.background.paper,
+          border: `1px solid ${theme.palette.divider}`
+        }}>
+          <Typography variant="h6" fontWeight="600" mb={2}>Quick Actions</Typography>
+          <Grid container spacing={2} >
+            <Grid item xs={12} width={'60%'} ml={'15px'}>
+              <Button
+                fullWidth
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddDialogOpen}
+                sx={{
+                  py: 1.5,
+                  borderRadius: 2,
+                  backgroundColor: theme.palette.primary.main,
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark,
+                    boxShadow: theme.shadows[2]
+                  },
+                  boxShadow: theme.shadows[1]
+                }}
+              >
+                Post New Job
+              </Button>
+            </Grid>
+            <Grid item xs={12} width={'30%'}>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<PeopleIcon />}
+                onClick={handleViewJobsPage}
+                sx={{
+                  py: 1.5,
+                  borderRadius: 2,
+                  borderColor: theme.palette.divider,
+                  '&:hover': {
+                    backgroundColor: theme.palette.action.hover,
+                    borderColor: theme.palette.primary.main
+                  }
+                }}
+              >
+                View Jobs Page
+              </Button>
+            </Grid>
+          </Grid>
+        </Card>
+      </Grid>
 
       {/* Add Job Dialog */}
       <Dialog
@@ -1883,4 +1929,4 @@ const RecruiterDashboard = () => {
   );
 };
 
-export default RecruiterDashboard; 
+export default RecruiterDashboard;

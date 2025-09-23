@@ -122,7 +122,7 @@
 //     await fetchNotes();
 
 //     if (jobId) {
-//       const jobResponse = await axios.get(`https://93de38340e46.ngrok-free.app/api/v1/job/${jobId}`, {
+//       const jobResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/job/${jobId}`, {
 //         headers: {
 //           'Authorization': `Bearer ${token}`
 //         }
@@ -1122,7 +1122,7 @@
 //         if (jobId) {
 //           // Fetch job details
 //           try {
-//             const jobResponse = await axios.get(`https://93de38340e46.ngrok-free.app/api/v1/job/${jobId}`, {
+//             const jobResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/job/${jobId}`, {
 //               headers: {
 //                 'Authorization': `Bearer ${token}`
 //               }
@@ -1134,7 +1134,7 @@
 
 //           // Fetch total candidates for this job
 //           try {
-//             const candidatesResponse = await axios.get(`https://93de38340e46.ngrok-free.app/api/v1/candidates/job/${jobId}`, {
+//             const candidatesResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/job/${jobId}`, {
 //               headers: {
 //                 'Authorization': `Bearer ${token}`
 //               }
@@ -1172,17 +1172,17 @@
 //         try {
 //           const token= localStorage.getItem('token');
 //           const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-//             axios.get('https://93de38340e46.ngrok-free.app/api/v1/interviews/upcoming',{
+//             axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/upcoming',{
 //               headers:{
 //                 Authorization:`Bearer ${token}`
 //               }
 //             }),
-//             axios.get('https://93de38340e46.ngrok-free.app/api/v1/offline/interviews/upcoming',{
+//             axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews/upcoming',{
 //               headers:{
 //                 Authorization:`Bearer ${token}`
 //               }
 //             }),
-//             axios.get('https://93de38340e46.ngrok-free.app/api/v1/interviews/upcoming',{
+//             axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/upcoming',{
 //               headers: {
 //                 Authorization: `Bearer ${token}`
 //               }
@@ -2035,6 +2035,8 @@ import {
   MeetingRoom as OfflineIcon
 } from "@mui/icons-material";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import {  ArrowBack } from "@mui/icons-material"; // Added ArrowBack icon
+
 import MainLayout from "../../layout/MainLayout";
 
 // Custom styled components
@@ -2091,6 +2093,11 @@ const Dashboard = () => {
   const theme = useTheme();
   const navigate = useNavigate();
 
+
+
+    const handleBack = () => {
+    navigate(-1); // Go back one step in history
+  };
   // Fetch notes from API
   const fetchNotes = async () => {
     try {
@@ -2118,7 +2125,7 @@ const Dashboard = () => {
         if (jobId) {
           // Fetch job details
           try {
-            const jobResponse = await axios.get(`https://93de38340e46.ngrok-free.app/api/v1/job/${jobId}`, {
+            const jobResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/job/${jobId}`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                  'ngrok-skip-browser-warning': 'true'
@@ -2132,7 +2139,7 @@ const Dashboard = () => {
 
           // Fetch total candidates for this job
           try {
-            const candidatesResponse = await axios.get(`https://93de38340e46.ngrok-free.app/api/v1/candidates/job/${jobId}`, {
+            const candidatesResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/job/${jobId}`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                  'ngrok-skip-browser-warning': 'true'
@@ -2171,14 +2178,14 @@ const Dashboard = () => {
         try {
           const token = localStorage.getItem('token');
           const [onlineInterviewsRes, offlineInterviewsRes] = await Promise.all([
-            axios.get('https://93de38340e46.ngrok-free.app/api/v1/interviews/upcoming', {
+            axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/upcoming', {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'ngrok-skip-browser-warning': 'true'
 
               }
             }),
-            axios.get('https://93de38340e46.ngrok-free.app/api/v1/offline/interviews/upcoming', {
+            axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews/upcoming', {
               headers: {
                 Authorization: `Bearer ${token}`,
                 'ngrok-skip-browser-warning': 'true'
@@ -2353,10 +2360,12 @@ const Dashboard = () => {
       }}>
         <CircularProgress size={60} thickness={4} />
       </Box>
+      
     );
   }
 
   return (
+    
     <Box
       sx={{
         display: "flex",
@@ -2367,6 +2376,7 @@ const Dashboard = () => {
         overflow: 'hidden'
       }}
     >
+       
       {/* Main Content */}
       <Box sx={{
         display: "flex",
@@ -2375,7 +2385,11 @@ const Dashboard = () => {
         p: 3,
         flex: 1,
         overflow: 'auto'
-      }}>
+      }} 
+      
+      >
+        
+        
         {/* Left Content - 70% */}
         <Box sx={{
           flex: { xs: 1, lg: 7 },
@@ -2384,7 +2398,9 @@ const Dashboard = () => {
           gap: 3
         }}>
           {/* Header */}
+      
           <Box>
+            
             <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
               {job?.jobTitle || "Job Title"}
             </Typography>
@@ -2394,6 +2410,7 @@ const Dashboard = () => {
               </Alert>
             )}
           </Box>
+          
 
           {/* Stats Grid */}
           <Box

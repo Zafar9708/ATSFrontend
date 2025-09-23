@@ -1,5 +1,6 @@
 
 
+
 // import React, { useState, useEffect } from "react";
 // import {
 //     Box,
@@ -36,6 +37,7 @@
 //     Divider,
 //     Snackbar,
 //     Alert,
+//     Tooltip,
 // } from "@mui/material";
 // import {
 //     ViewModule as CardViewIcon,
@@ -47,6 +49,7 @@
 //     NoteAdd as RemarksIcon,
 //     Email as EmailIcon,
 //     Assessment as AnalysisIcon,
+//     CloudUpload as UploadIcon,
 // } from "@mui/icons-material";
 // import { useNavigate } from "react-router-dom";
 // import { useTheme } from '@mui/material/styles';
@@ -56,6 +59,7 @@
 // import CandidateResumeAnalysis from "../../pages/Candidate/CandidateResumeAnalysis";
 // import candidateService from "../../services/Candidates/candidateService";
 // import stageService from "../../services/Candidates/stageService";
+// import BulkUploadDialog from "../../components/Candidates/BulkUploadDialog";
 // // import ErrorBoundary from "../ErrorBoundary";
 // import ErrorBoundary from "../../components/ErrorBoundary";
 
@@ -97,6 +101,7 @@
 //     const [analysisData, setAnalysisData] = useState(null);
 //     const [analysisLoading, setAnalysisLoading] = useState(false);
 //     const [rejectionTypes, setRejectionTypes] = useState([]);
+//     const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
 
 //     // Filter state
 //     const [filters, setFilters] = useState({
@@ -187,6 +192,21 @@
 //         }
 
 //         return 'Sourced';
+//     };
+
+//     // Helper function to format skills
+//     const formatSkills = (skills) => {
+//         if (!skills) return 'No skills listed';
+        
+//         if (Array.isArray(skills)) {
+//             return skills.join(', ');
+//         }
+        
+//         if (typeof skills === 'string') {
+//             return skills;
+//         }
+        
+//         return 'No skills listed';
 //     };
 
 //     // Calculate candidate counts for all stages
@@ -589,13 +609,42 @@
 //         setRejectedFilter('');
 //     };
 
-//     if (loading) {
-//         return (
-//             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-//                 <CircularProgress />
-//             </Box>
-//         );
-//     }
+//     const handleBulkUploadComplete = () => {
+//         // Refresh the candidates list after bulk upload
+//         const fetchData = async () => {
+//             try {
+//                 setLoading(true);
+//                 const candidatesResponse = await candidateService.fetchCandidates();
+                
+//                 let candidatesData = [];
+//                 if (Array.isArray(candidatesResponse)) {
+//                     candidatesData = candidatesResponse;
+//                 } else if (candidatesResponse && Array.isArray(candidatesResponse.candidates)) {
+//                     candidatesData = candidatesResponse.candidates;
+//                 } else if (candidatesResponse && Array.isArray(candidatesResponse.data)) {
+//                     candidatesData = candidatesResponse.data;
+//                 }
+                
+//                 setCandidates(candidatesData);
+//                 showSnackbar("Bulk upload completed successfully!", "success");
+//             } catch (err) {
+//                 console.error("Failed to refresh candidates after bulk upload:", err);
+//                 showSnackbar("Failed to refresh candidates list", "error");
+//             } finally {
+//                 setLoading(false);
+//             }
+//         };
+
+//         fetchData();
+//     };
+
+//     // if (loading) {
+//     //     return (
+//     //         <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+//     //             <CircularProgress />
+//     //         </Box>
+//     //     );
+//     // }
 
 //     if (error) {
 //         return (
@@ -606,7 +655,7 @@
 //     }
 
 //     return (
-//         <Box sx={{ p: 3 }}>
+//         <Box sx={{ p: 1 }}>
 //             <Snackbar
 //                 open={snackbar.open}
 //                 autoHideDuration={6000}
@@ -624,6 +673,14 @@
 //                     All Candidates ({candidates.length})
 //                 </Typography>
 //                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+//                     <Button
+//                         variant="contained"
+//                         startIcon={<UploadIcon />}
+//                         onClick={() => setBulkUploadOpen(true)}
+//                         sx={{ mr: 1 }}
+//                     >
+//                         Bulk Upload
+//                     </Button>
 //                     <ToggleButtonGroup
 //                         value={viewMode}
 //                         exclusive
@@ -710,8 +767,8 @@
 //                     <Typography variant="subtitle1" fontWeight={600} mb={2}>
 //                         Filters
 //                     </Typography>
-//                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-//                         <FormControl size="small" sx={{ minWidth: 180 }}>
+//                     <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+//                         <FormControl size="small" sx={{ minWidth: 200 }}>
 //                             <InputLabel>Source</InputLabel>
 //                             <Select
 //                                 label="Source"
@@ -733,7 +790,7 @@
 //                             </Select>
 //                         </FormControl>
 
-//                         <FormControl size="small" sx={{ minWidth: 180 }}>
+//                         <FormControl size="small" sx={{ minWidth: 200 }}>
 //                             <InputLabel>Experience</InputLabel>
 //                             <Select
 //                                 label="Experience"
@@ -762,7 +819,7 @@
 //                             </Select>
 //                         </FormControl>
 
-//                         <FormControl size="small" sx={{ minWidth: 150 }}>
+//                         <FormControl size="small" sx={{ minWidth: 200 }}>
 //                             <InputLabel>Status</InputLabel>
 //                             <Select
 //                                 label="Status"
@@ -783,7 +840,7 @@
 //                             placeholder="Search candidates..."
 //                             value={filters.searchQuery}
 //                             onChange={handleFilterChange('searchQuery')}
-//                             sx={{ flexGrow: 1, maxWidth: 400 }}
+//                             sx={{ minWidth: 410 }}
 //                             InputProps={{
 //                                 endAdornment: (
 //                                     <IconButton size="small">
@@ -1022,10 +1079,17 @@
 //                 </DialogContent>
 //             </Dialog>
 
+//             {/* Bulk Upload Dialog */}
+//             <BulkUploadDialog
+//                 open={bulkUploadOpen}
+//                 onClose={() => setBulkUploadOpen(false)}
+//                 onUploadComplete={handleBulkUploadComplete}
+//             />
+
 //             {/* Candidate Views */}
 //             {viewMode === "table" ? (
-//                 <TableContainer component={Paper}>
-//                     <Table>
+//                 <TableContainer component={Paper} sx={{ maxWidth: '100%', overflowX: 'auto' }}>
+//                     <Table sx={{ minWidth: 800 }}>
 //                         <TableHead>
 //                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
 //                                 <TableCell padding="checkbox">
@@ -1039,12 +1103,9 @@
 //                                 {[
 //                                     "Name",
 //                                     "Status",
-//                                     "Experience",
-//                                     "Source",
-//                                     "Available to join",
 //                                     "Email",
 //                                     "Phone",
-//                                     "Candidate Owner",
+//                                     "Skills",
 //                                     "Actions"
 //                                 ].map((label, index) => (
 //                                     <TableCell
@@ -1076,7 +1137,19 @@
 //                                         />
 //                                     </TableCell>
 //                                     <TableCell>
-//                                         {`${candidate.firstName || ''} ${candidate.middleName || ''} ${candidate.lastName || ''}`.trim()}
+//                                         <Box>
+//                                             <Typography variant="body2" sx={{ fontWeight: 600 }}>
+//                                                 {`${candidate.firstName || ''} ${candidate.middleName || ''} ${candidate.lastName || ''}`.trim()}
+//                                             </Typography>
+//                                             <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+//                                                 {candidate.experience || '0'} yrs • {candidate.availableToJoin || '0'} days
+//                                             </Typography>
+//                                             <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+//                                                 {typeof candidate.source === 'string'
+//                                                     ? candidate.source
+//                                                     : candidate.source?.name || 'Unknown'}
+//                                             </Typography>
+//                                         </Box>
 //                                     </TableCell>
 //                                     <TableCell>
 //                                         <ErrorBoundary>
@@ -1112,14 +1185,6 @@
 //                                             </Box>
 //                                         </ErrorBoundary>
 //                                     </TableCell>
-//                                     <TableCell>{candidate.experience || '0'} years</TableCell>
-//                                     <ErrorBoundary>
-//                                         <TableCell>
-//                                             {typeof candidate.source === 'string'
-//                                                 ? candidate.source
-//                                                 : candidate.source?.name || 'Unknown'}
-//                                         </TableCell></ErrorBoundary>
-//                                     <TableCell>{candidate.availableToJoin || '0'} days</TableCell>
 //                                     <TableCell>
 //                                         <Box>
 //                                             <div>{candidate.email || 'Not provided'}</div>
@@ -1127,40 +1192,53 @@
 //                                     </TableCell>
 //                                     <TableCell>{candidate.mobile || 'Not provided'}</TableCell>
 //                                     <TableCell>
-//                                         {typeof candidate.owner === 'string'
-//                                             ? candidate.owner
-//                                             : candidate.owner?.email || 'Not assigned'}
+//                                         <Tooltip title={formatSkills(candidate.skills)}>
+//                                             <Typography variant="body2" sx={{ 
+//                                                 maxWidth: 200, 
+//                                                 overflow: 'hidden',
+//                                                 textOverflow: 'ellipsis',
+//                                                 whiteSpace: 'nowrap'
+//                                             }}>
+//                                                 {formatSkills(candidate.skills)}
+//                                             </Typography>
+//                                         </Tooltip>
 //                                     </TableCell>
 //                                     <TableCell onClick={(e) => e.stopPropagation()}>
-
-//                                         <IconButton
-//                                             className="action-button"
-//                                             onClick={(e) => handleInterviewClick(e, candidate._id)}
-//                                         >
-//                                             <InterviewIcon />
-//                                         </IconButton>
-//                                         <IconButton
-//                                             className="action-button"
-//                                             onClick={(e) => handleStageClick(e, candidate._id)}
-//                                         >
-//                                             <StageIcon />
-//                                         </IconButton>
-//                                         <IconButton
-//                                             className="action-button"
-//                                             onClick={(e) => handleRemarksClick(e, candidate._id)}
-//                                         >
-//                                             <MoreIcon />
-//                                         </IconButton>
-//                                         <Button
-//                                             variant="outlined"
-//                                             startIcon={<AnalysisIcon />}
-//                                             onClick={() => handleOpenAnalysis(candidate._id)}
-//                                             disabled={!candidate.resume}
-//                                             size="small"
-//                                             sx={{ mr: 1 }}
-//                                         >
-//                                             View Analysis
-//                                         </Button>
+//                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+//                                             <Button
+//                                                 variant="outlined"
+//                                                 startIcon={<AnalysisIcon />}
+//                                                 onClick={() => handleOpenAnalysis(candidate._id)}
+//                                                 disabled={!candidate.resume}
+//                                                 size="small"
+//                                                 sx={{ mr: 1 }}
+//                                             >
+//                                                 Analysis
+//                                             </Button>
+//                                             <Box sx={{ display: 'flex', gap: 1 }}>
+//                                                 <IconButton
+//                                                     className="action-button"
+//                                                     onClick={(e) => handleInterviewClick(e, candidate._id)}
+//                                                     size="small"
+//                                                 >
+//                                                     <InterviewIcon fontSize="small" />
+//                                                 </IconButton>
+//                                                 <IconButton
+//                                                     className="action-button"
+//                                                     onClick={(e) => handleStageClick(e, candidate._id)}
+//                                                     size="small"
+//                                                 >
+//                                                     <StageIcon fontSize="small" />
+//                                                 </IconButton>
+//                                                 <IconButton
+//                                                     className="action-button"
+//                                                     onClick={(e) => handleRemarksClick(e, candidate._id)}
+//                                                     size="small"
+//                                                 >
+//                                                     <MoreIcon fontSize="small" />
+//                                                 </IconButton>
+//                                             </Box>
+//                                         </Box>
 //                                     </TableCell>
 //                                 </TableRow>
 //                             ))}
@@ -1173,7 +1251,6 @@
 //                         display: "grid",
 //                         gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" },
 //                         gap: 2,
-//                         padding: 3,
 //                     }}
 //                 >
 //                     {filteredCandidates.map((candidate) => (
@@ -1194,10 +1271,10 @@
 //                             }}
 //                         >
 //                             <CardContent
-//                                 sx={{ display: "flex", flexDirection: "column", gap: 3, padding: 3 }}
+//                                 sx={{ display: "flex", flexDirection: "column", gap: 2, padding: 2 }}
 //                             >
 //                                 {/* Header: Name, Avatar, and Checkbox */}
-//                                 <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
+//                                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
 //                                     <Checkbox
 //                                         checked={selectedCandidates.includes(candidate._id)}
 //                                         onChange={(e) => {
@@ -1210,20 +1287,20 @@
 //                                     <Avatar
 //                                         sx={{
 //                                             bgcolor: "primary.main",
-//                                             fontSize: "1.4rem",
+//                                             fontSize: "1.2rem",
 //                                             fontWeight: "bold",
-//                                             width: 48,
-//                                             height: 48,
+//                                             width: 40,
+//                                             height: 40,
 //                                         }}
 //                                         onClick={() => handleNavigateToCandidate(candidate)}
 //                                     >
 //                                         {candidate.firstName?.charAt(0) || '?'}
 //                                     </Avatar>
 //                                     <Box sx={{ flex: 1 }} onClick={() => handleNavigateToCandidate(candidate)}>
-//                                         <Typography variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
+//                                         <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", fontSize: '1rem' }}>
 //                                             {`${candidate.firstName || ''} ${candidate.middleName || ''} ${candidate.lastName || ''}`.trim()}
 //                                         </Typography>
-//                                         <Typography variant="body2" sx={{ color: "text.secondary" }}>
+//                                         <Typography variant="body2" sx={{ color: "text.secondary", fontSize: '0.8rem' }}>
 //                                             {candidate.experience || '0'} years | {typeof candidate.source === 'string'
 //                                                 ? candidate.source
 //                                                 : candidate.source?.name || 'Unknown'}
@@ -1236,6 +1313,7 @@
 //                                             e.stopPropagation();
 //                                             handleRemarksClick(e, candidate._id);
 //                                         }}
+//                                         size="small"
 //                                     >
 //                                         <MoreIcon />
 //                                     </IconButton>
@@ -1257,8 +1335,9 @@
 //                                                 getStageName(candidate.stage) === "Archived" ? "grey.500" : "primary.light",
 //                                         color: "white",
 //                                         borderRadius: 20,
-//                                         padding: "0.5rem 1rem",
-//                                         mb: 2,
+//                                         padding: "0.3rem 0.8rem",
+//                                         fontSize: '0.7rem',
+//                                         mb: 1,
 //                                     }}
 //                                 />
 
@@ -1270,29 +1349,34 @@
 //                                         borderRadius: 1,
 //                                         borderLeft: '3px solid #f44336'
 //                                     }}>
-//                                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
+//                                         <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
 //                                             {candidate.rejectionType}
 //                                         </Typography>
 //                                         {candidate.rejectionReason && (
-//                                             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+//                                             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, fontSize: '0.7rem' }}>
 //                                                 {candidate.rejectionReason}
 //                                             </Typography>
 //                                         )}
 //                                     </Box>
 //                                 )}
 
+//                                 {/* Skills */}
+//                                 <Box onClick={() => handleNavigateToCandidate(candidate)}>
+//                                     <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", mb: 0.5, fontSize: '0.8rem' }}>
+//                                         <strong>Skills:</strong>
+//                                     </Typography>
+//                                     <Typography variant="body2" sx={{ color: "text.secondary", fontSize: '0.8rem', lineHeight: 1.3 }}>
+//                                         {formatSkills(candidate.skills)}
+//                                     </Typography>
+//                                 </Box>
+
 //                                 {/* Contact Info */}
 //                                 <Box onClick={() => handleNavigateToCandidate(candidate)}>
-//                                     <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500" }}>
+//                                     <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: '0.8rem' }}>
 //                                         <strong>Email:</strong> {candidate.email || 'Not provided'}
 //                                     </Typography>
-//                                     <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500" }}>
+//                                     <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: '0.8rem' }}>
 //                                         <strong>Phone:</strong> {candidate.mobile || 'Not provided'}
-//                                     </Typography>
-//                                     <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500" }}>
-//                                         <strong>Owner:</strong> {typeof candidate.owner === 'string'
-//                                             ? candidate.owner
-//                                             : candidate.owner?.email || 'Not assigned'}
 //                                     </Typography>
 //                                 </Box>
 
@@ -1301,7 +1385,7 @@
 //                                     sx={{
 //                                         display: "flex",
 //                                         justifyContent: "space-between",
-//                                         marginTop: 3,
+//                                         marginTop: 2,
 //                                         gap: 1
 //                                     }}
 //                                     onClick={(e) => e.stopPropagation()}
@@ -1318,6 +1402,8 @@
 //                                             flex: 1,
 //                                             textTransform: 'none',
 //                                             backgroundColor: '#4caf50',
+//                                             fontSize: '0.7rem',
+//                                             padding: '0.3rem 0.6rem',
 //                                             '&:hover': {
 //                                                 backgroundColor: '#388e3c',
 //                                             }
@@ -1335,12 +1421,13 @@
 //                                             backgroundColor: "primary.main",
 //                                             color: "white",
 //                                             borderRadius: "50%",
-//                                             padding: 2,
+//                                             padding: 1,
 //                                             ":hover": { backgroundColor: "primary.dark" },
 //                                             transition: "background-color 0.2s ease",
 //                                         }}
+//                                         size="small"
 //                                     >
-//                                         <InterviewIcon />
+//                                         <InterviewIcon fontSize="small" />
 //                                     </IconButton>
 //                                     <IconButton
 //                                         className="action-button"
@@ -1352,12 +1439,13 @@
 //                                             backgroundColor: "secondary.main",
 //                                             color: "white",
 //                                             borderRadius: "50%",
-//                                             padding: 2,
+//                                             padding: 1,
 //                                             ":hover": { backgroundColor: "secondary.dark" },
 //                                             transition: "background-color 0.2s ease",
 //                                         }}
+//                                         size="small"
 //                                     >
-//                                         <StageIcon />
+//                                         <StageIcon fontSize="small" />
 //                                     </IconButton>
 //                                 </Box>
 //                             </CardContent>
@@ -1436,7 +1524,6 @@ import CandidateResumeAnalysis from "../../pages/Candidate/CandidateResumeAnalys
 import candidateService from "../../services/Candidates/candidateService";
 import stageService from "../../services/Candidates/stageService";
 import BulkUploadDialog from "../../components/Candidates/BulkUploadDialog";
-// import ErrorBoundary from "../ErrorBoundary";
 import ErrorBoundary from "../../components/ErrorBoundary";
 
 export const CandidatesTab = () => {
@@ -1568,6 +1655,34 @@ export const CandidatesTab = () => {
         }
 
         return 'Sourced';
+    };
+
+    // Helper function to get recruiter name
+    const getRecruiterName = (owner) => {
+        if (!owner) return 'Not assigned';
+        
+        if (typeof owner === 'string') {
+            return owner;
+        }
+        
+        if (typeof owner === 'object') {
+            // Extract email and get the username part before @
+            if (owner.email) {
+                return owner.email.split('@')[0];
+            }
+            if (owner.name) {
+                return owner.name;
+            }
+        }
+        
+        return 'Not assigned';
+    };
+
+    // Helper function to get vendor name
+    const getVendorName = (candidate) => {
+        // This is a placeholder - you'll need to adjust based on your API structure
+        // If your API doesn't provide vendor information, you might need to fetch it separately
+        return candidate.vendor || 'Not Specified';
     };
 
     // Helper function to format skills
@@ -2014,14 +2129,6 @@ export const CandidatesTab = () => {
         fetchData();
     };
 
-    if (loading) {
-        return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                <CircularProgress />
-            </Box>
-        );
-    }
-
     if (error) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -2465,7 +2572,7 @@ export const CandidatesTab = () => {
             {/* Candidate Views */}
             {viewMode === "table" ? (
                 <TableContainer component={Paper} sx={{ maxWidth: '100%', overflowX: 'auto' }}>
-                    <Table sx={{ minWidth: 800 }}>
+                    <Table sx={{ minWidth: 1000 }}>
                         <TableHead>
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 <TableCell padding="checkbox">
@@ -2482,6 +2589,8 @@ export const CandidatesTab = () => {
                                     "Email",
                                     "Phone",
                                     "Skills",
+                                    "Recruiter",
+                                    "Vendor",
                                     "Actions"
                                 ].map((label, index) => (
                                     <TableCell
@@ -2578,6 +2687,12 @@ export const CandidatesTab = () => {
                                                 {formatSkills(candidate.skills)}
                                             </Typography>
                                         </Tooltip>
+                                    </TableCell>
+                                    <TableCell>
+                                        {getRecruiterName(candidate.owner)}
+                                    </TableCell>
+                                    <TableCell>
+                                        {getVendorName(candidate)}
                                     </TableCell>
                                     <TableCell onClick={(e) => e.stopPropagation()}>
                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -2735,6 +2850,16 @@ export const CandidatesTab = () => {
                                         )}
                                     </Box>
                                 )}
+
+                                {/* Recruiter and Vendor Info */}
+                                <Box onClick={() => handleNavigateToCandidate(candidate)}>
+                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: '0.8rem' }}>
+                                        <strong>Recruiter:</strong> {getRecruiterName(candidate.owner)}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: '0.8rem' }}>
+                                        <strong>Vendor:</strong> {getVendorName(candidate)}
+                                    </Typography>
+                                </Box>
 
                                 {/* Skills */}
                                 <Box onClick={() => handleNavigateToCandidate(candidate)}>

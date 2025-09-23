@@ -38,7 +38,7 @@ import {
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
-const API_BASE = "https://93de38340e46.ngrok-free.app/api/v1";
+const API_BASE = "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1";
 
 const EmailTemplateTab = ({ 
     candidate, 

@@ -1,7 +1,7 @@
 // // services/candidateService.js
 // import axios from 'axios';
 
-// const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1';
+// const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1';
 
 // // Create axios instance with default config
 // const apiClient = axios.create({
@@ -87,7 +87,7 @@
 // services/candidateService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1';
+const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -213,7 +213,7 @@ export const externalServices = {
   },
   
   getFeedback: (id) => {
-    return axios.get(`https://93de38340e46.ngrok-free.app/api/v1/interviews/candidate/${id}/feedback`,{
+    return axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/candidate/${id}/feedback`,{
        headers: {'ngrok-skip-browser-warning': 'true'
        }
 

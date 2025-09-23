@@ -1,6 +1,6 @@
 // import axios from 'axios';
 
-// const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1/clients';
+// const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/clients';
 
 // export const fetchClients = async () => {
 //   try {
@@ -36,7 +36,7 @@
 // services/Jobs/clientService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://93de38340e46.ngrok-free.app/api/v1/clients';
+const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/clients';
 
 export const fetchClients = async () => {
   try {
