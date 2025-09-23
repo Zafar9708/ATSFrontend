@@ -210,7 +210,7 @@ const VendorCandidatesPage = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {candidates.map((candidate) => (
+                {Array.isArray(candidates) && candidates.map((candidate) => (
                   <TableRow key={candidate._id}>
                     <TableCell>{candidate.firstName} {candidate.lastName}</TableCell>
                     <TableCell>{candidate.email}</TableCell>
@@ -265,7 +265,7 @@ const VendorCandidatesPage = () => {
             </Table>
           </TableContainer>
 
-          {candidates.length === 0 && (
+          {Array.isArray(candidates) && candidates.length === 0 && (
             <Box textAlign="center" py={4}>
               <Typography variant="h6" color="textSecondary">
                 No {activeTab} candidates found
