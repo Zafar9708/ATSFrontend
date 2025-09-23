@@ -179,7 +179,7 @@ import AdminDashboard from '../pages/Admin/AdminDashboard';
 import Unauthorized from '../pages/Unauthorized';
 import { useUser } from '../contexts/UserContext';
 import Profile from '../pages/Profile';
-import VendorLogin from '../pages/Vendor/vendorLogin';
+// import VendorLogin from '../pages/Vendor/vendorLogin';
 import VendorRegister from '../pages/Vendor/VendorRegister';
 import NotificationCenter from '../pages/NotificationCenter';
 import VendorUploadPage from '../services/Vendor/VendorUploadPage';
@@ -200,7 +200,7 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<LoginForm />} />
-      <Route path="/vendor-login" element={<VendorLogin />} />
+      {/* <Route path="/vendor-login" element={<VendorLogin />} /> */}
       <Route path="/vendor/register" element={<VendorRegister />} />
       <Route path="/vendor/upload/:token" element={<VendorUploadPage />} />
 
