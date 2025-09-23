@@ -1953,7 +1953,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
               <TextField
                 fullWidth
                 label="Current CTC"
-                name="CurrentCTC"
+                name="currentCTC"
                 value={formData.currentCTC}
                 onChange={handleChange}
                 sx={{
@@ -1968,7 +1968,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
               <TextField
                 fullWidth
                 label="Expected CTC"
-                name="ExpectedCTC"
+                name="expectedCTC"
                 value={formData.expectedCTC}
                 onChange={handleChange}
                 sx={{
