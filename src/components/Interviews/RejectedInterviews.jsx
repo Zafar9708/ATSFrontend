@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -15,214 +14,166 @@ import {
   IconButton,
   Tooltip,
   Stack,
-  CircularProgress
+  alpha
 } from '@mui/material';
 import {
-  Visibility as ViewIcon,
-  Refresh as ReconsiderIcon,
-  Email as EmailIcon
+  VisibilityOutlined as ViewIcon,
+  RestorePageOutlined as ReconsiderIcon,
+  MailOutline as EmailIcon,
+  SearchOff as NoDataIcon
 } from '@mui/icons-material';
 
-const RejectedInterviews = ({ searchTerm, statusFilter, selectedDate }) => {
-  // Mock data for rejected interviews
-  const rejectedInterviews = [
-    {
-      id: 1,
-      candidateName: 'John Doe',
-      candidateEmail: 'john.doe@email.com',
-      jobTitle: 'Senior React Developer',
-      jobName: 'WR001',
-      interviewer: 'Sarah Wilson',
-      rejectionDate: '2024-01-15',
-      rejectionReason: 'Technical skills mismatch',
-      interviewDate: '2024-01-10',
-      status: 'rejected'
-    },
-    {
-      id: 2,
-      candidateName: 'Jane Smith',
-      candidateEmail: 'jane.smith@email.com',
-      jobTitle: 'Frontend Developer',
-      jobName: 'WR002',
-      interviewer: 'Mike Johnson',
-      rejectionDate: '2024-01-12',
-      rejectionReason: 'Cultural fit issues',
-      interviewDate: '2024-01-08',
-      status: 'rejected'
-    },
-    {
-      id: 3,
-      candidateName: 'Robert Brown',
-      candidateEmail: 'robert.brown@email.com',
-      jobTitle: 'Full Stack Developer',
-      jobName: 'WR003',
-      interviewer: 'Emily Davis',
-      rejectionDate: '2024-01-18',
-      rejectionReason: 'Experience level below requirements',
-      interviewDate: '2024-01-14',
-      status: 'rejected'
-    }
-  ];
+// DUMMY DATA FOR TESTING
+const DUMMY_REJECTIONS = [
+  {
+    id: 1,
+    candidateName: 'John Doe',
+    candidateEmail: 'john.doe@email.com',
+    jobTitle: 'Senior React Developer',
+    jobCode: 'WR-001',
+    interviewer: 'Sarah Wilson',
+    rejectionDate: '2024-01-15',
+    rejectionReason: 'Technical skills mismatch: Candidate struggled with system design questions.',
+    interviewDate: '2024-01-10',
+    status: 'rejected'
+  },
+  {
+    id: 2,
+    candidateName: 'Jane Smith',
+    candidateEmail: 'jane.smith@email.com',
+    jobTitle: 'Frontend Lead',
+    jobCode: 'WR-002',
+    interviewer: 'Mike Johnson',
+    rejectionDate: '2024-01-12',
+    rejectionReason: 'Cultural fit: Preferred a more collaborative environment.',
+    interviewDate: '2024-01-08',
+    status: 'rejected'
+  },
+  {
+    id: 3,
+    candidateName: 'Robert Brown',
+    candidateEmail: 'robert.brown@email.com',
+    jobTitle: 'Full Stack Engineer',
+    jobCode: 'WR-003',
+    interviewer: 'Emily Davis',
+    rejectionDate: '2024-01-18',
+    rejectionReason: 'Experience level below requirements for the senior grade.',
+    interviewDate: '2024-01-14',
+    status: 'rejected'
+  }
+];
 
-  // Filter interviews based on search term and date
-  const filteredInterviews = rejectedInterviews.filter(interview => {
-    const matchesSearch = searchTerm === '' || 
-      interview.candidateName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      interview.candidateEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      interview.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      interview.jobName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      interview.interviewer.toLowerCase().includes(searchTerm.toLowerCase());
+const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
+  const [interviews] = useState(DUMMY_REJECTIONS);
+
+  const filteredInterviews = interviews.filter(interview => {
+    const searchStr = searchTerm.toLowerCase();
+    const matchesSearch = 
+      interview.candidateName.toLowerCase().includes(searchStr) ||
+      interview.jobTitle.toLowerCase().includes(searchStr);
 
     const matchesDate = !selectedDate || interview.rejectionDate === selectedDate;
-
     return matchesSearch && matchesDate;
   });
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'rejected':
-        return 'error';
-      default:
-        return 'default';
-    }
-  };
-
-  const handleViewDetails = (interviewId) => {
-    console.log('View details for interview:', interviewId);
-    // Implement view details logic
-  };
-
-  const handleReconsider = (interviewId) => {
-    console.log('Reconsider interview:', interviewId);
-    // Implement reconsider logic
-  };
-
-  const handleSendEmail = (candidateEmail) => {
-    console.log('Send email to:', candidateEmail);
-    // Implement email logic
+  const getAvatarColor = (name) => {
+    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
+    return colors[name.length % colors.length];
   };
 
   if (filteredInterviews.length === 0) {
     return (
-      <Paper elevation={2} sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="h6" color="textSecondary" gutterBottom>
-          No Rejected Interviews Found
-        </Typography>
-        <Typography variant="body2" color="textSecondary">
-          {searchTerm || selectedDate ? 
-            'Try adjusting your search filters' : 
-            'All interviews are currently approved or pending'
-          }
-        </Typography>
+      <Paper variant="outlined" sx={{ p: 8, textAlign: 'center', borderRadius: 4, bgcolor: '#f8fafc', borderStyle: 'dashed' }}>
+        <NoDataIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+        <Typography variant="h6" fontWeight={700}>No Records Found</Typography>
       </Paper>
     );
   }
 
   return (
-    <Box>
-      <Typography variant="h6" gutterBottom sx={{ mb: 3, color: 'text.secondary' }}>
-        Rejected Interviews ({filteredInterviews.length})
-      </Typography>
+    <Box sx={{ width: '100%', mt: 2 }}>
+      {/* Table Header Meta */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+        <Typography variant="h6" fontWeight={700} color="#1e293b">
+          Rejected Interviews ({filteredInterviews.length})
+        </Typography>
+      </Stack>
 
-      <TableContainer component={Paper} elevation={2}>
-        <Table sx={{ minWidth: 650 }} aria-label="rejected interviews table">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: 'grey.50' }}>
-              <TableCell><strong>Candidate</strong></TableCell>
-              <TableCell><strong>Job Details</strong></TableCell>
-              <TableCell><strong>Interviewer</strong></TableCell>
-              <TableCell><strong>Interview Date</strong></TableCell>
-              <TableCell><strong>Rejection Date</strong></TableCell>
-              <TableCell><strong>Rejection Reason</strong></TableCell>
-              <TableCell><strong>Status</strong></TableCell>
-              <TableCell><strong>Actions</strong></TableCell>
+      <TableContainer 
+        component={Paper} 
+        variant="outlined" 
+        sx={{ borderRadius: 3, overflow: 'auto', border: '1px solid #e2e8f0' }}
+      >
+        <Table sx={{ minWidth: 900 }}>
+          <TableHead sx={{ bgcolor: '#f8fafc' }}>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 700, color: '#64748b' }}>CANDIDATE</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#64748b' }}>JOB DETAILS</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#64748b' }}>INTERVIEWER</TableCell>
+              <TableCell sx={{ fontWeight: 700, color: '#64748b' }}>DECISION</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700, color: '#64748b', width: '180px' }}>ACTIONS</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredInterviews.map((interview) => (
               <TableRow key={interview.id} hover>
                 <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Avatar sx={{ bgcolor: getAvatarColor(interview.candidateName), width: 36, height: 36, fontSize: '0.8rem', fontWeight: 700 }}>
                       {interview.candidateName.charAt(0)}
                     </Avatar>
                     <Box>
-                      <Typography variant="subtitle2">{interview.candidateName}</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {interview.candidateEmail}
-                      </Typography>
+                      <Typography variant="body2" fontWeight={700}>{interview.candidateName}</Typography>
+                      <Typography variant="caption" color="text.secondary">{interview.candidateEmail}</Typography>
                     </Box>
-                  </Box>
+                  </Stack>
                 </TableCell>
+
                 <TableCell>
-                  <Typography variant="subtitle2">{interview.jobTitle}</Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {interview.jobName}
-                  </Typography>
+                  <Typography variant="body2" fontWeight={600}>{interview.jobTitle}</Typography>
+                  <Typography variant="caption" color="text.secondary">{interview.jobCode}</Typography>
                 </TableCell>
+
                 <TableCell>
                   <Typography variant="body2">{interview.interviewer}</Typography>
+                  <Typography variant="caption" color="text.secondary">{new Date(interview.interviewDate).toLocaleDateString()}</Typography>
                 </TableCell>
+
                 <TableCell>
-                  <Typography variant="body2">
-                    {new Date(interview.interviewDate).toLocaleDateString()}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">
-                    {new Date(interview.rejectionDate).toLocaleDateString()}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Tooltip title={interview.rejectionReason}>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        maxWidth: 150, 
-                        overflow: 'hidden', 
-                        textOverflow: 'ellipsis', 
-                        whiteSpace: 'nowrap' 
-                      }}
-                    >
-                      {interview.rejectionReason}
-                    </Typography>
-                  </Tooltip>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label="Rejected"
-                    color={getStatusColor(interview.status)}
-                    size="small"
-                    variant="filled"
+                  <Chip 
+                    label="Rejected" 
+                    size="small" 
+                    sx={{ bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700, borderRadius: 1 }} 
                   />
                 </TableCell>
-                <TableCell>
-                  <Stack direction="row" spacing={1}>
-                    <Tooltip title="View Details">
-                      <IconButton
-                        size="small"
-                        color="primary"
-                        onClick={() => handleViewDetails(interview.id)}
+
+                {/* --- ACTION BUTTONS COLUMN --- */}
+                <TableCell align="center">
+                  <Stack direction="row" spacing={1} justifyContent="center">
+                    <Tooltip title="View Details" arrow>
+                      <IconButton 
+                        size="small" 
+                        sx={{ bgcolor: alpha('#3b82f6', 0.1), '&:hover': { bgcolor: alpha('#3b82f6', 0.2) }, color: '#2563eb' }}
                       >
-                        <ViewIcon />
+                        <ViewIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Reconsider Candidate">
-                      <IconButton
-                        size="small"
-                        color="secondary"
-                        onClick={() => handleReconsider(interview.id)}
+
+                    <Tooltip title="Reconsider" arrow>
+                      <IconButton 
+                        size="small" 
+                        sx={{ bgcolor: alpha('#8b5cf6', 0.1), '&:hover': { bgcolor: alpha('#8b5cf6', 0.2) }, color: '#7c3aed' }}
                       >
-                        <ReconsiderIcon />
+                        <ReconsiderIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Send Email">
-                      <IconButton
-                        size="small"
-                        color="default"
-                        onClick={() => handleSendEmail(interview.candidateEmail)}
+
+                    <Tooltip title="Contact" arrow>
+                      <IconButton 
+                        size="small" 
+                        sx={{ bgcolor: alpha('#10b981', 0.1), '&:hover': { bgcolor: alpha('#10b981', 0.2) }, color: '#059669' }}
                       >
-                        <EmailIcon />
+                        <EmailIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
                   </Stack>

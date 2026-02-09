@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from "react";
 import {
     Dialog,
@@ -40,6 +38,79 @@ import { useParams } from "react-router-dom";
 
 const API_BASE = "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1";
 
+// Dummy data for templates
+const DUMMY_TEMPLATES = [
+    {
+        _id: "template_1",
+        name: "Technical Interview Invitation",
+        subject: "Technical Interview Invitation for {position}",
+        body: "Dear {recipient},\n\nYou are invited for a technical interview for the position of {position}.\n\n**Interview Details:**\n📅 Date: {date}\n⏰ Time: {time}\n⏱ Duration: {duration}\n🌐 Timezone: {timezone}\n💻 Platform: {platform}\n👥 Interviewer: {interviewer}\n\nPlease ensure you have a stable internet connection and are ready with any required materials.\n\nBest regards,\n{company} Team"
+    },
+    {
+        _id: "template_2",
+        name: "HR Interview Invitation",
+        subject: "HR Interview Invitation - {company}",
+        body: "Hello {recipient},\n\nCongratulations on progressing to the next stage! We'd like to schedule an HR interview with you.\n\n**Interview Details:**\n📅 Date: {date}\n⏰ Time: {time}\n⏱ Duration: {duration}\n🌐 Timezone: {timezone}\n💻 Platform: {platform}\n👥 Interviewer: {interviewer}\n\nPlease let us know if this time works for you.\n\nLooking forward to speaking with you!\n\nBest regards,\n{company} HR Team"
+    },
+    {
+        _id: "template_3",
+        name: "Final Round Interview",
+        subject: "Final Interview Round Invitation",
+        body: "Dear {recipient},\n\nWe are pleased to invite you for the final round of interviews with our leadership team.\n\n**Interview Details:**\n📅 Date: {date}\n⏰ Time: {time}\n⏱ Duration: {duration}\n🌐 Timezone: {timezone}\n💻 Platform: {platform}\n👥 Interview Panel: {interviewer}\n\nThis will be an opportunity to discuss your experience and expectations in detail.\n\nBest regards,\nLeadership Team"
+    }
+];
+
+// Dummy data for interviewers
+const DUMMY_INTERVIEWERS = [
+    {
+        _id: "interviewer_1",
+        name: "Sarah Johnson",
+        email: "sarah.johnson@company.com",
+        phone: "+1 (555) 123-4567",
+        role: "Technical Lead"
+    },
+    {
+        _id: "interviewer_2",
+        name: "Mike Chen",
+        email: "mike.chen@company.com",
+        phone: "+1 (555) 987-6543",
+        role: "Engineering Manager"
+    },
+    {
+        _id: "interviewer_3",
+        name: "Emma Wilson",
+        email: "emma.wilson@company.com",
+        phone: "+1 (555) 456-7890",
+        role: "HR Manager"
+    },
+    {
+        _id: "interviewer_4",
+        name: "David Brown",
+        email: "david.brown@company.com",
+        phone: "+1 (555) 234-5678",
+        role: "Product Manager"
+    }
+];
+
+// Dummy data for timezones
+const DUMMY_TIMEZONES = [
+    { value: "UTC+05:30", label: "UTC+05:30 (IST - India Standard Time)" },
+    { value: "UTC+00:00", label: "UTC+00:00 (GMT - Greenwich Mean Time)" },
+    { value: "UTC-05:00", label: "UTC-05:00 (EST - Eastern Standard Time)" },
+    { value: "UTC-08:00", label: "UTC-08:00 (PST - Pacific Standard Time)" },
+    { value: "UTC+01:00", label: "UTC+01:00 (CET - Central European Time)" },
+    { value: "UTC+10:00", label: "UTC+10:00 (AEST - Australian Eastern Time)" }
+];
+
+// Dummy data for durations
+const DUMMY_DURATIONS = [
+    { value: "30", label: "30 minutes" },
+    { value: "45", label: "45 minutes" },
+    { value: "60", label: "1 hour" },
+    { value: "90", label: "1.5 hours" },
+    { value: "120", label: "2 hours" }
+];
+
 const EmailTemplateTab = ({ 
     candidate, 
     user,
@@ -73,7 +144,9 @@ const EmailTemplateTab = ({
                 .replace(/{timezone}/g, timezone?.value || timezone)
                 .replace(/{platform}/g, platform)
                 .replace(/{interviewer}/g, user.name)
-                .replace(/{feedbackLink}/g, 'Will be provided');
+                .replace(/{feedbackLink}/g, 'Will be provided')
+                .replace(/{company}/g, 'Our Company')
+                .replace(/{position}/g, candidate.position || 'the position');
             setBody(formattedBody);
         }
     };
@@ -193,7 +266,7 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
     const {id} = useParams()
     console.log("idddddddd",candidate?.jobId);
     
-    const [interviewers, setInterviewers] = useState([]);
+    const [interviewers, setInterviewers] = useState(DUMMY_INTERVIEWERS);
     const [selectedInterviewers, setSelectedInterviewers] = useState([]);
     const [date, setDate] = useState("");
     const [startTime, setStartTime] = useState("");
@@ -212,27 +285,15 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
     const [body, setBody] = useState("");
     const [notes, setNotes] = useState("");
     const [loading, setLoading] = useState(false);
-    const [templates, setTemplates] = useState([]);
-    const [timezones, setTimezones] = useState([]);
-    const [durations, setDurations] = useState([]);
+    const [templates, setTemplates] = useState(DUMMY_TEMPLATES);
+    const [timezones, setTimezones] = useState(DUMMY_TIMEZONES);
+    const [durations, setDurations] = useState(DUMMY_DURATIONS);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: "",
         severity: "success"
     });
     const [selectedTemplate, setSelectedTemplate] = useState("");
-
-    const fallbackTimezones = [
-        { value: "UTC+05:30", label: "UTC+05:30 (IST)" },
-        { value: "UTC+00:00", label: "UTC+00:00 (GMT)" },
-        { value: "UTC-05:00", label: "UTC-05:00 (EST)" }
-    ];
-    
-    const fallbackDurations = [
-        { value: "30", label: "30 minutes" },
-        { value: "60", label: "1 hour" },
-        { value: "90", label: "1.5 hours" }
-    ];
 
     const validateForm = () => {
         return (
@@ -250,101 +311,43 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
 
     useEffect(() => {
         if (open) {
-            const fetchData = async () => {
-                try {
-                    setLoading(true);
-                    
-                    const fetchTimezones = async () => {
-                        try {
-                            const res = await axios.get(`${API_BASE}/interviews/timezones`);
-                            return res.data.map(tz => typeof tz === 'string' ? { value: tz, label: tz } : tz);
-                        } catch (error) {
-                            console.error("Error fetching timezones:", error);
-                            return fallbackTimezones;
-                        }
-                    };
-
-                    const fetchDurations = async () => {
-                        try {
-                            const res = await axios.get(`${API_BASE}/interviews/durations`,{
-                                headers:{
-                                            'ngrok-skip-browser-warning': 'true'
-
-                                }
-                            });
-                            return res.data;
-                        } catch (error) {
-                            console.error("Error fetching durations:", error);
-                            return fallbackDurations;
-                        }
-                    };
-
-                    const fetchInterviewers = async () => {
-                        try {
-                            const res = await axios.get(`${API_BASE}/interviewers`,{
-                                headers:{
-                                            'ngrok-skip-browser-warning': 'true'
-
-                                }
-                            });
-                            return res.data;
-                        } catch (error) {
-                            console.error("Error fetching interviewers:", error);
-                            return [];
-                        }
-                    };
-
-                    const fetchTemplates = async () => {
-                        try {
-                            const res = await axios.get(`${API_BASE}/email-templates`,{
-                                headers:{
-                                            'ngrok-skip-browser-warning': 'true'
-
-                                }
-                            });
-                            return res.data;
-                        } catch (error) {
-                            console.error("Error fetching templates:", error);
-                            return [];
-                        }
-                    };
-
-                    const [
-                        timezonesData, 
-                        durationsData, 
-                        interviewersData, 
-                        templatesData
-                    ] = await Promise.all([
-                        fetchTimezones(),
-                        fetchDurations(),
-                        fetchInterviewers(),
-                        fetchTemplates()
-                    ]);
-
-                    setTimezones(timezonesData);
-                    setDurations(durationsData);
-                    setInterviewers(interviewersData);
-                    setTemplates(templatesData);
-                    
-                    setTimezone(timezonesData.find(tz => tz.value === "UTC+05:30") || timezonesData[0]);
-                    setDuration(durationsData[0]?.value || durationsData[0]);
-                    setDate(new Date().toISOString().split('T')[0]);
-                    
-                } catch (error) {
-                    console.error("Error initializing form data:", error);
-                    setSnackbar({
-                        open: true,
-                        message: "Error initializing form data. Using fallback values.",
-                        severity: "warning"
-                    });
-                } finally {
-                    setLoading(false);
-                }
-            };
-            
-            fetchData();
+            try {
+                // Use dummy data directly
+                setTimezones(DUMMY_TIMEZONES);
+                setDurations(DUMMY_DURATIONS);
+                setInterviewers(DUMMY_INTERVIEWERS);
+                setTemplates(DUMMY_TEMPLATES);
+                
+                // Set default values
+                const defaultTimezone = DUMMY_TIMEZONES.find(tz => tz.value === "UTC+05:30") || DUMMY_TIMEZONES[0];
+                const defaultDuration = DUMMY_DURATIONS[0];
+                
+                setTimezone(defaultTimezone);
+                setDuration(defaultDuration);
+                
+                // Set default date to today
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0];
+                setDate(formattedDate);
+                
+                // Set default time to next hour
+                const nextHour = new Date(today.getTime() + 60 * 60 * 1000);
+                const formattedTime = nextHour.toISOString().split('T')[1].substring(0, 5);
+                setStartTime(formattedTime);
+                
+                // Set default subject
+                setSubject(`Online Interview Invitation - ${candidate.firstName} ${candidate.lastName}`);
+                
+            } catch (error) {
+                console.error("Error initializing form data:", error);
+                setSnackbar({
+                    open: true,
+                    message: "Error initializing form data.",
+                    severity: "warning"
+                });
+            }
         }
-    }, [open]);
+    }, [open, candidate]);
 
     const handleAddInterviewer = async () => {
         if (!newInterviewer.name || !newInterviewer.email) {
@@ -358,15 +361,20 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
 
         try {
             setLoading(true);
-            const response = await axios.post(`${API_BASE}/interviewers`,{
-                headers:{
-                            'ngrok-skip-browser-warning': 'true'
-
-                }
-            }, newInterviewer);
             
-            setInterviewers([...interviewers, response.data]);
-            setSelectedInterviewers([...selectedInterviewers, response.data._id]);
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const newInterviewerObj = {
+                _id: `interviewer_${interviewers.length + 1}`,
+                name: newInterviewer.name,
+                email: newInterviewer.email,
+                phone: newInterviewer.phone,
+                role: "Interviewer"
+            };
+            
+            setInterviewers([...interviewers, newInterviewerObj]);
+            setSelectedInterviewers([...selectedInterviewers, newInterviewerObj._id]);
             setNewInterviewer({ name: "", email: "", phone: "" });
             setShowAddInterviewer(false);
             
@@ -379,7 +387,7 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
             console.error("Error adding interviewer:", error);
             setSnackbar({
                 open: true,
-                message: error.response?.data?.message || "Failed to add interviewer",
+                message: "Failed to add interviewer",
                 severity: "error"
             });
         } finally {
@@ -439,25 +447,32 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
                 templateId: selectedTemplate,
                 notes,
                 scheduledBy: user.email,
-                jobId:candidate?.jobId
+                jobId: candidate?.jobId
             };
 
             console.log("Submitting interview data:", requestData);
 
-
-            const token=localStorage.getItem("token")
-            const response = await axios.post(`${API_BASE}/interviews/schedule`, requestData, {
-                headers: {
-                     Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Simulate successful response
+            const mockResponse = {
+                success: true,
+                message: "Interview scheduled successfully!",
+                data: {
+                    interviewId: `interview_${Date.now()}`,
+                    meetingLink: "https://meet.google.com/abc-defg-hij",
+                    calendarEvent: {
+                        id: "calendar_event_123",
+                        link: "https://calendar.google.com/event"
+                    }
                 }
-            });
+            };
 
-            if (response.data.success) {
+            if (mockResponse.success) {
                 setSnackbar({
                     open: true,
-                    message: response.data.message || "Interview scheduled successfully!",
+                    message: mockResponse.message,
                     severity: "success"
                 });
                 
@@ -466,7 +481,7 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
                     resetForm();
                 }, 1000);
             } else {
-                throw new Error(response.data.message || "Failed to schedule interview");
+                throw new Error("Failed to schedule interview");
             }
             
         } catch (error) {
@@ -475,7 +490,7 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
             
             if (error.response) {
                 errorMessage = error.response.data?.message || 
-                              `Server responded with ${error.response.status}: ${JSON.stringify(error.response.data)}`;
+                              `Server responded with ${error.response.status}`;
             } else if (error.request) {
                 errorMessage = "No response received from server";
             } else {
@@ -496,8 +511,8 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
         setSelectedInterviewers([]);
         setDate(new Date().toISOString().split('T')[0]);
         setStartTime("");
-        setDuration(durations[0]?.value || durations[0] || "");
-        setTimezone(timezones[0] || "");
+        setDuration(DUMMY_DURATIONS[0]);
+        setTimezone(DUMMY_TIMEZONES[0]);
         setPlatform("");
         setSubject(`Online Interview - ${candidate.firstName} ${candidate.lastName}`);
         setBody("");
@@ -505,6 +520,8 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
         setTabValue(0);
         setShowPreview(false);
         setSelectedTemplate("");
+        setNewInterviewer({ name: "", email: "", phone: "" });
+        setShowAddInterviewer(false);
     };
 
     const handleCloseSnackbar = () => {
@@ -533,37 +550,6 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
                 </DialogTitle>
                 <DialogContent>
                     <Box component="form" onSubmit={handleSubmit} noValidate>
-                        {/* <Card sx={{ mb: 3, p: 2 }}>
-                            <Grid container spacing={2}>
-                                <Grid item xs={12} sm={6}>
-                                    <Typography variant="subtitle1">Candidate Information</Typography>
-                                    <Typography>
-                                        <strong>Name:</strong> {candidate.firstName} {candidate.lastName}
-                                    </Typography>
-                                    <Typography>
-                                        <strong>Email:</strong> {candidate.email}
-                                    </Typography>
-                                    <Typography>
-                                        <strong>Phone:</strong> {candidate.mobile}
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <Typography variant="subtitle1">Resume</Typography>
-                                    {candidate.resume?.path ? (
-                                        <Button 
-                                            variant="outlined" 
-                                            onClick={() => window.open(candidate.resume.path, '_blank')}
-                                            aria-label="View candidate resume"
-                                        >
-                                            View Resume
-                                        </Button>
-                                    ) : (
-                                        <Typography color="text.secondary">No resume uploaded</Typography>
-                                    )}
-                                </Grid>
-                            </Grid>
-                        </Card> */}
-
                         <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>Panel Members</Typography>
                         <FormControl fullWidth sx={{ mb: 1 }} required>
                             <InputLabel id="interviewer-label">Select Interviewers</InputLabel>
@@ -597,7 +583,6 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
                                 ))}
                             </Select>
                         </FormControl>
-                        
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                             <Button 
                                 startIcon={showAddInterviewer ? <ExpandLessIcon /> : <AddIcon />}
@@ -609,7 +594,6 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
                                 {showAddInterviewer ? 'Hide Form' : 'Add Interviewer'}
                             </Button>
                         </Box>
-                        
                         <Collapse in={showAddInterviewer}>
                             <Grid container spacing={2} sx={{ mb: 3 }}>
                                 <Grid item xs={12} sm={4}>
@@ -694,7 +678,10 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
                                         required
                                         disabled={loading}
                                         name="date"
-                                        inputProps={{ 'aria-label': 'Interview date' }}
+                                        inputProps={{ 
+                                            'aria-label': 'Interview date',
+                                            min: new Date().toISOString().split('T')[0]
+                                        }}
                                     />
                                 </Box>
                             </Grid>

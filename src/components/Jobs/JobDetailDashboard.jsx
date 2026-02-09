@@ -1,3084 +1,1020 @@
-
-
-// import React, { useState, useEffect } from "react";
-// import { Navigate } from "react-router-dom";
-
-// import { useParams, useNavigate } from "react-router-dom";
-// import { createNote,updateNote,fetchNotesByJob,deleteNote } from "../../services/Jobs/jobsService";
-// import axios from "axios";
-// import {
-//   Box, Typography, Card, CardContent, Divider, Button,
-//   TextField, Avatar, Stack, IconButton, Paper, LinearProgress,
-//   Chip, useTheme, styled, alpha, CircularProgress,Alert
-// } from "@mui/material";
-// import {
-//   AccessTime as TimeIcon,
-//   RecordVoiceOver as InterviewIcon,
-//   HowToReg as OfferIcon,
-//   WorkOutline as PositionIcon,
-//   People as CandidateIcon,
-//   RateReview as ReviewIcon,
-//   Description as JobDescIcon,
-//   NoteAdd as NoteIcon,
-//   ChevronRight as ArrowIcon,
-//   Add as AddIcon,
-//   Close as CloseIcon,
-//   Edit as EditIcon,
-//   Delete as DeleteIcon,
-//   CalendarToday as CalendarIcon,
-//   CheckCircle as CheckCircleIcon,
-//   Group as GroupIcon,
-//   Timeline as TimelineIcon,
-//   BarChart as BarChartIcon,
-//   Assignment as AssignmentIcon,
-//   Search as SearchIcon,
-//   Notifications as NotificationsIcon,
-//   AccountCircle as AccountIcon,
-//   MoreVert as MoreIcon
-// } from "@mui/icons-material";
-// import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-
-// // Custom styled components
-// const GlassCard = styled(Card)(({ theme }) => ({
-//   background: alpha(theme.palette.background.paper, 0.85),
-//   backdropFilter: 'blur(12px)',
-//   borderRadius: '16px',
-//   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-//   boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
-//   transition: 'all 0.3s ease',
-//   '&:hover': {
-//     transform: 'translateY(-4px)',
-//     boxShadow: `0 12px 40px ${alpha(theme.palette.common.black, 0.15)}`,
-//     borderColor: alpha(theme.palette.primary.main, 0.3)
-//   }
-// }));
-
-// const GradientButton = styled(Button)(({ theme }) => ({
-//   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-//   color: theme.palette.common.white,
-//   fontWeight: 600,
-//   textTransform: 'none',
-//   padding: '8px 20px',
-//   borderRadius: '12px',
-//   boxShadow: 'none',
-//   '&:hover': {
-//     background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
-//     boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`
-//   }
-// }));
-
-// const Dashboard = () => {
-//   const [notes, setNotes] = useState([]);
-//   const [newNote, setNewNote] = useState("");
-//   const [showNoteForm, setShowNoteForm] = useState(false);
-//   const [editingNoteId, setEditingNoteId] = useState(null);
-//   const { id: jobId } = useParams();
-//   const [job, setJob] = useState(null);
-//   const [appliedCandidat, setAppliedCandidat] = useState([]);
-//   const [pipelineData, setPipelineData] = useState([]);
-//   const [closedPosition, setClosedPosition] = useState(0);
-//   const [acceptanceRate, setAcceptanceRate] = useState(0);
-  
-//   const [interviews, setInterviews] = useState({
-//     online: 0,
-//     offline: 0,
-//     upcoming: 0,
-//     upcomingInterviews: []
-//   });
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("You haven't added any candidates for this position yet. Start building your talent pipeline by adding candidates now.");
-//   const [notesLoading, setNotesLoading] = useState(false);
-//   const theme = useTheme();
-//   const navigate = useNavigate();
-
-//   // Fetch notes from API
-//   const fetchNotes = async () => {
-//   try {
-//     setNotesLoading(true);
-//     const response = await fetchNotesByJob(jobId);
-//     setNotes(response.notes);
-//   } catch (err) {
-//     console.error("Error fetching notes:", err);
-//     // Handle unauthorized error specifically
-//     if (err.message.includes('Unauthorized') || err.response?.status === 401) {
-//       // You might want to redirect to login or show a message
-//       console.log('Please log in again');
-//     }
-//   } finally {
-//     setNotesLoading(false);
-//   }
-// };
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//   try {
-//     setLoading(true);
-//     setError(null);
-
-//     // Get token from wherever you store it (localStorage, context, etc.)
-//     const token = localStorage.getItem('token'); // or from your auth context
-    
-//     // Fetch notes first
-//     await fetchNotes();
-
-//     if (jobId) {
-//       const jobResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/job/${jobId}`, {
-//         headers: {
-//           'Authorization': `Bearer ${token}`
-//         }
-//       });
-//       setJob(jobResponse.data.job);
-
-//           // Fetch pipeline data
-//           const pipelineResponse = await axios.get(`https://hire-onboardbackend-production.up.railway.app/api/stages/by-job/${jobId}`);
-//           const candidates = pipelineResponse.data.candidates || [];
-//           setAppliedCandidat(candidates);
-
-//           // Process pipeline data
-//           const stages = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired', 'Rejected', 'Archived'];
-//           const stageCounts = {};
-
-//           stages.forEach(stage => {
-//             stageCounts[stage] = 0;
-//           });
-
-//           candidates.forEach(candidate => {
-//             const stageName = candidate.stage?.name || 'Sourced';
-//             stageCounts[stageName] = (stageCounts[stageName] || 0) + 1;
-//           });
-
-//           const processedData = stages.map(stage => ({
-//             name: stage,
-//             value: stageCounts[stage],
-//             color: getStageColor(stage)
-//           })).filter(item => item.value > 0);
-
-//           setPipelineData(processedData);
-//         }
-
-//         const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-//           axios.get('https://hire-onboardbackend-production.up.railway.app/api/interviews/schedule'),
-//           axios.get('https://hire-onboardbackend-production.up.railway.app/api/offline-interviews/get'),
-//           axios.get('https://hire-onboardbackend-production.up.railway.app/api/interviews/upcoming')
-//         ]);
-
-//         const offlineInterviewsCount = offlineInterviewsRes.data.data ? offlineInterviewsRes.data.data.length : 0;
-
-//         setInterviews({
-//           online: onlineInterviewsRes.data.count || 0,
-//           offline: offlineInterviewsCount,
-//           upcoming: upcomingInterviewsRes.data.count || 0,
-//           upcomingInterviews: upcomingInterviewsRes.data.data || []
-//         });
-
-//       } catch (err) {
-//         {error && (
-//           <Alert severity="info" sx={{ mt: 2 }}>
-//             {error}
-//           </Alert>
-//         )}
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchData();
-//   }, [jobId]);
-
-//   function percentage(partialValue, totalValue) {
-//     return (100 * partialValue) / totalValue;
-//   }
-
-//   useEffect(() => {
-//     const hiredCount = appliedCandidat.filter(c => c.stage?.name === 'Hired').length;
-//     setClosedPosition(hiredCount);
-//     setAcceptanceRate(percentage(hiredCount, appliedCandidat.length));
-//   }, [appliedCandidat]);
-
-//  const handleAddNote = async () => {
-//   if (!newNote.trim()) return;
-
-//   try {
-//     if (editingNoteId) {
-//       await updateNote(editingNoteId, newNote);
-//       setEditingNoteId(null);
-//     } else {
-//       await createNote(jobId, newNote);
-//     }
-//     setNewNote("");
-//     setShowNoteForm(false);
-//     fetchNotes(); // Refresh notes
-//   } catch (err) {
-//     console.error("Error saving note:", err);
-//     // Handle unauthorized error
-//     if (err.message.includes('Unauthorized') || err.response?.status === 401) {
-//       // You might want to redirect to login or show a message
-//       console.log('Please log in again');
-//     }
-//   }
-// };
-
-//   const handleEditNote = (note) => {
-//     setNewNote(note.content);
-//     setEditingNoteId(note._id);
-//     setShowNoteForm(true);
-//   };
-
-//   const handleDeleteNote = async (id) => {
-//   try {
-//     await deleteNote(id);
-//     fetchNotes(); // Refresh notes
-//   } catch (err) {
-//     console.error("Error deleting note:", err);
-//     // Handle unauthorized error
-//     if (err.message.includes('Unauthorized') || err.response?.status === 401) {
-//       // You might want to redirect to login or show a message
-//       console.log('Please log in again');
-//     }
-//   }
-// };
-
-// const handleUpdateJobPosting = () => {
-//   if (!job) {
-//     console.error('Job data not loaded yet');
-//     return;
-//   }
-  
-//   if (!job._id) {
-//     console.error('Job ID is missing');
-//     return;
-//   }
-
-//   console.log(`Navigating to /jobs/update/${job._id}`);
-//   navigate(`/jobs/update/${job._id}`, {
-//     state: { job }
-//   });
-// };
-
-//   const handleCreateJobPosting = () => {
-//   navigate('/dashboard/jobs/createJob');
-// };
-
-//   const handleViewJobCandidates = () => {
-//     navigate(`/candidates`);
-//   };
-
-//   const getStageColor = (stage) => {
-//     switch (stage) {
-//       case 'Sourced': return theme.palette.info.main;
-//       case 'Screening': return theme.palette.warning.main;
-//       case 'Interview': return theme.palette.primary.main;
-//       case 'Preboarding': return theme.palette.secondary.main;
-//       case 'Hired': return theme.palette.success.main;
-//       case 'Rejected': return theme.palette.error.main;
-//       case 'Archived': return theme.palette.grey[500];
-//       default: return theme.palette.text.secondary;
-//     }
-//   };
-
-//   const getPipelineData = () => {
-//     if (pipelineData.length > 0) {
-//       return pipelineData;
-//     }
-
-//     return [
-//       { name: 'Sourced', value: 0, color: getStageColor('Sourced') },
-//       { name: 'Screening', value: 0, color: getStageColor('Screening') },
-//       { name: 'Interview', value: 0, color: getStageColor('Interview') },
-//       { name: 'Hired', value: 0, color: getStageColor('Hired') },
-//       { name: 'Rejected', value: 0, color: getStageColor('Rejected') }
-//     ];
-//   };
-
-//   const stripHtmlTags = (html) => {
-//     if (!html) return '';
-//     return html.replace(/<[^>]*>/g, '');
-//   };
-
-//   if (loading) {
-//     return (
-//       <Box sx={{
-//         display: 'flex',
-//         justifyContent: 'center',
-//         alignItems: 'center',
-//         height: '100vh',
-//         background: alpha(theme.palette.background.default, 0.8),
-//         backdropFilter: 'blur(8px)'
-//       }}>
-//         <CircularProgress size={60} thickness={4} />
-//       </Box>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <Box sx={{
-//         display: 'flex',
-//         justifyContent: 'center',
-//         alignItems: 'center',
-//         height: '100vh',
-//         flexDirection: 'column',
-//         gap: 3,
-//         textAlign: 'center',
-//         p: 3
-//       }}>
-//         <Typography variant="h5" color="error" sx={{ fontWeight: 600 }}>
-//           {error}
-//         </Typography>
-//         <Button
-//           variant="contained"
-//           color="primary"
-//           onClick={() => window.location.reload()}
-//           sx={{ borderRadius: 2, px: 4, py: 1.5 }}
-//         >
-//           Retry
-//         </Button>
-//       </Box>
-//     );
-//   }
-
-//   return (
-//     <Box
-//       sx={{
-//         display: "flex",
-//         flexDirection: "column",
-//         minHeight: "100vh",
-//         backgroundColor: theme.palette.grey[50],
-//         p: 0,
-//         overflow: 'hidden'
-//       }}
-//     >
-//       {/* Main Content */}
-//       <Box sx={{
-//         display: "flex",
-//         flexDirection: { xs: "column", lg: "row" },
-//         gap: 3,
-//         p: 3,
-//         flex: 1,
-//         overflow: 'auto'
-//       }}>
-//         {/* Left Content - 70% */}
-//         <Box sx={{
-//           flex: { xs: 1, lg: 7 },
-//           display: "flex",
-//           flexDirection: "column",
-//           gap: 3
-//         }}>
-//           {/* Header */}
-//           <Box>
-//             <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-//               {job?.jobTitle || "Job Title"}
-//             </Typography>
-//           </Box>
-
-//           {/* Stats Grid */}
-//           <Box
-//             sx={{
-//               display: "grid",
-//               gridTemplateColumns: {
-//                 xs: "1fr",
-//                 sm: "repeat(2, 1fr)",
-//                 md: "repeat(4, 1fr)",
-//               },
-//               gap: 3,
-//             }}
-//           >
-//             {[
-//               {
-//                 title: "Total Candidate Sourced",
-//                 value: appliedCandidat.length,
-//                 icon: <CandidateIcon />,
-//                 color: theme.palette.warning.main,
-//                 onClick: handleViewJobCandidates
-//               },
-//               {
-//                 title: "Upcoming Interviews",
-//                 value: interviews.upcoming,
-//                 icon: <TimeIcon />,
-//                 color: theme.palette.warning.main,
-//                 onClick: () => navigate('/interviews/upcoming')
-//               },
-//               {
-//                 title: "Acceptance Rate",
-//                 value: `${acceptanceRate.toFixed(1)}%`,
-//                 icon: <CheckCircleIcon />,
-//                 color: theme.palette.success.main,
-//               },
-//               {
-//                 title: "Positions",
-//                 value: `${closedPosition}/${job?.jobFormId?.openings || 0}`,
-//                 icon: <GroupIcon />,
-//                 color: theme.palette.primary.main,
-//               },
-//             ].map((stat, index) => (
-//               <GlassCard
-//                 key={index}
-//                 onClick={stat.onClick || undefined}
-//                 sx={{
-//                   cursor: stat.onClick ? 'pointer' : 'default',
-//                   '&:hover': {
-//                     transform: stat.onClick ? 'translateY(-4px)' : 'none',
-//                     boxShadow: stat.onClick ? `0 12px 40px ${alpha(theme.palette.common.black, 0.15)}` : 'none',
-//                     borderColor: stat.onClick ? alpha(theme.palette.primary.main, 0.3) : 'none'
-//                   }
-//                 }}
-//               >
-//                 <CardContent sx={{ p: 2.5 }}>
-//                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-//                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-//                       {stat.title}
-//                     </Typography>
-//                     {stat.change && (
-//                       <Chip
-//                         label={stat.change}
-//                         size="small"
-//                         sx={{
-//                           height: 20,
-//                           fontSize: '0.65rem',
-//                           bgcolor: stat.trend === 'up' ? `${theme.palette.success.light}80` :
-//                             stat.trend === 'down' ? `${theme.palette.error.light}80` :
-//                               `${theme.palette.grey[300]}80`,
-//                           color: stat.trend === 'up' ? theme.palette.success.dark :
-//                             stat.trend === 'down' ? theme.palette.error.dark :
-//                               theme.palette.text.secondary
-//                         }}
-//                       />
-//                     )}
-//                   </Box>
-//                   <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-//                     {stat.value}
-//                   </Typography>
-//                   {stat.subtitle && (
-//                     <Typography variant="caption" color="text.secondary">
-//                       {stat.subtitle}
-//                     </Typography>
-//                   )}
-//                   <Box sx={{
-//                     display: 'flex',
-//                     justifyContent: 'flex-end',
-//                     mt: 1
-//                   }}>
-//                     <Avatar sx={{
-//                       bgcolor: `${stat.color}20`,
-//                       color: stat.color,
-//                       width: 36,
-//                       height: 36
-//                     }}>
-//                       {stat.icon}
-//                     </Avatar>
-//                   </Box>
-//                 </CardContent>
-//               </GlassCard>
-//             ))}
-//           </Box>
-
-//           {/* Upcoming Interviews List */}
-//           {interviews.upcoming > 0 && (
-//             <GlassCard>
-//               <CardContent sx={{ p: 3 }}>
-//                 <Box sx={{
-//                   display: "flex",
-//                   justifyContent: "space-between",
-//                   alignItems: "center",
-//                   mb: 3
-//                 }}>
-//                   <Typography variant="h6" sx={{ fontWeight: 700 }}>
-//                     <CalendarIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} />
-//                     Upcoming Interviews
-//                   </Typography>
-//                   <GradientButton
-//                     size="small"
-//                     endIcon={<ArrowIcon />}
-//                     onClick={() => navigate('/interviews/upcoming')}
-//                   >
-//                     View All
-//                   </GradientButton>
-//                 </Box>
-
-//                 <Stack spacing={2}>
-//                   {interviews.upcomingInterviews.slice(0, 3).map((interview) => (
-//                     <Paper
-//                       key={interview._id}
-//                       elevation={0}
-//                       sx={{
-//                         p: 2.5,
-//                         borderRadius: 2,
-//                         background: alpha(theme.palette.background.paper, 0.7),
-//                         border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-//                         transition: 'all 0.3s ease',
-//                         '&:hover': {
-//                           transform: 'translateY(-2px)',
-//                           boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-//                           borderColor: alpha(theme.palette.primary.main, 0.3)
-//                         }
-//                       }}
-//                     >
-//                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-//                         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-//                           {interview.candidate?.name || 'No name'}
-//                         </Typography>
-//                         <Chip
-//                           label={interview.status || 'scheduled'}
-//                           size="small"
-//                           sx={{
-//                             fontWeight: 600,
-//                             bgcolor: interview.status === 'scheduled' ?
-//                               `${theme.palette.info.light}30` :
-//                               `${theme.palette.success.light}30`,
-//                             color: interview.status === 'scheduled' ?
-//                               theme.palette.info.dark :
-//                               theme.palette.success.dark
-//                           }}
-//                         />
-//                       </Box>
-
-//                       <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
-//                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-//                           <CalendarIcon fontSize="small" sx={{
-//                             mr: 1,
-//                             color: theme.palette.text.secondary
-//                           }} />
-//                           <Typography variant="body2">
-//                             {interview.date ? new Date(interview.date).toLocaleDateString() : 'No date'}
-//                           </Typography>
-//                         </Box>
-//                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-//                           <TimeIcon fontSize="small" sx={{
-//                             mr: 1,
-//                             color: theme.palette.text.secondary
-//                           }} />
-//                           <Typography variant="body2">
-//                             {interview.startTime || 'No time'} ({interview.timezone || 'UTC'})
-//                           </Typography>
-//                         </Box>
-//                       </Box>
-
-//                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-//                         {interview.interviewers?.map((interviewer) => (
-//                           <Chip
-//                             key={interviewer._id}
-//                             avatar={<Avatar alt={interviewer.name} sx={{ width: 24, height: 24 }}>
-//                               {interviewer.name?.charAt(0) || '?'}
-//                             </Avatar>}
-//                             label={interviewer.name || 'Interviewer'}
-//                             size="small"
-//                             sx={{
-//                               borderRadius: 1,
-//                               background: alpha(theme.palette.primary.light, 0.1)
-//                             }}
-//                           />
-//                         ))}
-//                       </Box>
-
-//                       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-//                         <Button
-//                           variant="outlined"
-//                           size="small"
-//                           endIcon={<ArrowIcon />}
-//                           sx={{
-//                             textTransform: 'none',
-//                             borderRadius: 2,
-//                             px: 2,
-//                             py: 0.5
-//                           }}
-//                           onClick={() => navigate(`/interviews/${interview._id}`)}
-//                         >
-//                           Details
-//                         </Button>
-//                       </Box>
-//                     </Paper>
-//                   ))}
-//                 </Stack>
-//               </CardContent>
-//             </GlassCard>
-//           )}
-
-//           {/* Bottom Row */}
-//           <Box sx={{
-//             display: 'flex',
-//             flexDirection: { xs: 'column', md: 'row' },
-//             gap: 3
-//           }}>
-//             {/* Candidate Pipeline Pie Chart */}
-//             <GlassCard sx={{ flex: 1 }}>
-//               <CardContent sx={{ p: 3 }}>
-//                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-//                   <TimelineIcon sx={{ mr: 1.5, color: theme.palette.info.main }} />
-//                   Candidate Pipeline
-//                 </Typography>
-//                 <Typography variant="body2" color="text.primary" sx={{ textAlign: 'center', mt: 1 }}>
-//                      No Pipeline data found for this position
-//                   </Typography>
-//                 <Box sx={{ height: 300 }}>
-//                   <ResponsiveContainer width="100%" height="100%">
-//                     <PieChart>
-//                       <Pie
-//                         data={getPipelineData()}
-//                         cx="50%"
-//                         cy="50%"
-//                         labelLine={false}
-//                         outerRadius={80}
-//                         fill="#8884d8"
-//                         dataKey="value"
-//                         label={({ name, value }) => `${name}: ${value}`}
-//                       >
-//                         {getPipelineData().map((entry, index) => (
-//                           <Cell key={`cell-${index}`} fill={entry.color} />
-//                         ))}
-//                       </Pie>
-//                       <Tooltip
-//                         formatter={(value, name) => [value, name]}
-//                       />
-//                       <Legend />
-//                     </PieChart>
-//                   </ResponsiveContainer>
-//                 </Box>
-//                 {pipelineData.length === 0 && (
-//                   <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 1 }}>
-//                     No data found for this position
-//                   </Typography>
-//                 )}
-//               </CardContent>
-//             </GlassCard>
-
-//             {/* Job Details */}
-//             <GlassCard sx={{ flex: 1 }}>
-//               <CardContent sx={{ p: 3 }}>
-//                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-//                   <AssignmentIcon sx={{ mr: 1.5, color: theme.palette.secondary.main }} />
-//                   Job Details
-//                 </Typography>
-
-//                 {job && (
-//                   <Box>
-//                     <Box sx={{ mb: 3 }}>
-//                       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-//                         Job Title
-//                       </Typography>
-//                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
-//                         {job.jobTitle}
-//                       </Typography>
-//                     </Box>
-
-//                     <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-//                       <Box>
-//                         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-//                           Department
-//                         </Typography>
-//                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
-//                           {job.department}
-//                         </Typography>
-//                       </Box>
-//                       <Box>
-//                         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-//                           Posted Date
-//                         </Typography>
-//                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
-//                           {new Date().toLocaleDateString()}
-//                         </Typography>
-//                       </Box>
-//                     </Box>
-
-//                     <Box sx={{ mb: 3 }}>
-//                       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-//                         Description
-//                       </Typography>
-//                       <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
-//                         {stripHtmlTags(job.jobDesc)}
-//                       </Typography>
-//                     </Box>
-
-//                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-//                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-//                         Status: Active
-//                       </Typography>
-//                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-//                         Type: Full-time
-//                       </Typography>
-//                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-//                         Location: On-site
-//                       </Typography>
-//                     </Box>
-//                   </Box>
-//                 )}
-//               </CardContent>
-//             </GlassCard>
-//           </Box>
-//         </Box>
-
-//         {/* Right Sidebar - 30% */}
-//         <Box sx={{
-//           flex: { xs: 1, lg: 3 },
-//           display: "flex",
-//           flexDirection: "column",
-//           gap: 3,
-//           minWidth: 320
-//         }}>
-//           {/* Notes Card */}
-//           <GlassCard sx={{ flex: 1, mt: 9 }}>
-//             <CardContent sx={{
-//               p: 3,
-//               flex: 1,
-//               display: 'flex',
-//               flexDirection: 'column'
-//             }}>
-//               <Box sx={{
-//                 display: "flex",
-//                 justifyContent: "space-between",
-//                 alignItems: "center",
-//                 mb: 3
-//               }}>
-//                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
-//                   <NoteIcon sx={{ mr: 1.5, color: theme.palette.info.main }} />
-//                   My Notes
-//                 </Typography>
-//                 <IconButton
-//                   size="small"
-//                   onClick={() => {
-//                     setNewNote("");
-//                     setEditingNoteId(null);
-//                     setShowNoteForm(true);
-//                   }}
-//                   sx={{
-//                     background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-//                     color: theme.palette.common.white,
-//                     '&:hover': {
-//                       background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`
-//                     }
-//                   }}
-//                 >
-//                   <AddIcon fontSize="small" />
-//                 </IconButton>
-//               </Box>
-
-//               {showNoteForm && (
-//                 <Paper
-//                   elevation={0}
-//                   sx={{
-//                     mb: 3,
-//                     p: 2.5,
-//                     borderRadius: 2,
-//                     background: alpha(theme.palette.background.paper, 0.7),
-//                     border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-//                   }}
-//                 >
-//                   <TextField
-//                     fullWidth
-//                     multiline
-//                     rows={3}
-//                     value={newNote}
-//                     onChange={(e) => setNewNote(e.target.value)}
-//                     placeholder="Write your note here..."
-//                     variant="outlined"
-//                     sx={{ mb: 2 }}
-//                     InputProps={{
-//                       sx: {
-//                         borderRadius: 1,
-//                         background: theme.palette.background.paper
-//                       }
-//                     }}
-//                   />
-//                   <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5 }}>
-//                     <Button
-//                       size="small"
-//                       startIcon={<CloseIcon />}
-//                       onClick={() => {
-//                         setShowNoteForm(false);
-//                         setEditingNoteId(null);
-//                         setNewNote("");
-//                       }}
-//                       sx={{ textTransform: 'none' }}
-//                     >
-//                       Cancel
-//                     </Button>
-//                     <GradientButton
-//                       size="small"
-//                       startIcon={<NoteIcon />}
-//                       onClick={handleAddNote}
-//                     >
-//                       {editingNoteId ? "Update Note" : "Save Note"}
-//                     </GradientButton>
-//                   </Box>
-//                 </Paper>
-//               )}
-
-//               <Box sx={{
-//                 flex: 1,
-//                 overflowY: 'auto',
-//                 pr: 1,
-//                 '&::-webkit-scrollbar': {
-//                   width: '6px',
-//                 },
-//                 '&::-webkit-scrollbar-thumb': {
-//                   background: alpha(theme.palette.primary.main, 0.5),
-//                   borderRadius: '3px',
-//                 }
-//               }}>
-//                 {notesLoading ? (
-//                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-//                     <CircularProgress />
-//                   </Box>
-//                 ) : notes.length > 0 ? (
-//                   <Stack spacing={2}>
-//                     {notes.map((note) => (
-//                       <Paper
-//                         key={note._id}
-//                         elevation={0}
-//                         sx={{
-//                           p: 2.5,
-//                           borderRadius: 2,
-//                           background: alpha(theme.palette.background.paper, 0.7),
-//                           border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-//                           transition: 'all 0.3s ease',
-//                           '&:hover': {
-//                             transform: 'translateY(-2px)',
-//                             boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-//                             borderColor: alpha(theme.palette.primary.main, 0.3)
-//                           }
-//                         }}
-//                       >
-//                         <Typography variant="body2" sx={{ mb: 2 }}>
-//                           {note.content}
-//                         </Typography>
-//                         <Box sx={{
-//                           display: 'flex',
-//                           justifyContent: 'space-between',
-//                           alignItems: 'center'
-//                         }}>
-//                           <Box>
-//                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-//                               {note.createdBy?.username || 'You'} • {new Date(note.createdAt).toLocaleDateString()}
-//                             </Typography>
-//                             <Typography variant="caption" color="text.secondary">
-//                               {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-//                             </Typography>
-//                           </Box>
-//                           <Box>
-//                             <IconButton
-//                               size="small"
-//                               onClick={() => handleEditNote(note)}
-//                               sx={{
-//                                 color: theme.palette.primary.main,
-//                                 '&:hover': {
-//                                   backgroundColor: alpha(theme.palette.primary.main, 0.1)
-//                                 }
-//                               }}
-//                             >
-//                               <EditIcon fontSize="small" />
-//                             </IconButton>
-//                             <IconButton
-//                               size="small"
-//                               onClick={() => handleDeleteNote(note._id)}
-//                               sx={{
-//                                 color: theme.palette.error.main,
-//                                 '&:hover': {
-//                                   backgroundColor: alpha(theme.palette.error.main, 0.1)
-//                                 }
-//                               }}
-//                             >
-//                               <DeleteIcon fontSize="small" />
-//                             </IconButton>
-//                           </Box>
-//                         </Box>
-//                       </Paper>
-//                     ))}
-//                   </Stack>
-//                 ) : (
-//                   <Box sx={{
-//                     display: 'flex',
-//                     flexDirection: 'column',
-//                     alignItems: 'center',
-//                     justifyContent: 'center',
-//                     height: '100%',
-//                     textAlign: 'center',
-//                     p: 3,
-//                     color: 'text.secondary'
-//                   }}>
-//                     <Box sx={{
-//                       width: 80,
-//                       height: 80,
-//                       borderRadius: '50%',
-//                       background: alpha(theme.palette.primary.main, 0.1),
-//                       display: 'flex',
-//                       alignItems: 'center',
-//                       justifyContent: 'center',
-//                       mb: 2
-//                     }}>
-//                       <NoteIcon sx={{
-//                         fontSize: 40,
-//                         color: theme.palette.primary.main
-//                       }} />
-//                     </Box>
-//                     <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-//                       No notes yet
-//                     </Typography>
-//                     <Typography variant="body2" sx={{ mb: 2, maxWidth: '80%' }}>
-//                       Add notes to track important information about candidates or hiring process
-//                     </Typography>
-//                     <GradientButton
-//                       size="small"
-//                       startIcon={<AddIcon />}
-//                       onClick={() => setShowNoteForm(true)}
-//                     >
-//                       Add your first note
-//                     </GradientButton>
-//                   </Box>
-//                 )}
-//               </Box>
-//             </CardContent>
-//           </GlassCard>
-
-//           {/* Quick Actions */}
-//           <GlassCard>
-//             <CardContent sx={{ p: 3 }}>
-//               <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-//                 Quick Actions
-//               </Typography>
-//               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-//                 <Button
-//                   variant="outlined"
-//                   size="medium"
-//                   startIcon={<CalendarIcon />}
-//                   onClick={() => navigate('/interviews/schedule')}
-//                   sx={{
-//                     justifyContent: 'flex-start',
-//                     textTransform: 'none',
-//                     p: 1.5,
-//                     borderRadius: 2,
-//                     borderColor: alpha(theme.palette.divider, 0.2),
-//                     '&:hover': {
-//                       borderColor: theme.palette.primary.main,
-//                       background: alpha(theme.palette.primary.main, 0.05)
-//                     }
-//                   }}
-//                 >
-//                   Schedule Interview
-//                 </Button>
-//                 <Button
-//                   variant="outlined"
-//                   size="medium"
-//                   startIcon={<EditIcon />}
-//                   onClick={handleUpdateJobPosting}
-//                   sx={{
-//                     justifyContent: 'flex-start',
-//                     textTransform: 'none',
-//                     p: 1.5,
-//                     borderRadius: 2,
-//                     borderColor: alpha(theme.palette.divider, 0.2),
-//                     '&:hover': {
-//                       borderColor: theme.palette.primary.main,
-//                       background: alpha(theme.palette.primary.main, 0.05)
-//                     }
-//                   }}
-//                 >
-//                   Update Job Posting
-//                 </Button>
-//                 <Button
-//                   variant="outlined"
-//                   size="medium"
-//                   startIcon={<PositionIcon />}
-//                   onClick={handleCreateJobPosting}
-//                   sx={{
-//                     justifyContent: 'flex-start',
-//                     textTransform: 'none',
-//                     p: 1.5,
-//                     borderRadius: 2,
-//                     borderColor: alpha(theme.palette.divider, 0.2),
-//                     '&:hover': {
-//                       borderColor: theme.palette.primary.main,
-//                       background: alpha(theme.palette.primary.main, 0.05)
-//                     }
-//                   }}
-//                 >
-//                   Create New Position
-//                 </Button>
-//               </Box>
-//             </CardContent>
-//           </GlassCard>
-//         </Box>
-//       </Box>
-//     </Box>
-//   );
-// };
-
-// export default Dashboard;
-
-//--------
-
-// import React, { useState, useEffect } from "react";
-// import { useParams, useNavigate } from "react-router-dom";
-// import { createNote, updateNote, fetchNotesByJob, deleteNote } from "../../services/Jobs/jobsService";
-// import axios from "axios";
-// import {
-//   Box, Typography, Card, CardContent, Divider, Button,
-//   TextField, Avatar, Stack, IconButton, Paper, LinearProgress,
-//   Chip, useTheme, styled, alpha, CircularProgress, Alert
-// } from "@mui/material";
-// import {
-//   AccessTime as TimeIcon,
-//   RecordVoiceOver as InterviewIcon,
-//   HowToReg as OfferIcon,
-//   WorkOutline as PositionIcon,
-//   People as CandidateIcon,
-//   RateReview as ReviewIcon,
-//   Description as JobDescIcon,
-//   NoteAdd as NoteIcon,
-//   ChevronRight as ArrowIcon,
-//   Add as AddIcon,
-//   Close as CloseIcon,
-//   Edit as EditIcon,
-//   Delete as DeleteIcon,
-//   CalendarToday as CalendarIcon,
-//   CheckCircle as CheckCircleIcon,
-//   Group as GroupIcon,
-//   Timeline as TimelineIcon,
-//   BarChart as BarChartIcon,
-//   Assignment as AssignmentIcon,
-//   Search as SearchIcon,
-//   Notifications as NotificationsIcon,
-//   AccountCircle as AccountIcon,
-//   MoreVert as MoreIcon
-// } from "@mui/icons-material";
-// import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-
-// // Custom styled components
-// const GlassCard = styled(Card)(({ theme }) => ({
-//   background: alpha(theme.palette.background.paper, 0.85),
-//   backdropFilter: 'blur(12px)',
-//   borderRadius: '16px',
-//   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-//   boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
-//   transition: 'all 0.3s ease',
-//   '&:hover': {
-//     transform: 'translateY(-4px)',
-//     boxShadow: `0 12px 40px ${alpha(theme.palette.common.black, 0.15)}`,
-//     borderColor: alpha(theme.palette.primary.main, 0.3)
-//   }
-// }));
-
-// const GradientButton = styled(Button)(({ theme }) => ({
-//   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-//   color: theme.palette.common.white,
-//   fontWeight: 600,
-//   textTransform: 'none',
-//   padding: '8px 20px',
-//   borderRadius: '12px',
-//   boxShadow: 'none',
-//   '&:hover': {
-//     background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
-//     boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`
-//   }
-// }));
-
-// const Dashboard = () => {
-//   const [notes, setNotes] = useState([]);
-//   const [newNote, setNewNote] = useState("");
-//   const [showNoteForm, setShowNoteForm] = useState(false);
-//   const [editingNoteId, setEditingNoteId] = useState(null);
-//   const { id: jobId } = useParams();
-//   const [job, setJob] = useState(null);
-//   const [appliedCandidates, setAppliedCandidates] = useState([]);
-//   const [pipelineData, setPipelineData] = useState([]);
-//   const [closedPosition, setClosedPosition] = useState(0);
-//   const [acceptanceRate, setAcceptanceRate] = useState(0);
-//   const [totalCandidates, setTotalCandidates] = useState(0);
-  
-//   const [interviews, setInterviews] = useState({
-//     online: 0,
-//     offline: 0,
-//     upcoming: 0,
-//     upcomingInterviews: []
-//   });
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [notesLoading, setNotesLoading] = useState(false);
-//   const theme = useTheme();
-//   const navigate = useNavigate();
-
-//   // Fetch notes from API
-//   const fetchNotes = async () => {
-//     try {
-//       setNotesLoading(true);
-//       const response = await fetchNotesByJob(jobId);
-//       setNotes(response.notes);
-//     } catch (err) {
-//       console.error("Error fetching notes:", err);
-//     } finally {
-//       setNotesLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         setLoading(true);
-//         setError(null);
-
-//         const token = localStorage.getItem('token');
-        
-//         // Fetch notes first
-//         await fetchNotes();
-
-//         if (jobId) {
-//           // Fetch job details
-//           try {
-//             const jobResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/job/${jobId}`, {
-//               headers: {
-//                 'Authorization': `Bearer ${token}`
-//               }
-//             });
-//             setJob(jobResponse.data.job);
-//           } catch (err) {
-//             console.error("Error fetching job details:", err);
-//           }
-
-//           // Fetch total candidates for this job
-//           try {
-//             const candidatesResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/job/${jobId}`, {
-//               headers: {
-//                 'Authorization': `Bearer ${token}`
-//               }
-//             });
-//             setTotalCandidates(candidatesResponse.data.count);
-//             setAppliedCandidates(candidatesResponse.data.candidates || []);
-
-//             // Process pipeline data
-//             const stages = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired', 'Rejected', 'Archived'];
-//             const stageCounts = {};
-
-//             stages.forEach(stage => {
-//               stageCounts[stage] = 0;
-//             });
-
-//             candidatesResponse.data.candidates.forEach(candidate => {
-//               const stageName = candidate.stage?.name || 'Sourced';
-//               stageCounts[stageName] = (stageCounts[stageName] || 0) + 1;
-//             });
-
-//             const processedData = stages.map(stage => ({
-//               name: stage,
-//               value: stageCounts[stage],
-//               color: getStageColor(stage)
-//             })).filter(item => item.value > 0);
-
-//             setPipelineData(processedData);
-//           } catch (err) {
-//             console.error("Error fetching candidates:", err);
-//             setError("Unable to load candidate data. Please try again later.");
-//           }
-//         }
-
-//         // Try to fetch interview data but don't fail if it's not available
-//         try {
-//           const token= localStorage.getItem('token');
-//           const [onlineInterviewsRes, offlineInterviewsRes, upcomingInterviewsRes] = await Promise.all([
-//             axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/upcoming',{
-//               headers:{
-//                 Authorization:`Bearer ${token}`
-//               }
-//             }),
-//             axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews/upcoming',{
-//               headers:{
-//                 Authorization:`Bearer ${token}`
-//               }
-//             }),
-//             axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/upcoming',{
-//               headers: {
-//                 Authorization: `Bearer ${token}`
-//               }
-//             })
-//           ]);
-
-//           const offlineInterviewsCount = offlineInterviewsRes.data.data ? offlineInterviewsRes.data.data.length : 0;
-
-//           setInterviews({
-//             online: onlineInterviewsRes.data.count || 0,
-//             offline: offlineInterviewsCount,
-//             upcoming: upcomingInterviewsRes.data.count || 0,
-//             upcomingInterviews: upcomingInterviewsRes.data.data || []
-//           });
-//         } catch (err) {
-//           console.log("Interview data not available, continuing without it");
-//         }
-
-//       } catch (err) {
-//         console.error("Error fetching data:", err);
-//         setError("Failed to load some data. Please try again.");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchData();
-//   }, [jobId]);
-
-//   function percentage(partialValue, totalValue) {
-//     if (!totalValue) return 0;
-//     return (100 * partialValue) / totalValue;
-//   }
-
-//   useEffect(() => {
-//     const hiredCount = appliedCandidates.filter(c => c.stage?.name === 'Hired').length;
-//     setClosedPosition(hiredCount);
-//     setAcceptanceRate(percentage(hiredCount, appliedCandidates.length));
-//   }, [appliedCandidates]);
-
-//   const handleAddNote = async () => {
-//     if (!newNote.trim()) return;
-
-//     try {
-//       if (editingNoteId) {
-//         await updateNote(editingNoteId, newNote);
-//         setEditingNoteId(null);
-//       } else {
-//         await createNote(jobId, newNote);
-//       }
-//       setNewNote("");
-//       setShowNoteForm(false);
-//       fetchNotes();
-//     } catch (err) {
-//       console.error("Error saving note:", err);
-//     }
-//   };
-
-//   const handleEditNote = (note) => {
-//     setNewNote(note.content);
-//     setEditingNoteId(note._id);
-//     setShowNoteForm(true);
-//   };
-
-//   const handleDeleteNote = async (id) => {
-//     try {
-//       await deleteNote(id);
-//       fetchNotes();
-//     } catch (err) {
-//       console.error("Error deleting note:", err);
-//     }
-//   };
-
-//   const handleUpdateJobPosting = () => {
-//     if (!job) {
-//       console.error('Job data not loaded yet');
-//       return;
-//     }
-    
-//     if (!job._id) {
-//       console.error('Job ID is missing');
-//       return;
-//     }
-
-//     navigate(`/jobs/update/${job._id}`, {
-//       state: { job }
-//     });
-//   };
-
-//   const handleCreateJobPosting = () => {
-//     navigate('/dashboard/jobs/createJob');
-//   };
-
-//   const handleViewJobCandidates = () => {
-//     navigate(`/candidates`);
-//   };
-
-//   const getStageColor = (stage) => {
-//     switch (stage) {
-//       case 'Sourced': return theme.palette.info.main;
-//       case 'Screening': return theme.palette.warning.main;
-//       case 'Interview': return theme.palette.primary.main;
-//       case 'Preboarding': return theme.palette.secondary.main;
-//       case 'Hired': return theme.palette.success.main;
-//       case 'Rejected': return theme.palette.error.main;
-//       case 'Archived': return theme.palette.grey[500];
-//       default: return theme.palette.text.secondary;
-//     }
-//   };
-
-//   const getPipelineData = () => {
-//     if (pipelineData.length > 0) {
-//       return pipelineData;
-//     }
-
-//     return [
-//       { name: 'Sourced', value: 0, color: getStageColor('Sourced') },
-//       { name: 'Screening', value: 0, color: getStageColor('Screening') },
-//       { name: 'Interview', value: 0, color: getStageColor('Interview') },
-//       { name: 'Hired', value: 0, color: getStageColor('Hired') },
-//       { name: 'Rejected', value: 0, color: getStageColor('Rejected') }
-//     ];
-//   };
-
-//   const stripHtmlTags = (html) => {
-//     if (!html) return '';
-//     return html.replace(/<[^>]*>/g, '');
-//   };
-
-//   if (loading) {
-//     return (
-//       <Box sx={{
-//         display: 'flex',
-//         justifyContent: 'center',
-//         alignItems: 'center',
-//         height: '100vh',
-//         background: alpha(theme.palette.background.default, 0.8),
-//         backdropFilter: 'blur(8px)'
-//       }}>
-//         <CircularProgress size={60} thickness={4} />
-//       </Box>
-//     );
-//   }
-
-//   return (
-//     <Box
-//       sx={{
-//         display: "flex",
-//         flexDirection: "column",
-//         minHeight: "100vh",
-//         backgroundColor: theme.palette.grey[50],
-//         p: 0,
-//         overflow: 'hidden'
-//       }}
-//     >
-//       {/* Main Content */}
-//       <Box sx={{
-//         display: "flex",
-//         flexDirection: { xs: "column", lg: "row" },
-//         gap: 3,
-//         p: 3,
-//         flex: 1,
-//         overflow: 'auto'
-//       }}>
-//         {/* Left Content - 70% */}
-//         <Box sx={{
-//           flex: { xs: 1, lg: 7 },
-//           display: "flex",
-//           flexDirection: "column",
-//           gap: 3
-//         }}>
-//           {/* Header */}
-//           <Box>
-//             <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-//               {job?.jobTitle || "Job Title"}
-//             </Typography>
-//             {error && (
-//               <Alert severity="warning" sx={{ mt: 1 }}>
-//                 {error}
-//               </Alert>
-//             )}
-//           </Box>
-
-//           {/* Stats Grid */}
-//           <Box
-//             sx={{
-//               display: "grid",
-//               gridTemplateColumns: {
-//                 xs: "1fr",
-//                 sm: "repeat(2, 1fr)",
-//                 md: "repeat(4, 1fr)",
-//               },
-//               gap: 3,
-//             }}
-//           >
-//             {[
-//               {
-//                 title: "Total Candidate Sourced",
-//                 value: totalCandidates,
-//                 icon: <CandidateIcon />,
-//                 color: theme.palette.warning.main,
-//                 onClick: handleViewJobCandidates
-//               },
-//               {
-//                 title: "Upcoming Interviews",
-//                 value: interviews.upcoming,
-//                 icon: <TimeIcon />,
-//                 color: theme.palette.warning.main,
-//                 onClick: () => navigate('/interviews/upcoming')
-//               },
-//               {
-//                 title: "Acceptance Rate",
-//                 value: `${acceptanceRate.toFixed(1)}%`,
-//                 icon: <CheckCircleIcon />,
-//                 color: theme.palette.success.main,
-//               },
-//               {
-//                 title: "Positions",
-//                 value: `${closedPosition}/${job?.jobFormId?.openings || 0}`,
-//                 icon: <GroupIcon />,
-//                 color: theme.palette.primary.main,
-//               },
-//             ].map((stat, index) => (
-//               <GlassCard
-//                 key={index}
-//                 onClick={stat.onClick || undefined}
-//                 sx={{
-//                   cursor: stat.onClick ? 'pointer' : 'default',
-//                   '&:hover': {
-//                     transform: stat.onClick ? 'translateY(-4px)' : 'none',
-//                     boxShadow: stat.onClick ? `0 12px 40px ${alpha(theme.palette.common.black, 0.15)}` : 'none',
-//                     borderColor: stat.onClick ? alpha(theme.palette.primary.main, 0.3) : 'none'
-//                   }
-//                 }}
-//               >
-//                 <CardContent sx={{ p: 2.5 }}>
-//                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-//                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-//                       {stat.title}
-//                     </Typography>
-//                   </Box>
-//                   <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-//                     {stat.value}
-//                   </Typography>
-//                   <Box sx={{
-//                     display: 'flex',
-//                     justifyContent: 'flex-end',
-//                     mt: 1
-//                   }}>
-//                     <Avatar sx={{
-//                       bgcolor: `${stat.color}20`,
-//                       color: stat.color,
-//                       width: 36,
-//                       height: 36
-//                     }}>
-//                       {stat.icon}
-//                     </Avatar>
-//                   </Box>
-//                 </CardContent>
-//               </GlassCard>
-//             ))}
-//           </Box>
-
-//           {/* Upcoming Interviews List - Only show if we have data */}
-//           {interviews.upcoming > 0 && (
-//             <GlassCard>
-//               <CardContent sx={{ p: 3 }}>
-//                 <Box sx={{
-//                   display: "flex",
-//                   justifyContent: "space-between",
-//                   alignItems: "center",
-//                   mb: 3
-//                 }}>
-//                   <Typography variant="h6" sx={{ fontWeight: 700 }}>
-//                     <CalendarIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} />
-//                     Upcoming Interviews
-//                   </Typography>
-//                   <GradientButton
-//                     size="small"
-//                     endIcon={<ArrowIcon />}
-//                     onClick={() => navigate('/interviews/upcoming')}
-//                   >
-//                     View All
-//                   </GradientButton>
-//                 </Box>
-
-//                 <Stack spacing={2}>
-//                   {interviews.upcomingInterviews.slice(0, 3).map((interview) => (
-//                     <Paper
-//                       key={interview._id}
-//                       elevation={0}
-//                       sx={{
-//                         p: 2.5,
-//                         borderRadius: 2,
-//                         background: alpha(theme.palette.background.paper, 0.7),
-//                         border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-//                         transition: 'all 0.3s ease',
-//                         '&:hover': {
-//                           transform: 'translateY(-2px)',
-//                           boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-//                           borderColor: alpha(theme.palette.primary.main, 0.3)
-//                         }
-//                       }}
-//                     >
-//                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-//                         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-//                           {interview.candidate?.name || 'No name'}
-//                         </Typography>
-//                         <Chip
-//                           label={interview.status || 'scheduled'}
-//                           size="small"
-//                           sx={{
-//                             fontWeight: 600,
-//                             bgcolor: interview.status === 'scheduled' ?
-//                               `${theme.palette.info.light}30` :
-//                               `${theme.palette.success.light}30`,
-//                             color: interview.status === 'scheduled' ?
-//                               theme.palette.info.dark :
-//                               theme.palette.success.dark
-//                           }}
-//                         />
-//                       </Box>
-
-//                       <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
-//                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-//                           <CalendarIcon fontSize="small" sx={{
-//                             mr: 1,
-//                             color: theme.palette.text.secondary
-//                           }} />
-//                           <Typography variant="body2">
-//                             {interview.date ? new Date(interview.date).toLocaleDateString() : 'No date'}
-//                           </Typography>
-//                         </Box>
-//                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-//                           <TimeIcon fontSize="small" sx={{
-//                             mr: 1,
-//                             color: theme.palette.text.secondary
-//                           }} />
-//                           <Typography variant="body2">
-//                             {interview.startTime || 'No time'} ({interview.timezone || 'UTC'})
-//                           </Typography>
-//                         </Box>
-//                       </Box>
-
-//                       <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-//                         {interview.interviewers?.map((interviewer) => (
-//                           <Chip
-//                             key={interviewer._id}
-//                             avatar={<Avatar alt={interviewer.name} sx={{ width: 24, height: 24 }}>
-//                               {interviewer.name?.charAt(0) || '?'}
-//                             </Avatar>}
-//                             label={interviewer.name || 'Interviewer'}
-//                             size="small"
-//                             sx={{
-//                               borderRadius: 1,
-//                               background: alpha(theme.palette.primary.light, 0.1)
-//                             }}
-//                           />
-//                         ))}
-//                       </Box>
-
-//                       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-//                         <Button
-//                           variant="outlined"
-//                           size="small"
-//                           endIcon={<ArrowIcon />}
-//                           sx={{
-//                             textTransform: 'none',
-//                             borderRadius: 2,
-//                             px: 2,
-//                             py: 0.5
-//                           }}
-//                           onClick={() => navigate(`/interviews/${interview._id}`)}
-//                         >
-//                           Details
-//                         </Button>
-//                       </Box>
-//                     </Paper>
-//                   ))}
-//                 </Stack>
-//               </CardContent>
-//             </GlassCard>
-//           )}
-
-//           {/* Bottom Row */}
-//           <Box sx={{
-//             display: 'flex',
-//             flexDirection: { xs: 'column', md: 'row' },
-//             gap: 3
-//           }}>
-//             {/* Candidate Pipeline Pie Chart */}
-//             <GlassCard sx={{ flex: 1 }}>
-//               <CardContent sx={{ p: 3 }}>
-//                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-//                   <TimelineIcon sx={{ mr: 1.5, color: theme.palette.info.main }} />
-//                   Candidate Pipeline
-//                 </Typography>
-//                 <Box sx={{ height: 300 }}>
-//                   {pipelineData.length > 0 ? (
-//                     <ResponsiveContainer width="100%" height="100%">
-//                       <PieChart>
-//                         <Pie
-//                           data={getPipelineData()}
-//                           cx="50%"
-//                           cy="50%"
-//                           labelLine={false}
-//                           outerRadius={80}
-//                           fill="#8884d8"
-//                           dataKey="value"
-//                           label={({ name, value }) => `${name}: ${value}`}
-//                         >
-//                           {getPipelineData().map((entry, index) => (
-//                             <Cell key={`cell-${index}`} fill={entry.color} />
-//                           ))}
-//                         </Pie>
-//                         <Tooltip
-//                           formatter={(value, name) => [value, name]}
-//                         />
-//                         <Legend />
-//                       </PieChart>
-//                     </ResponsiveContainer>
-//                   ) : (
-//                     <Box sx={{ 
-//                       display: 'flex', 
-//                       justifyContent: 'center', 
-//                       alignItems: 'center', 
-//                       height: '100%',
-//                       flexDirection: 'column'
-//                     }}>
-//                       <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 2 }}>
-//                         No pipeline data available
-//                       </Typography>
-//                       <Button 
-//                         variant="outlined" 
-//                         onClick={handleViewJobCandidates}
-//                         startIcon={<CandidateIcon />}
-//                       >
-//                         View Candidates
-//                       </Button>
-//                     </Box>
-//                   )}
-//                 </Box>
-//               </CardContent>
-//             </GlassCard>
-
-//             {/* Job Details */}
-//             <GlassCard sx={{ flex: 1 }}>
-//               <CardContent sx={{ p: 3 }}>
-//                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-//                   <AssignmentIcon sx={{ mr: 1.5, color: theme.palette.secondary.main }} />
-//                   Job Details
-//                 </Typography>
-
-//                 {job ? (
-//                   <Box>
-//                     <Box sx={{ mb: 3 }}>
-//                       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-//                         Job Title
-//                       </Typography>
-//                       <Typography variant="h5" sx={{ fontWeight: 700 }}>
-//                         {job.jobTitle}
-//                       </Typography>
-//                     </Box>
-
-//                     <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-//                       <Box>
-//                         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-//                           Department
-//                         </Typography>
-//                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
-//                           {job.department}
-//                         </Typography>
-//                       </Box>
-//                       <Box>
-//                         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-//                           Posted Date
-//                         </Typography>
-//                         <Typography variant="body1" sx={{ fontWeight: 600 }}>
-//                           {new Date().toLocaleDateString()}
-//                         </Typography>
-//                       </Box>
-//                     </Box>
-
-//                     <Box sx={{ mb: 3 }}>
-//                       <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-//                         Description
-//                       </Typography>
-//                       <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
-//                         {stripHtmlTags(job.jobDesc)}
-//                       </Typography>
-//                     </Box>
-
-//                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-//                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-//                         Status: Active
-//                       </Typography>
-//                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-//                         Type: Full-time
-//                       </Typography>
-//                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
-//                         Location: On-site
-//                       </Typography>
-//                     </Box>
-//                   </Box>
-//                 ) : (
-//                   <Typography variant="body2" color="text.secondary">
-//                     Job details not available
-//                   </Typography>
-//                 )}
-//               </CardContent>
-//             </GlassCard>
-//           </Box>
-//         </Box>
-
-//         {/* Right Sidebar - 30% */}
-//         <Box sx={{
-//           flex: { xs: 1, lg: 3 },
-//           display: "flex",
-//           flexDirection: "column",
-//           gap: 3,
-//           minWidth: 320
-//         }}>
-//           {/* Notes Card */}
-//           <GlassCard sx={{ flex: 1, mt: 9 }}>
-//             <CardContent sx={{
-//               p: 3,
-//               flex: 1,
-//               display: 'flex',
-//               flexDirection: 'column'
-//             }}>
-//               <Box sx={{
-//                 display: "flex",
-//                 justifyContent: "space-between",
-//                 alignItems: "center",
-//                 mb: 3
-//               }}>
-//                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
-//                   <NoteIcon sx={{ mr: 1.5, color: theme.palette.info.main }} />
-//                   My Notes
-//                 </Typography>
-//                 <IconButton
-//                   size="small"
-//                   onClick={() => {
-//                     setNewNote("");
-//                     setEditingNoteId(null);
-//                     setShowNoteForm(true);
-//                   }}
-//                   sx={{
-//                     background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-//                     color: theme.palette.common.white,
-//                     '&:hover': {
-//                       background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`
-//                     }
-//                   }}
-//                 >
-//                   <AddIcon fontSize="small" />
-//                 </IconButton>
-//               </Box>
-
-//               {showNoteForm && (
-//                 <Paper
-//                   elevation={0}
-//                   sx={{
-//                     mb: 3,
-//                     p: 2.5,
-//                     borderRadius: 2,
-//                     background: alpha(theme.palette.background.paper, 0.7),
-//                     border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
-//                   }}
-//                 >
-//                   <TextField
-//                     fullWidth
-//                     multiline
-//                     rows={3}
-//                     value={newNote}
-//                     onChange={(e) => setNewNote(e.target.value)}
-//                     placeholder="Write your note here..."
-//                     variant="outlined"
-//                     sx={{ mb: 2 }}
-//                     InputProps={{
-//                       sx: {
-//                         borderRadius: 1,
-//                         background: theme.palette.background.paper
-//                       }
-//                     }}
-//                   />
-//                   <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5 }}>
-//                     <Button
-//                       size="small"
-//                       startIcon={<CloseIcon />}
-//                       onClick={() => {
-//                         setShowNoteForm(false);
-//                         setEditingNoteId(null);
-//                         setNewNote("");
-//                       }}
-//                       sx={{ textTransform: 'none' }}
-//                     >
-//                       Cancel
-//                     </Button>
-//                     <GradientButton
-//                       size="small"
-//                       startIcon={<NoteIcon />}
-//                       onClick={handleAddNote}
-//                     >
-//                       {editingNoteId ? "Update Note" : "Save Note"}
-//                     </GradientButton>
-//                   </Box>
-//                 </Paper>
-//               )}
-
-//               <Box sx={{
-//                 flex: 1,
-//                 overflowY: 'auto',
-//                 pr: 1,
-//                 '&::-webkit-scrollbar': {
-//                   width: '6px',
-//                 },
-//                 '&::-webkit-scrollbar-thumb': {
-//                   background: alpha(theme.palette.primary.main, 0.5),
-//                   borderRadius: '3px',
-//                 }
-//               }}>
-//                 {notesLoading ? (
-//                   <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-//                     <CircularProgress />
-//                   </Box>
-//                 ) : notes.length > 0 ? (
-//                   <Stack spacing={2}>
-//                     {notes.map((note) => (
-//                       <Paper
-//                         key={note._id}
-//                         elevation={0}
-//                         sx={{
-//                           p: 2.5,
-//                           borderRadius: 2,
-//                           background: alpha(theme.palette.background.paper, 0.7),
-//                           border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-//                           transition: 'all 0.3s ease',
-//                           '&:hover': {
-//                             transform: 'translateY(-2px)',
-//                             boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-//                             borderColor: alpha(theme.palette.primary.main, 0.3)
-//                           }
-//                         }}
-//                       >
-//                         <Typography variant="body2" sx={{ mb: 2 }}>
-//                           {note.content}
-//                         </Typography>
-//                         <Box sx={{
-//                           display: 'flex',
-//                           justifyContent: 'space-between',
-//                           alignItems: 'center'
-//                         }}>
-//                           <Box>
-//                             <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-//                               {note.createdBy?.username || 'You'} • {new Date(note.createdAt).toLocaleDateString()}
-//                             </Typography>
-//                             <Typography variant="caption" color="text.secondary">
-//                               {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-//                             </Typography>
-//                           </Box>
-//                           <Box>
-//                             <IconButton
-//                               size="small"
-//                               onClick={() => handleEditNote(note)}
-//                               sx={{
-//                                 color: theme.palette.primary.main,
-//                                 '&:hover': {
-//                                   backgroundColor: alpha(theme.palette.primary.main, 0.1)
-//                                 }
-//                               }}
-//                             >
-//                               <EditIcon fontSize="small" />
-//                             </IconButton>
-//                             <IconButton
-//                               size="small"
-//                               onClick={() => handleDeleteNote(note._id)}
-//                               sx={{
-//                                 color: theme.palette.error.main,
-//                                 '&:hover': {
-//                                   backgroundColor: alpha(theme.palette.error.main, 0.1)
-//                                 }
-//                               }}
-//                             >
-//                               <DeleteIcon fontSize="small" />
-//                             </IconButton>
-//                           </Box>
-//                         </Box>
-//                       </Paper>
-//                     ))}
-//                   </Stack>
-//                 ) : (
-//                   <Box sx={{
-//                     display: 'flex',
-//                     flexDirection: 'column',
-//                     alignItems: 'center',
-//                     justifyContent: 'center',
-//                     height: '100%',
-//                     textAlign: 'center',
-//                     p: 3,
-//                     color: 'text.secondary'
-//                   }}>
-//                     <Box sx={{
-//                       width: 80,
-//                       height: 80,
-//                       borderRadius: '50%',
-//                       background: alpha(theme.palette.primary.main, 0.1),
-//                       display: 'flex',
-//                       alignItems: 'center',
-//                       justifyContent: 'center',
-//                       mb: 2
-//                     }}>
-//                       <NoteIcon sx={{
-//                         fontSize: 40,
-//                         color: theme.palette.primary.main
-//                       }} />
-//                     </Box>
-//                     <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-//                       No notes yet
-//                     </Typography>
-//                     <Typography variant="body2" sx={{ mb: 2, maxWidth: '80%' }}>
-//                       Add notes to track important information about candidates or hiring process
-//                     </Typography>
-//                     <GradientButton
-//                       size="small"
-//                       startIcon={<AddIcon />}
-//                       onClick={() => setShowNoteForm(true)}
-//                     >
-//                       Add your first note
-//                     </GradientButton>
-//                   </Box>
-//                 )}
-//               </Box>
-//             </CardContent>
-//           </GlassCard>
-
-//           {/* Quick Actions */}
-//           <GlassCard>
-//             <CardContent sx={{ p: 3 }}>
-//               <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-//                 Quick Actions
-//               </Typography>
-//               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-//                 <Button
-//                   variant="outlined"
-//                   size="medium"
-//                   startIcon={<CalendarIcon />}
-//                   onClick={() => navigate('/interviews/schedule')}
-//                   sx={{
-//                     justifyContent: 'flex-start',
-//                     textTransform: 'none',
-//                     p: 1.5,
-//                     borderRadius: 2,
-//                     borderColor: alpha(theme.palette.divider, 0.2),
-//                     '&:hover': {
-//                       borderColor: theme.palette.primary.main,
-//                       background: alpha(theme.palette.primary.main, 0.05)
-//                     }
-//                   }}
-//                 >
-//                   Schedule Interview
-//                 </Button>
-//                 <Button
-//                   variant="outlined"
-//                   size="medium"
-//                   startIcon={<EditIcon />}
-//                   onClick={handleUpdateJobPosting}
-//                   sx={{
-//                     justifyContent: 'flex-start',
-//                     textTransform: 'none',
-//                     p: 1.5,
-//                     borderRadius: 2,
-//                     borderColor: alpha(theme.palette.divider, 0.2),
-//                     '&:hover': {
-//                       borderColor: theme.palette.primary.main,
-//                       background: alpha(theme.palette.primary.main, 0.05)
-//                     }
-//                   }}
-//                 >
-//                   Update Job Posting
-//                 </Button>
-//                 <Button
-//                   variant="outlined"
-//                   size="medium"
-//                   startIcon={<PositionIcon />}
-//                   onClick={handleCreateJobPosting}
-//                   sx={{
-//                     justifyContent: 'flex-start',
-//                     textTransform: 'none',
-//                     p: 1.5,
-//                     borderRadius: 2,
-//                     borderColor: alpha(theme.palette.divider, 0.2),
-//                     '&:hover': {
-//                       borderColor: theme.palette.primary.main,
-//                       background: alpha(theme.palette.primary.main, 0.05)
-//                     }
-//                   }}
-//                 >
-//                   Create New Position
-//                 </Button>
-//               </Box>
-//             </CardContent>
-//           </GlassCard>
-//         </Box>
-//       </Box>
-//     </Box>
-//   );
-// };
-
-// export default Dashboard;
-
-
-//----------
-
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { createNote, updateNote, fetchNotesByJob, deleteNote } from "../../services/Jobs/jobsService";
-import axios from "axios";
 import {
-  Box, Typography, Card, CardContent, Divider, Button,
-  TextField, Avatar, Stack, IconButton, Paper, LinearProgress,
-  Chip, useTheme, styled, alpha, CircularProgress, Alert
+  Box, Typography, Card, CardContent, Button,
+  TextField, Avatar, Stack, IconButton, Paper,
+  Chip, useTheme, styled, alpha, LinearProgress,
+  Grid, Table, TableBody, TableCell, TableContainer, 
+  TableHead, TableRow, Tooltip, Menu, MenuItem,
+  InputAdornment, Badge, Divider
 } from "@mui/material";
 import {
-  AccessTime as TimeIcon,
-  RecordVoiceOver as InterviewIcon,
-  HowToReg as OfferIcon,
-  WorkOutline as PositionIcon,
-  People as CandidateIcon,
-  RateReview as ReviewIcon,
-  Description as JobDescIcon,
-  NoteAdd as NoteIcon,
-  ChevronRight as ArrowIcon,
-  Add as AddIcon,
-  Close as CloseIcon,
+  People as PeopleIcon,
+  Schedule as ScheduleIcon,
+  HowToReg as HowToRegIcon,
+  Work as WorkIcon,
+  TrendingUp as TrendingUpIcon,
+  MoreVert as MoreVertIcon,
+  Search as SearchIcon,
+  FilterList as FilterIcon,
+  Download as DownloadIcon,
+  Mail as MailIcon,
+  Phone as PhoneIcon,
+  CalendarToday as CalendarIcon,
+  LocationOn as LocationIcon,
+  AttachMoney as MoneyIcon,
+  Business as BusinessIcon,
+  CheckCircle as CheckCircleIcon,
+  PlayArrow as PlayArrowIcon,
+  Pause as PauseIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  CalendarToday as CalendarIcon,
-  CheckCircle as CheckCircleIcon,
-  Group as GroupIcon,
-  Timeline as TimelineIcon,
+  Visibility as VisibilityIcon,
+  Add as AddIcon,
+  ChevronRight as ChevronRightIcon,
   BarChart as BarChartIcon,
-  Assignment as AssignmentIcon,
-  Search as SearchIcon,
-  Notifications as NotificationsIcon,
-  AccountCircle as AccountIcon,
-  MoreVert as MoreIcon,
-  Videocam as OnlineIcon,
-  MeetingRoom as OfflineIcon
+  Timeline as TimelineIcon,
+  Refresh as RefreshIcon,
+  Notifications as NotificationsIcon
 } from "@mui/icons-material";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import {  ArrowBack } from "@mui/icons-material"; // Added ArrowBack icon
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
+  LineChart, Line, PieChart, Pie, Cell
+} from 'recharts';
 
-import MainLayout from "../../layout/MainLayout";
-
-// Custom styled components
-const GlassCard = styled(Card)(({ theme }) => ({
-  background: alpha(theme.palette.background.paper, 0.85),
-  backdropFilter: 'blur(12px)',
-  borderRadius: '16px',
-  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  boxShadow: `0 8px 32px ${alpha(theme.palette.common.black, 0.1)}`,
+// Styled Components
+const StatCard = styled(Card)(({ theme }) => ({
+  borderRadius: '12px',
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+  border: '1px solid',
+  borderColor: alpha(theme.palette.divider, 0.1),
   transition: 'all 0.3s ease',
+  height: '100%',
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: `0 12px 40px ${alpha(theme.palette.common.black, 0.15)}`,
-    borderColor: alpha(theme.palette.primary.main, 0.3)
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)'
   }
 }));
 
-const GradientButton = styled(Button)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-  color: theme.palette.common.white,
-  fontWeight: 600,
-  textTransform: 'none',
-  padding: '8px 20px',
+const DashboardCard = styled(Card)(({ theme }) => ({
   borderRadius: '12px',
-  boxShadow: 'none',
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+  border: '1px solid',
+  borderColor: alpha(theme.palette.divider, 0.08),
+  height: '100%'
+}));
+
+const PrimaryButton = styled(Button)(({ theme }) => ({
+  background: theme.palette.primary.main,
+  color: theme.palette.common.white,
+  fontWeight: 500,
+  textTransform: 'none',
+  borderRadius: '8px',
+  padding: '8px 20px',
+  fontSize: '0.875rem',
   '&:hover': {
-    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`,
+    background: theme.palette.primary.dark,
     boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`
   }
 }));
 
+const SecondaryButton = styled(Button)(({ theme }) => ({
+  background: theme.palette.grey[100],
+  color: theme.palette.text.primary,
+  fontWeight: 500,
+  textTransform: 'none',
+  borderRadius: '8px',
+  padding: '8px 20px',
+  fontSize: '0.875rem',
+  border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+  '&:hover': {
+    background: theme.palette.grey[200],
+    borderColor: alpha(theme.palette.divider, 0.3)
+  }
+}));
+
 const Dashboard = () => {
-  const [notes, setNotes] = useState([]);
-  const [newNote, setNewNote] = useState("");
-  const [showNoteForm, setShowNoteForm] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState(null);
   const { id: jobId } = useParams();
-  const [job, setJob] = useState(null);
-  const [appliedCandidates, setAppliedCandidates] = useState([]);
-  const [pipelineData, setPipelineData] = useState([]);
-  const [closedPosition, setClosedPosition] = useState(0);
-  const [acceptanceRate, setAcceptanceRate] = useState(0);
-  const [totalCandidates, setTotalCandidates] = useState(0);
-  
-  const [interviews, setInterviews] = useState({
-    online: 0,
-    offline: 0,
-    total: 0,
-    upcomingInterviews: []
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [notesLoading, setNotesLoading] = useState(false);
-  const theme = useTheme();
   const navigate = useNavigate();
-
-
-
-    const handleBack = () => {
-    navigate(-1); // Go back one step in history
+  const theme = useTheme();
+  
+  // State
+  const [job, setJob] = useState(null);
+  const [stats, setStats] = useState({
+    totalCandidates: 0,
+    interviewsToday: 0,
+    positionsFilled: 0,
+    acceptanceRate: 0
+  });
+  const [candidates, setCandidates] = useState([]);
+  const [interviews, setInterviews] = useState([]);
+  const [pipelineData, setPipelineData] = useState([]);
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterAnchor, setFilterAnchor] = useState(null);
+  
+  // Dummy Data
+  const dummyJob = {
+    id: jobId || "JOB-001",
+    title: "Senior Frontend Developer",
+    department: "Engineering",
+    location: "San Francisco, CA",
+    type: "Full-time",
+    salary: "$120,000 - $150,000",
+    experience: "5+ years",
+    openings: 3,
+    postedDate: "Jan 10, 2024",
+    status: "active",
+    description: "We are looking for a Senior Frontend Developer with expertise in React.js and modern web technologies to join our growing team."
   };
-  // Fetch notes from API
-  const fetchNotes = async () => {
-    try {
-      setNotesLoading(true);
-      const response = await fetchNotesByJob(jobId);
-      setNotes(response.notes);
-    } catch (err) {
-      console.error("Error fetching notes:", err);
-    } finally {
-      setNotesLoading(false);
+  
+  const dummyCandidates = [
+    {
+      id: "C001",
+      name: "John Smith",
+      email: "john.smith@email.com",
+      stage: "Interview",
+      status: "active",
+      appliedDate: "Jan 15, 2024",
+      experience: "5 years",
+      location: "New York, NY",
+      avatarColor: "#2196F3",
+      rating: 4.5,
+      lastActivity: "2 hours ago"
+    },
+    {
+      id: "C002",
+      name: "Sarah Johnson",
+      email: "sarah.j@email.com",
+      stage: "Screening",
+      status: "active",
+      appliedDate: "Jan 18, 2024",
+      experience: "3 years",
+      location: "San Francisco, CA",
+      avatarColor: "#FF9800",
+      rating: 4.2,
+      lastActivity: "1 day ago"
+    },
+    {
+      id: "C003",
+      name: "Michael Chen",
+      email: "michael.c@email.com",
+      stage: "Offer",
+      status: "active",
+      appliedDate: "Jan 20, 2024",
+      experience: "7 years",
+      location: "Austin, TX",
+      avatarColor: "#4CAF50",
+      rating: 4.8,
+      lastActivity: "3 hours ago"
+    },
+    {
+      id: "C004",
+      name: "Emma Davis",
+      email: "emma.d@email.com",
+      stage: "Hired",
+      status: "hired",
+      appliedDate: "Jan 10, 2024",
+      experience: "4 years",
+      location: "Chicago, IL",
+      avatarColor: "#9C27B0",
+      rating: 4.6,
+      lastActivity: "1 week ago"
+    },
+    {
+      id: "C005",
+      name: "Robert Wilson",
+      email: "robert.w@email.com",
+      stage: "Rejected",
+      status: "rejected",
+      appliedDate: "Jan 5, 2024",
+      experience: "6 years",
+      location: "Boston, MA",
+      avatarColor: "#F44336",
+      rating: 3.8,
+      lastActivity: "2 days ago"
+    },
+    {
+      id: "C006",
+      name: "Lisa Brown",
+      email: "lisa.b@email.com",
+      stage: "Interview",
+      status: "active",
+      appliedDate: "Dec 28, 2023",
+      experience: "8 years",
+      location: "Seattle, WA",
+      avatarColor: "#009688",
+      rating: 4.7,
+      lastActivity: "5 hours ago"
     }
-  };
+  ];
+  
+  const dummyInterviews = [
+    {
+      id: "I001",
+      candidateName: "John Smith",
+      candidateId: "C001",
+      type: "Technical",
+      time: "10:00 AM - 11:00 AM",
+      date: "Today",
+      interviewers: ["Alex Johnson", "Sarah Lee"],
+      status: "scheduled",
+      platform: "Zoom"
+    },
+    {
+      id: "I002",
+      candidateName: "Michael Chen",
+      candidateId: "C003",
+      type: "Final",
+      time: "2:00 PM - 3:00 PM",
+      date: "Today",
+      interviewers: ["David Kim"],
+      status: "scheduled",
+      platform: "Google Meet"
+    },
+    {
+      id: "I003",
+      candidateName: "Lisa Brown",
+      candidateId: "C006",
+      type: "HR",
+      time: "11:00 AM - 12:00 PM",
+      date: "Tomorrow",
+      interviewers: ["Maria Garcia"],
+      status: "scheduled",
+      platform: "In-person"
+    }
+  ];
+  
+  const dummyPipelineData = [
+    { name: 'Sourced', value: 24, color: '#2196F3' },
+    { name: 'Screening', value: 18, color: '#FF9800' },
+    { name: 'Interview', value: 12, color: '#9C27B0' },
+    { name: 'Offer', value: 6, color: '#4CAF50' },
+    { name: 'Hired', value: 3, color: '#00C853' },
+    { name: 'Rejected', value: 9, color: '#F44336' }
+  ];
+  
+  const dummyWeeklyData = [
+    { day: 'Mon', applications: 8, interviews: 3 },
+    { day: 'Tue', applications: 12, interviews: 5 },
+    { day: 'Wed', applications: 10, interviews: 4 },
+    { day: 'Thu', applications: 15, interviews: 6 },
+    { day: 'Fri', applications: 7, interviews: 2 },
+    { day: 'Sat', applications: 2, interviews: 1 },
+    { day: 'Sun', applications: 1, interviews: 0 }
+  ];
 
+  // Initialize data
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const token = localStorage.getItem('token');
-        
-        // Fetch notes first
-        await fetchNotes();
-
-        if (jobId) {
-          // Fetch job details
-          try {
-            const jobResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/job/${jobId}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                 'ngrok-skip-browser-warning': 'true'
-
-              }
-            });
-            setJob(jobResponse.data.job);
-          } catch (err) {
-            console.error("Error fetching job details:", err);
-          }
-
-          // Fetch total candidates for this job
-          try {
-            const candidatesResponse = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/job/${jobId}`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                 'ngrok-skip-browser-warning': 'true'
-              }
-            });
-            setTotalCandidates(candidatesResponse.data.count);
-            setAppliedCandidates(candidatesResponse.data.candidates || []);
-
-            // Process pipeline data
-            const stages = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired', 'Rejected', 'Archived'];
-            const stageCounts = {};
-
-            stages.forEach(stage => {
-              stageCounts[stage] = 0;
-            });
-
-            candidatesResponse.data.candidates.forEach(candidate => {
-              const stageName = candidate.stage?.name || 'Sourced';
-              stageCounts[stageName] = (stageCounts[stageName] || 0) + 1;
-            });
-
-            const processedData = stages.map(stage => ({
-              name: stage,
-              value: stageCounts[stage],
-              color: getStageColor(stage)
-            })).filter(item => item.value > 0);
-
-            setPipelineData(processedData);
-          } catch (err) {
-            console.error("Error fetching candidates:", err);
-            setError("Unable to load candidate data. Please try again later.");
-          }
-        }
-
-        // Fetch both online and offline interviews
-        try {
-          const token = localStorage.getItem('token');
-          const [onlineInterviewsRes, offlineInterviewsRes] = await Promise.all([
-            axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/interviews/upcoming', {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true'
-
-              }
-            }),
-            axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/offline/interviews/upcoming', {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'ngrok-skip-browser-warning': 'true'
-
-              }
-            })
-          ]);
-
-          // Process online interviews
-          const onlineInterviews = onlineInterviewsRes.data.data || [];
-          const onlineCount = onlineInterviewsRes.data.count || onlineInterviews.length;
-          
-          // Process offline interviews
-          const offlineInterviews = offlineInterviewsRes.data.data || [];
-          const offlineCount = offlineInterviewsRes.data.count || offlineInterviews.length;
-          
-          // Combine all interviews and sort by date
-          const allInterviews = [...onlineInterviews, ...offlineInterviews]
-            .map(interview => ({
-              ...interview,
-              type: interview.platform ? 'online' : 'offline',
-              interviewDate: interview.date ? new Date(interview.date) : new Date()
-            }))
-            .sort((a, b) => a.interviewDate - b.interviewDate);
-
-          setInterviews({
-            online: onlineCount,
-            offline: offlineCount,
-            total: onlineCount + offlineCount,
-            upcomingInterviews: allInterviews
-          });
-        } catch (err) {
-          console.log("Interview data not available, continuing without it");
-          setInterviews({
-            online: 0,
-            offline: 0,
-            total: 0,
-            upcomingInterviews: []
-          });
-        }
-
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load some data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    setJob(dummyJob);
+    setCandidates(dummyCandidates);
+    setInterviews(dummyInterviews);
+    setPipelineData(dummyPipelineData);
+    setWeeklyData(dummyWeeklyData);
+    
+    // Calculate stats
+    const totalCandidates = dummyCandidates.length;
+    const interviewsToday = dummyInterviews.filter(i => i.date === 'Today').length;
+    const positionsFilled = dummyCandidates.filter(c => c.stage === 'Hired').length;
+    const acceptanceRate = ((positionsFilled / totalCandidates) * 100).toFixed(1);
+    
+    setStats({
+      totalCandidates,
+      interviewsToday,
+      positionsFilled,
+      acceptanceRate: parseFloat(acceptanceRate)
+    });
   }, [jobId]);
 
-  function percentage(partialValue, totalValue) {
-    if (!totalValue) return 0;
-    return (100 * partialValue) / totalValue;
-  }
-
-  useEffect(() => {
-    const hiredCount = appliedCandidates.filter(c => c.stage?.name === 'Hired').length;
-    setClosedPosition(hiredCount);
-    setAcceptanceRate(percentage(hiredCount, appliedCandidates.length));
-  }, [appliedCandidates]);
-
-  const handleAddNote = async () => {
-    if (!newNote.trim()) return;
-
-    try {
-      if (editingNoteId) {
-        await updateNote(editingNoteId, newNote);
-        setEditingNoteId(null);
-      } else {
-        await createNote(jobId, newNote);
-      }
-      setNewNote("");
-      setShowNoteForm(false);
-      fetchNotes();
-    } catch (err) {
-      console.error("Error saving note:", err);
-    }
+  const handleFilterClick = (event) => {
+    setFilterAnchor(event.currentTarget);
   };
 
-  const handleEditNote = (note) => {
-    setNewNote(note.content);
-    setEditingNoteId(note._id);
-    setShowNoteForm(true);
-  };
-
-  const handleDeleteNote = async (id) => {
-    try {
-      await deleteNote(id);
-      fetchNotes();
-    } catch (err) {
-      console.error("Error deleting note:", err);
-    }
-  };
-
-  const handleUpdateJobPosting = () => {
-    if (!job) {
-      console.error('Job data not loaded yet');
-      return;
-    }
-    
-    if (!job._id) {
-      console.error('Job ID is missing');
-      return;
-    }
-
-    navigate(`/jobs/update/${job._id}`, {
-      state: { job }
-    });
-  };
-
-  const handleCreateJobPosting = () => {
-    navigate('/dashboard/jobs/createJob');
-  };
-
-  const handleViewJobCandidates = () => {
-    navigate(`/candidates`);
+  const handleFilterClose = () => {
+    setFilterAnchor(null);
   };
 
   const getStageColor = (stage) => {
-    switch (stage) {
-      case 'Sourced': return theme.palette.info.main;
-      case 'Screening': return theme.palette.warning.main;
-      case 'Interview': return theme.palette.primary.main;
-      case 'Preboarding': return theme.palette.secondary.main;
-      case 'Hired': return theme.palette.success.main;
-      case 'Rejected': return theme.palette.error.main;
-      case 'Archived': return theme.palette.grey[500];
-      default: return theme.palette.text.secondary;
+    const colors = {
+      'Sourced': '#2196F3',
+      'Screening': '#FF9800',
+      'Interview': '#9C27B0',
+      'Offer': '#4CAF50',
+      'Hired': '#00C853',
+      'Rejected': '#F44336'
+    };
+    return colors[stage] || '#757575';
+  };
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'active': return 'primary';
+      case 'hired': return 'success';
+      case 'rejected': return 'error';
+      case 'scheduled': return 'info';
+      default: return 'default';
     }
   };
-
-  const getPipelineData = () => {
-    if (pipelineData.length > 0) {
-      return pipelineData;
-    }
-
-    return [
-      { name: 'Sourced', value: 0, color: getStageColor('Sourced') },
-      { name: 'Screening', value: 0, color: getStageColor('Screening') },
-      { name: 'Interview', value: 0, color: getStageColor('Interview') },
-      { name: 'Hired', value: 0, color: getStageColor('Hired') },
-      { name: 'Rejected', value: 0, color: getStageColor('Rejected') }
-    ];
-  };
-
-  const stripHtmlTags = (html) => {
-    if (!html) return '';
-    return html.replace(/<[^>]*>/g, '');
-  };
-
-  const getInterviewTypeIcon = (type) => {
-    return type === 'online' ? 
-      <OnlineIcon sx={{ fontSize: 16, color: theme.palette.primary.main }} /> : 
-      <OfflineIcon sx={{ fontSize: 16, color: theme.palette.secondary.main }} />;
-  };
-
-  const getInterviewTypeLabel = (type) => {
-    return type === 'online' ? 'Online' : 'In-Person';
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        background: alpha(theme.palette.background.default, 0.8),
-        backdropFilter: 'blur(8px)'
-      }}>
-        <CircularProgress size={60} thickness={4} />
-      </Box>
-      
-    );
-  }
 
   return (
-    
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-        backgroundColor: theme.palette.grey[50],
-        p: 0,
-        overflow: 'hidden'
-      }}
-    >
-       
-      {/* Main Content */}
-      <Box sx={{
-        display: "flex",
-        flexDirection: { xs: "column", lg: "row" },
-        gap: 3,
-        p: 3,
-        flex: 1,
-        overflow: 'auto'
-      }} 
-      
-      >
-        
-        
-        {/* Left Content - 70% */}
-        <Box sx={{
-          flex: { xs: 1, lg: 7 },
-          display: "flex",
-          flexDirection: "column",
-          gap: 3
+    <Box sx={{ 
+      p: 3, 
+      maxWidth: '100%',
+      overflowX: 'hidden',
+      marginLeft:10
+    }}>
+      {/* Header */}
+      <Box sx={{ mb: 3 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mb: 2 
         }}>
-          {/* Header */}
-      
           <Box>
-            
-            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-              {job?.jobTitle || "Job Title"}
+            <Typography variant="h4" sx={{ 
+              fontWeight: 700, 
+              mb: 0.5,
+              color: theme.palette.text.primary
+            }}>
+              {job?.title}
             </Typography>
-            {error && (
-              <Alert severity="warning" sx={{ mt: 1 }}>
-                {error}
-              </Alert>
-            )}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Chip 
+                size="small" 
+                icon={<BusinessIcon sx={{ fontSize: 14 }} />}
+                label={job?.department} 
+                sx={{ fontWeight: 500 }}
+              />
+              <Chip 
+                size="small" 
+                icon={<LocationIcon sx={{ fontSize: 14 }} />}
+                label={job?.location} 
+                sx={{ fontWeight: 500 }}
+              />
+              <Chip 
+                size="small" 
+                icon={<MoneyIcon sx={{ fontSize: 14 }} />}
+                label={job?.salary} 
+                sx={{ fontWeight: 500 }}
+              />
+            </Box>
           </Box>
-          
-
-          {/* Stats Grid */}
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, 1fr)",
-                md: "repeat(4, 1fr)",
-              },
-              gap: 3,
-            }}
-          >
-            {[
-              {
-                title: "Total Candidate Sourced",
-                value: totalCandidates,
-                icon: <CandidateIcon />,
-                color: theme.palette.warning.main,
-                onClick: handleViewJobCandidates
-              },
-              {
-                title: "Total Interviews",
-                value: interviews.total,
-                icon: <InterviewIcon />,
-                color: theme.palette.info.main,
-                onClick: () => navigate('/interviews')
-              },
-              // {
-              //   title: "Online Interviews",
-              //   value: interviews.online,
-              //   icon: <OnlineIcon />,
-              //   color: theme.palette.primary.main,
-              //   onClick: () => navigate('/interviews/upcoming')
-              // },
-              // {
-              //   title: "Offline Interviews",
-              //   value: interviews.offline,
-              //   icon: <OfflineIcon />,
-              //   color: theme.palette.secondary.main,
-              //   onClick: () => navigate('/offline-interviews/upcoming')
-              // },
-              {
-                title: "Acceptance Rate",
-                value: `${acceptanceRate.toFixed(1)}%`,
-                icon: <CheckCircleIcon />,
-                color: theme.palette.success.main,
-              },
-              {
-                title: "Positions",
-                value: `${closedPosition}/${job?.jobFormId?.openings || 0}`,
-                icon: <GroupIcon />,
-                color: theme.palette.primary.main,
-              },
-            ].map((stat, index) => (
-              <GlassCard
-                key={index}
-                onClick={stat.onClick || undefined}
-                sx={{
-                  cursor: stat.onClick ? 'pointer' : 'default',
-                  '&:hover': {
-                    transform: stat.onClick ? 'translateY(-4px)' : 'none',
-                    boxShadow: stat.onClick ? `0 12px 40px ${alpha(theme.palette.common.black, 0.15)}` : 'none',
-                    borderColor: stat.onClick ? alpha(theme.palette.primary.main, 0.3) : 'none'
-                  }
-                }}
-              >
-                <CardContent sx={{ p: 2.5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                      {stat.title}
-                    </Typography>
-                  </Box>
-                  <Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
-                    {stat.value}
-                  </Typography>
-                  <Box sx={{
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    mt: 1
-                  }}>
-                    <Avatar sx={{
-                      bgcolor: `${stat.color}20`,
-                      color: stat.color,
-                      width: 36,
-                      height: 36
-                    }}>
-                      {stat.icon}
-                    </Avatar>
-                  </Box>
-                </CardContent>
-              </GlassCard>
-            ))}
-          </Box>
-
-          {/* Upcoming Interviews List - Only show if we have data */}
-          {interviews.upcomingInterviews.length > 0 && (
-            <GlassCard>
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 3
-                }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                    <CalendarIcon sx={{ mr: 1.5, color: theme.palette.primary.main }} />
-                    Upcoming Interviews
-                  </Typography>
-                  <GradientButton
-                    size="small"
-                    endIcon={<ArrowIcon />}
-                    onClick={() => navigate('/interviews')}
-                  >
-                    View All
-                  </GradientButton>
-                </Box>
-
-                <Stack spacing={2}>
-                  {interviews.upcomingInterviews.slice(0, 3).map((interview) => (
-                    <Paper
-                      key={interview._id}
-                      elevation={0}
-                      sx={{
-                        p: 2.5,
-                        borderRadius: 2,
-                        background: alpha(theme.palette.background.paper, 0.7),
-                        border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-2px)',
-                          boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-                          borderColor: alpha(theme.palette.primary.main, 0.3)
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                        <Box>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
-                            {interview.candidate?.name || 'No name'}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            {getInterviewTypeIcon(interview.type)}
-                            <Typography variant="body2" color="text.secondary">
-                              {getInterviewTypeLabel(interview.type)}
-                            </Typography>
-                          </Box>
-                        </Box>
-                        <Chip
-                          label={interview.status || 'scheduled'}
-                          size="small"
-                          sx={{
-                            fontWeight: 600,
-                            bgcolor: interview.status === 'scheduled' ?
-                              `${theme.palette.info.light}30` :
-                              `${theme.palette.success.light}30`,
-                            color: interview.status === 'scheduled' ?
-                              theme.palette.info.dark :
-                              theme.palette.success.dark
-                          }}
-                        />
-                      </Box>
-
-                      <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <CalendarIcon fontSize="small" sx={{
-                            mr: 1,
-                            color: theme.palette.text.secondary
-                          }} />
-                          <Typography variant="body2">
-                            {interview.date ? new Date(interview.date).toLocaleDateString() : 'No date'}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <TimeIcon fontSize="small" sx={{
-                            mr: 1,
-                            color: theme.palette.text.secondary
-                          }} />
-                          <Typography variant="body2">
-                            {interview.startTime || 'No time'} ({interview.timezone || 'UTC'})
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      {/* Show meeting link for online interviews or location for offline */}
-                      {interview.type === 'online' && interview.meetingLink && (
-                        <Box sx={{ mb: 1.5 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            Meeting Link:
-                          </Typography>
-                          <Typography variant="body2" color="primary" sx={{ wordBreak: 'break-all' }}>
-                            {interview.meetingLink}
-                          </Typography>
-                        </Box>
-                      )}
-
-                      {interview.type === 'offline' && interview.location && (
-                        <Box sx={{ mb: 1.5 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            Location:
-                          </Typography>
-                          <Typography variant="body2">
-                            {interview.location.building}, {interview.location.address}, Floor {interview.location.floor}
-                          </Typography>
-                        </Box>
-                      )}
-
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-                        {interview.interviewers?.map((interviewer) => (
-                          <Chip
-                            key={interviewer._id}
-                            avatar={<Avatar alt={interviewer.name} sx={{ width: 24, height: 24 }}>
-                              {interviewer.name?.charAt(0) || '?'}
-                            </Avatar>}
-                            label={interviewer.name || 'Interviewer'}
-                            size="small"
-                            sx={{
-                              borderRadius: 1,
-                              background: alpha(theme.palette.primary.light, 0.1)
-                            }}
-                          />
-                        ))}
-                      </Box>
-
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          endIcon={<ArrowIcon />}
-                          sx={{
-                            textTransform: 'none',
-                            borderRadius: 2,
-                            px: 2,
-                            py: 0.5
-                          }}
-                          onClick={() => navigate(`/interviews/${interview._id}`)}
-                        >
-                          Details
-                        </Button>
-                      </Box>
-                    </Paper>
-                  ))}
-                </Stack>
-              </CardContent>
-            </GlassCard>
-          )}
-
-          {/* Bottom Row */}
-          <Box sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            gap: 3
-          }}>
-            {/* Candidate Pipeline Pie Chart */}
-            <GlassCard sx={{ flex: 1 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                  <TimelineIcon sx={{ mr: 1.5, color: theme.palette.info.main }} />
-                  Candidate Pipeline
-                </Typography>
-                <Box sx={{ height: 300 }}>
-                  {pipelineData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={getPipelineData()}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, value }) => `${name}: ${value}`}
-                        >
-                          {getPipelineData().map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value, name) => [value, name]}
-                        />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'center', 
-                      alignItems: 'center', 
-                      height: '100%',
-                      flexDirection: 'column'
-                    }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mb: 2 }}>
-                        No pipeline data available
-                      </Typography>
-                      <Button 
-                        variant="outlined" 
-                        onClick={handleViewJobCandidates}
-                        startIcon={<CandidateIcon />}
-                      >
-                        View Candidates
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
-              </CardContent>
-            </GlassCard>
-
-            {/* Job Details */}
-            <GlassCard sx={{ flex: 1 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                  <AssignmentIcon sx={{ mr: 1.5, color: theme.palette.secondary.main }} />
-                  Job Details
-                </Typography>
-
-                {job ? (
-                  <Box>
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                        Job Title
-                      </Typography>
-                      <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                        {job.jobTitle}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                          Department
-                        </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                          {job.department}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                          Posted Date
-                        </Typography>
-                        <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                          {new Date().toLocaleDateString()}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                        Description
-                      </Typography>
-                      <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
-                        {stripHtmlTags(job.jobDesc)}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Status: Active
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Type: Full-time
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        Location: On-site
-                      </Typography>
-                    </Box>
-                  </Box>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    Job details not available
-                  </Typography>
-                )}
-              </CardContent>
-            </GlassCard>
+          <Box sx={{ display: 'flex', gap: 1.5 }}>
+            <SecondaryButton startIcon={<EditIcon />}>
+              Edit Job
+            </SecondaryButton>
+            <PrimaryButton startIcon={<AddIcon />}>
+              Add Candidate
+            </PrimaryButton>
           </Box>
         </Box>
-
-        {/* Right Sidebar - 30% */}
-        <Box sx={{
-          flex: { xs: 1, lg: 3 },
-          display: "flex",
-          flexDirection: "column",
-          gap: 3,
-          minWidth: 320
+        
+        {/* Search and Filter Bar */}
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 2,
+          mb: 3 
         }}>
-          {/* Notes Card */}
-          <GlassCard sx={{ flex: 1, mt: 9 }}>
-            <CardContent sx={{
-              p: 3,
+          <TextField
+            placeholder="Search candidates, interviews..."
+            size="small"
+            sx={{
               flex: 1,
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <Box sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 3
-              }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                  <NoteIcon sx={{ mr: 1.5, color: theme.palette.info.main }} />
-                  My Notes
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => {
-                    setNewNote("");
-                    setEditingNoteId(null);
-                    setShowNoteForm(true);
-                  }}
-                  sx={{
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-                    color: theme.palette.common.white,
-                    '&:hover': {
-                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.dark} 100%)`
-                    }
-                  }}
-                >
-                  <AddIcon fontSize="small" />
-                </IconButton>
-              </Box>
-
-              {showNoteForm && (
-                <Paper
-                  elevation={0}
-                  sx={{
-                    mb: 3,
-                    p: 2.5,
+              maxWidth: 400,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '8px',
+                backgroundColor: theme.palette.background.paper
+              }
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              )
+            }}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <SecondaryButton
+            startIcon={<FilterIcon />}
+            onClick={handleFilterClick}
+          >
+            Filter
+          </SecondaryButton>
+          <SecondaryButton startIcon={<DownloadIcon />}>
+            Export
+          </SecondaryButton>
+          <SecondaryButton startIcon={<RefreshIcon />}>
+            Refresh
+          </SecondaryButton>
+        </Box>
+        
+        {/* Stats Cards */}
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Total Candidates
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {stats.totalCandidates}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {dummyCandidates.filter(c => c.status === 'active').length} active
+                    </Typography>
+                  </Box>
+                  <Avatar sx={{ 
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    color: theme.palette.primary.main,
+                    width: 48,
+                    height: 48
+                  }}>
+                    <PeopleIcon />
+                  </Avatar>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={75} 
+                  sx={{ 
+                    mt: 2,
+                    height: 4,
                     borderRadius: 2,
-                    background: alpha(theme.palette.background.paper, 0.7),
-                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1)
                   }}
-                >
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    placeholder="Write your note here..."
-                    variant="outlined"
-                    sx={{ mb: 2 }}
-                    InputProps={{
-                      sx: {
-                        borderRadius: 1,
-                        background: theme.palette.background.paper
-                      }
-                    }}
-                  />
-                  <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1.5 }}>
-                    <Button
-                      size="small"
-                      startIcon={<CloseIcon />}
-                      onClick={() => {
-                        setShowNoteForm(false);
-                        setEditingNoteId(null);
-                        setNewNote("");
-                      }}
-                      sx={{ textTransform: 'none' }}
-                    >
-                      Cancel
-                    </Button>
-                    <GradientButton
-                      size="small"
-                      startIcon={<NoteIcon />}
-                      onClick={handleAddNote}
-                    >
-                      {editingNoteId ? "Update Note" : "Save Note"}
-                    </GradientButton>
+                />
+              </CardContent>
+            </StatCard>
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Interviews Today
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {stats.interviewsToday}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {interviews.length} total scheduled
+                    </Typography>
                   </Box>
-                </Paper>
-              )}
-
-              <Box sx={{
-                flex: 1,
-                overflowY: 'auto',
-                pr: 1,
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: alpha(theme.palette.primary.main, 0.5),
-                  borderRadius: '3px',
-                }
-              }}>
-                {notesLoading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                    <CircularProgress />
+                  <Avatar sx={{ 
+                    bgcolor: alpha(theme.palette.info.main, 0.1),
+                    color: theme.palette.info.main,
+                    width: 48,
+                    height: 48
+                  }}>
+                    <ScheduleIcon />
+                  </Avatar>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    2 completed
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    1 pending
+                  </Typography>
+                </Box>
+              </CardContent>
+            </StatCard>
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Positions Filled
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {stats.positionsFilled}/{job?.openings}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {job?.openings - stats.positionsFilled} remaining
+                    </Typography>
                   </Box>
-                ) : notes.length > 0 ? (
+                  <Avatar sx={{ 
+                    bgcolor: alpha(theme.palette.success.main, 0.1),
+                    color: theme.palette.success.main,
+                    width: 48,
+                    height: 48
+                  }}>
+                    <HowToRegIcon />
+                  </Avatar>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={(stats.positionsFilled / (job?.openings || 1)) * 100} 
+                  sx={{ 
+                    mt: 2,
+                    height: 4,
+                    borderRadius: 2,
+                    backgroundColor: alpha(theme.palette.success.main, 0.1)
+                  }}
+                />
+              </CardContent>
+            </StatCard>
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Acceptance Rate
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {stats.acceptanceRate}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Above average
+                    </Typography>
+                  </Box>
+                  <Avatar sx={{ 
+                    bgcolor: alpha(theme.palette.warning.main, 0.1),
+                    color: theme.palette.warning.main,
+                    width: 48,
+                    height: 48
+                  }}>
+                    <TrendingUpIcon />
+                  </Avatar>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <TrendingUpIcon sx={{ fontSize: 16, color: 'success.main', mr: 0.5 }} />
+                  <Typography variant="caption" color="success.main">
+                    +5.2% from last month
+                  </Typography>
+                </Box>
+              </CardContent>
+            </StatCard>
+          </Grid>
+        </Grid>
+      </Box>
+      
+      {/* Main Dashboard Content */}
+      <Grid container spacing={2}>
+        {/* Left Column - Charts */}
+        <Grid item xs={12} lg={8}>
+          <Grid container spacing={2}>
+            {/* Pipeline Chart */}
+            <Grid item xs={12}>
+              <DashboardCard>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    mb: 2 
+                  }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      Candidate Pipeline
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <SecondaryButton size="small">
+                        This Week
+                      </SecondaryButton>
+                      <SecondaryButton size="small">
+                        All Time
+                      </SecondaryButton>
+                    </Box>
+                  </Box>
+                  <Box sx={{ height: 280 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={pipelineData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <RechartsTooltip 
+                          contentStyle={{ 
+                            borderRadius: '8px',
+                            border: `1px solid ${alpha(theme.palette.divider, 0.2)}`
+                          }}
+                        />
+                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                          {pipelineData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Box>
+                </CardContent>
+              </DashboardCard>
+            </Grid>
+            
+            {/* Weekly Activity */}
+            <Grid item xs={12}>
+              <DashboardCard>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    mb: 2 
+                  }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      Weekly Activity
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Last 7 days
+                    </Typography>
+                  </Box>
+                  <Box sx={{ height: 240 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={weeklyData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
+                        <XAxis dataKey="day" />
+                        <YAxis />
+                        <RechartsTooltip 
+                          contentStyle={{ 
+                            borderRadius: '8px',
+                            border: `1px solid ${alpha(theme.palette.divider, 0.2)}`
+                          }}
+                        />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="applications" 
+                          stroke={theme.palette.primary.main} 
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          activeDot={{ r: 6 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="interviews" 
+                          stroke={theme.palette.secondary.main} 
+                          strokeWidth={2}
+                          dot={{ r: 4 }}
+                          activeDot={{ r: 6 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </Box>
+                </CardContent>
+              </DashboardCard>
+            </Grid>
+          </Grid>
+        </Grid>
+        
+        {/* Right Column - Sidebar */}
+        <Grid item xs={12} lg={4}>
+          <Grid container spacing={2}>
+            {/* Upcoming Interviews */}
+            <Grid item xs={12}>
+              <DashboardCard>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    mb: 2 
+                  }}>
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                      Upcoming Interviews
+                    </Typography>
+                    <PrimaryButton size="small" endIcon={<ChevronRightIcon />}>
+                      View All
+                    </PrimaryButton>
+                  </Box>
                   <Stack spacing={2}>
-                    {notes.map((note) => (
-                      <Paper
-                        key={note._id}
-                        elevation={0}
-                        sx={{
-                          p: 2.5,
-                          borderRadius: 2,
-                          background: alpha(theme.palette.background.paper, 0.7),
-                          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                          transition: 'all 0.3s ease',
+                    {interviews.map((interview) => (
+                      <Paper 
+                        key={interview.id}
+                        variant="outlined"
+                        sx={{ 
+                          p: 2,
+                          borderRadius: '8px',
+                          borderColor: alpha(theme.palette.divider, 0.2),
                           '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.1)}`,
-                            borderColor: alpha(theme.palette.primary.main, 0.3)
+                            borderColor: theme.palette.primary.main,
+                            backgroundColor: alpha(theme.palette.primary.main, 0.02)
                           }
                         }}
                       >
-                        <Typography variant="body2" sx={{ mb: 2 }}>
-                          {note.content}
-                        </Typography>
-                        <Box sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}>
-                          <Box>
-                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                              {note.createdBy?.username || 'You'} • {new Date(note.createdAt).toLocaleDateString()}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            {interview.candidateName}
+                          </Typography>
+                          <Chip 
+                            label={interview.type}
+                            size="small"
+                            sx={{
+                              fontWeight: 500,
+                              bgcolor: alpha(theme.palette.primary.main, 0.1),
+                              color: theme.palette.primary.main
+                            }}
+                          />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
+                            <Typography variant="caption">
+                              {interview.date}, {interview.time}
                             </Typography>
+                          </Box>
+                          <Chip 
+                            label={interview.platform}
+                            size="small"
+                            variant="outlined"
+                          />
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <AvatarGroup max={2} sx={{ mr: 1 }}>
+                              {interview.interviewers.map((interviewer, idx) => (
+                                <Avatar 
+                                  key={idx}
+                                  sx={{ 
+                                    width: 24, 
+                                    height: 24,
+                                    fontSize: '0.75rem'
+                                  }}
+                                >
+                                  {interviewer.charAt(0)}
+                                </Avatar>
+                              ))}
+                            </AvatarGroup>
                             <Typography variant="caption" color="text.secondary">
-                              {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {interview.interviewers.length} interviewers
                             </Typography>
                           </Box>
-                          <Box>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleEditNote(note)}
-                              sx={{
-                                color: theme.palette.primary.main,
-                                '&:hover': {
-                                  backgroundColor: alpha(theme.palette.primary.main, 0.1)
-                                }
-                              }}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDeleteNote(note._id)}
-                              sx={{
-                                color: theme.palette.error.main,
-                                '&:hover': {
-                                  backgroundColor: alpha(theme.palette.error.main, 0.1)
-                                }
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
+                          <IconButton size="small">
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
                         </Box>
                       </Paper>
                     ))}
                   </Stack>
-                ) : (
-                  <Box sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '100%',
-                    textAlign: 'center',
-                    p: 3,
-                    color: 'text.secondary'
-                  }}>
-                    <Box sx={{
-                      width: 80,
-                      height: 80,
-                      borderRadius: '50%',
-                      background: alpha(theme.palette.primary.main, 0.1),
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 2
-                    }}>
-                      <NoteIcon sx={{
-                        fontSize: 40,
-                        color: theme.palette.primary.main
-                      }} />
-                    </Box>
-                    <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                      No notes yet
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 2, maxWidth: '80%' }}>
-                      Add notes to track important information about candidates or hiring process
-                    </Typography>
-                    <GradientButton
-                      size="small"
-                      startIcon={<AddIcon />}
-                      onClick={() => setShowNoteForm(true)}
+                </CardContent>
+              </DashboardCard>
+            </Grid>
+            
+            {/* Quick Actions */}
+            <Grid item xs={12}>
+              <DashboardCard>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                    Quick Actions
+                  </Typography>
+                  <Stack spacing={1.5}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<CalendarIcon />}
+                      onClick={() => navigate('/interviews/schedule')}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        textTransform: 'none',
+                        py: 1.5,
+                        borderRadius: '8px'
+                      }}
                     >
-                      Add your first note
-                    </GradientButton>
-                  </Box>
-                )}
+                      Schedule Interview
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<MailIcon />}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        textTransform: 'none',
+                        py: 1.5,
+                        borderRadius: '8px'
+                      }}
+                    >
+                      Send Bulk Email
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<EditIcon />}
+                      onClick={() => navigate(`/jobs/update/${jobId}`)}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        textTransform: 'none',
+                        py: 1.5,
+                        borderRadius: '8px'
+                      }}
+                    >
+                      Update Job Posting
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<AddIcon />}
+                      onClick={() => navigate('/jobs/create')}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        textTransform: 'none',
+                        py: 1.5,
+                        borderRadius: '8px'
+                      }}
+                    >
+                      Create New Job
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </DashboardCard>
+            </Grid>
+          </Grid>
+        </Grid>
+        
+        {/* Candidates Table */}
+        <Grid item xs={12}>
+          <DashboardCard>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center',
+                mb: 2 
+              }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Recent Candidates
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <SecondaryButton startIcon={<DownloadIcon />}>
+                    Export
+                  </SecondaryButton>
+                  <PrimaryButton startIcon={<AddIcon />}>
+                    Add Candidate
+                  </PrimaryButton>
+                </Box>
               </Box>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Candidate</TableCell>
+                      <TableCell>Stage</TableCell>
+                      <TableCell>Applied Date</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Rating</TableCell>
+                      <TableCell>Last Activity</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {candidates.map((candidate) => (
+                      <TableRow 
+                        key={candidate.id}
+                        hover
+                        sx={{ 
+                          '&:hover': {
+                            backgroundColor: alpha(theme.palette.primary.main, 0.02)
+                          }
+                        }}
+                      >
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar 
+                              sx={{ 
+                                width: 36, 
+                                height: 36, 
+                                mr: 2,
+                                bgcolor: candidate.avatarColor,
+                                color: theme.palette.common.white
+                              }}
+                            >
+                              {candidate.name.charAt(0)}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                {candidate.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {candidate.email}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={candidate.stage}
+                            size="small"
+                            sx={{
+                              bgcolor: alpha(getStageColor(candidate.stage), 0.1),
+                              color: getStageColor(candidate.stage),
+                              fontWeight: 500
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {candidate.appliedDate}
+                        </TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={candidate.status}
+                            size="small"
+                            color={getStatusColor(candidate.status)}
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography variant="body2" sx={{ mr: 0.5, fontWeight: 500 }}>
+                              {candidate.rating}
+                            </Typography>
+                            <Box sx={{ 
+                              width: 60,
+                              height: 4,
+                              bgcolor: alpha(theme.palette.primary.main, 0.2),
+                              borderRadius: 2,
+                              overflow: 'hidden'
+                            }}>
+                              <Box sx={{ 
+                                width: `${(candidate.rating / 5) * 100}%`,
+                                height: '100%',
+                                bgcolor: theme.palette.primary.main
+                              }} />
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {candidate.lastActivity}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                            <Tooltip title="Send Email">
+                              <IconButton size="small">
+                                <MailIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Schedule Interview">
+                              <IconButton size="small">
+                                <CalendarIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="View Profile">
+                              <IconButton size="small">
+                                <VisibilityIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </CardContent>
-          </GlassCard>
+          </DashboardCard>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
 
-          {/* Quick Actions */}
-          <GlassCard>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>
-                Quick Actions
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                <Button
-                  variant="outlined"
-                  size="medium"
-                  startIcon={<CalendarIcon />}
-                  onClick={() => navigate('/interviews/schedule')}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    p: 1.5,
-                    borderRadius: 2,
-                    borderColor: alpha(theme.palette.divider, 0.2),
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      background: alpha(theme.palette.primary.main, 0.05)
-                    }
-                  }}
-                >
-                  Schedule Interview
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="medium"
-                  startIcon={<EditIcon />}
-                  onClick={handleUpdateJobPosting}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    p: 1.5,
-                    borderRadius: 2,
-                    borderColor: alpha(theme.palette.divider, 0.2),
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      background: alpha(theme.palette.primary.main, 0.05)
-                    }
-                  }}
-                >
-                  Update Job Posting
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="medium"
-                  startIcon={<PositionIcon />}
-                  onClick={handleCreateJobPosting}
-                  sx={{
-                    justifyContent: 'flex-start',
-                    textTransform: 'none',
-                    p: 1.5,
-                    borderRadius: 2,
-                    borderColor: alpha(theme.palette.divider, 0.2),
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      background: alpha(theme.palette.primary.main, 0.05)
-                    }
-                  }}
-                >
-                  Create New Position
-                </Button>
-              </Box>
-            </CardContent>
-          </GlassCard>
+// AvatarGroup component
+const AvatarGroup = ({ children, max = 3, sx }) => {
+  const avatars = React.Children.toArray(children);
+  const total = avatars.length;
+  const displayAvatars = avatars.slice(0, max);
+  const excess = total - max;
+  
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', ...sx }}>
+      {displayAvatars.map((avatar, index) => (
+        <Box 
+          key={index}
+          sx={{ 
+            ml: index > 0 ? -1 : 0,
+            zIndex: total - index
+          }}
+        >
+          {avatar}
         </Box>
-      </Box>
+      ))}
+      {excess > 0 && (
+        <Avatar 
+          sx={{ 
+            width: 24, 
+            height: 24,
+            fontSize: '0.75rem',
+            ml: -1,
+            zIndex: 0,
+            bgcolor: 'grey.300',
+            color: 'grey.700'
+          }}
+        >
+          +{excess}
+        </Avatar>
+      )}
     </Box>
   );
 };

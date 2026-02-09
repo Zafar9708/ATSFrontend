@@ -55,7 +55,7 @@ const JobDetail = () => {
       {/* Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto bg-gray-100 p-4">
+        <div className="flex-1 overflow-y-auto bg-gray-100 p-4  ">
           {/* Tabs */}
           <Tabs
             value={activeTab}
@@ -63,6 +63,8 @@ const JobDetail = () => {
             variant="scrollable"
             scrollButtons="auto"
             allowScrollButtonsMobile
+            sx={{marginLeft:15}}
+
           >
             {tabNames.map((tab, index) => (
               <Tab

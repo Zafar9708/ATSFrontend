@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Field, Form, Formik } from "formik";
 import * as Yup from "yup";
@@ -11,38 +10,67 @@ import {
   Link,
   CircularProgress,
   Paper,
-  Avatar,
   CssBaseline,
   ThemeProvider,
   createTheme,
-  Container
+  Container,
+  InputAdornment,
+  IconButton,
+  GlobalStyles
 } from "@mui/material";
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import {
+  Visibility,
+  VisibilityOff,
+  EmailOutlined,
+  LockOutlined,
+  VerifiedUserOutlined
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/authService";
 import { useUser } from "../../contexts/UserContext";
 
-const loginTheme = createTheme({
+const recruitTheme = createTheme({
   palette: {
-    primary: { main: '#4e54c8' },
-    secondary: { main: '#f50057' },
-    background: { default: '#f5f5f5' }
+    primary: { main: "#3b82f6" }, // Blue-500
+    secondary: { main: "#f50057" },
+    background: { default: "#ffffff" },
+  },
+  typography: {
+    fontFamily: '"Inter", "Segoe UI", sans-serif',
+    h4: { fontWeight: 800, color: "#1e293b", fontSize: "1.75rem" },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: "10px",
+          textTransform: "none",
+          fontWeight: 700,
+          padding: "10px",
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: "10px",
+          backgroundColor: "#f8fafc",
+        },
+      },
+    },
   },
 });
 
 const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { updateUser } = useUser();
 
   const validationSchema = Yup.object({
-    email: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
-    password: Yup.string()
-      .min(6, "Password must be at least 6 characters")
-      .required("Password is required"),
+    email: Yup.string().email("Invalid email address").required("Email is required"),
+    password: Yup.string().min(6, "Password must be at least 6 characters").required("Password is required"),
   });
 
   const handleSubmit = async (values) => {
@@ -51,7 +79,6 @@ const LoginForm = () => {
 
     try {
       const data = await loginUser(values);
-
       localStorage.setItem("token", data.token);
       updateUser(data.data.user);
 
@@ -86,47 +113,46 @@ const LoginForm = () => {
   };
 
   return (
-    <ThemeProvider theme={loginTheme}>
+    <ThemeProvider theme={recruitTheme}>
       <CssBaseline />
+      <GlobalStyles styles={{ body: { overflow: 'hidden', margin: 0, padding: 0 } }} />
+      
       <Box
         sx={{
-          minHeight: "100vh",
-          width: "100%",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
+          height: "100vh",
+          width: "100vw",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          py: 4,
-          ml:36
+          background: "linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)",
+          position: "fixed",
+          top: 0,
+          left: 0,
         }}
       >
-        <Container component="main" maxWidth="sm">
+        <Container maxWidth="xs">
           <Paper
-            elevation={24}
+            elevation={0}
             sx={{
-              p: 4,
-              borderRadius: 3,
-              bgcolor: "rgba(255, 255, 255, 0.95)",
-              backdropFilter: "blur(10px)",
-              boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+              p: { xs: 4, sm: 5 },
+              borderRadius: "24px",
+              border: "1px solid #e2e8f0",
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.05)",
+              backgroundColor: "white",
             }}
           >
-            <Box display="flex" flexDirection="column" alignItems="center" mb={3}>
-              <Avatar sx={{ bgcolor: "primary.main", width: 60, height: 60, mb: 2 }}>
-                <LockOutlinedIcon />
-              </Avatar>
-              <Typography variant="h4" component="h1" gutterBottom fontWeight="bold" color="primary">
-                Sign In
-              </Typography>
-              <Typography variant="body1" color="text.secondary" textAlign="center">
+            <Box textAlign="center" mb={3}>
+              <Box sx={{ display: "inline-flex", p: 1.5, borderRadius: "12px", bgcolor: "#eff6ff", mb: 2 }}>
+                <VerifiedUserOutlined color="primary" fontSize="large" />
+              </Box>
+              {/* <Typography variant="h4">ATS</Typography> */}
+              <Typography variant="body2" sx={{ color: "#64748b", mt: 1 }}>
                 Welcome back! Please login to continue.
               </Typography>
             </Box>
 
             {errorMessage && (
-              <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+              <Alert severity="error" sx={{ mb: 3, borderRadius: "10px" }}>
                 {errorMessage}
               </Alert>
             )}
@@ -136,61 +162,82 @@ const LoginForm = () => {
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
             >
-              {({ errors, touched }) => (
+              {({ errors, touched, handleChange, handleBlur, values }) => (
                 <Form>
-                  <Field
-                    as={TextField}
-                    name="email"
-                    label="Email Address"
-                    type="email"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    error={touched.email && Boolean(errors.email)}
-                    helperText={touched.email && errors.email}
-                    sx={{ mb: 2 }}
-                  />
+                  <Box mb={2.5}>
+                    <Typography variant="caption" sx={{ mb: 0.5, display: 'block', fontWeight: 700, color: "#475569" }}>
+                      Email Address
+                    </Typography>
+                    <Field
+                      as={TextField}
+                      fullWidth
+                      name="email"
+                      placeholder="name@company.com"
+                      variant="outlined"
+                      error={touched.email && Boolean(errors.email)}
+                      helperText={touched.email && errors.email}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <EmailOutlined sx={{ fontSize: 20, color: "#94a3b8" }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Box>
 
-                  <Field
-                    as={TextField}
-                    name="password"
-                    label="Password"
-                    type="password"
-                    fullWidth
-                    margin="normal"
-                    variant="outlined"
-                    error={touched.password && Boolean(errors.password)}
-                    helperText={touched.password && errors.password}
-                    sx={{ mb: 3 }}
-                  />
+                  <Box mb={3}>
+                    <Typography variant="caption" sx={{ mb: 0.5, display: 'block', fontWeight: 700, color: "#475569" }}>
+                      Password
+                    </Typography>
+                    <Field
+                      as={TextField}
+                      fullWidth
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      variant="outlined"
+                      error={touched.password && Boolean(errors.password)}
+                      helperText={touched.password && errors.password}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <LockOutlined sx={{ fontSize: 20, color: "#94a3b8" }} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => setShowPassword(!showPassword)} size="small">
+                              {showPassword ? <VisibilityOff sx={{ fontSize: 20 }} /> : <Visibility sx={{ fontSize: 20 }} />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Box>
 
                   <Button
+                    fullWidth
                     type="submit"
                     variant="contained"
-                    color="primary"
-                    fullWidth
-                    size="large"
-                    sx={{ 
-                      mt: 2, 
-                      py: 1.5, 
-                      fontSize: '1.1rem',
-                      borderRadius: 2,
-                      fontWeight: 'bold'
-                    }}
                     disabled={isLoading}
+                    sx={{
+                      py: 1.5,
+                      boxShadow: "0 4px 6px -1px rgba(59, 130, 246, 0.3)",
+                      "&:hover": { backgroundColor: "#2563eb" },
+                    }}
                   >
-                    {isLoading ? <CircularProgress size={24} /> : "Sign In"}
+                    {isLoading ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
                   </Button>
 
-                  <Box textAlign="center" mt={3}>
+                  <Box textAlign="center" mt={3} display="flex" flexDirection="column" gap={1.5}>
                     <Link 
                       href="/register" 
                       variant="body2" 
                       onClick={handleRegisterClick}
                       sx={{ 
-                        mr: 3, 
                         color: 'primary.main', 
-                        fontWeight: 'medium',
+                        fontWeight: 700,
                         textDecoration: 'none',
                         '&:hover': { textDecoration: 'underline' }
                       }}
@@ -203,7 +250,7 @@ const LoginForm = () => {
                       onClick={handleForgotPasswordClick}
                       sx={{ 
                         color: 'secondary.main', 
-                        fontWeight: 'medium',
+                        fontWeight: 600,
                         textDecoration: 'none',
                         '&:hover': { textDecoration: 'underline' }
                       }}

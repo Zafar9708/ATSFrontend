@@ -1,1869 +1,1157 @@
-
-
-// import React, { useState, useEffect } from 'react';
-// import {
-//   Box,
-//   Typography,
-//   Table,
-//   TableBody,
-//   TableCell,
-//   TableContainer,
-//   TableHead,
-//   TableRow,
-//   Paper,
-//   CircularProgress,
-//   Alert,
-//   Button,
-//   IconButton,
-//   Dialog,
-//   DialogTitle,
-//   DialogContent,
-//   DialogActions,
-//   Grid,
-//   Card,
-//   CardContent,
-//   Chip,
-//   TextField,
-//   InputAdornment,
-//   MenuItem,
-//   Select,
-//   Divider,
-//   Tooltip,
-//   useTheme,
-//   Badge,
-//   Avatar
-// } from '@mui/material';
-// import {
-//   Add as AddIcon,
-//   Delete as DeleteIcon,
-//   Visibility as VisibilityIcon,
-//   Search as SearchIcon,
-//   FilterList as FilterIcon,
-//   DateRange as DateRangeIcon,
-//   Refresh as RefreshIcon,
-//   BarChart as BarChartIcon,
-//   TrendingUp as TrendingUpIcon,
-//   Work as WorkIcon,
-//   People as PeopleIcon,
-//   Business as BusinessIcon,
-//   CheckCircle as ActiveIcon,
-//   Cancel as InactiveIcon
-// } from '@mui/icons-material';
-// import { useNavigate } from 'react-router-dom';
-// import { getJobs, createJob, deleteJob } from '../../services/recruiterService';
-// import {
-//   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, Legend, ResponsiveContainer
-// } from 'recharts';
-
-// const RecruiterDashboard = () => {
-//   const theme = useTheme();
-//   const navigate = useNavigate();
-//   const [jobs, setJobs] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-//   const [jobToDelete, setJobToDelete] = useState(null);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [statusFilter, setStatusFilter] = useState('all');
-//   const [refreshing, setRefreshing] = useState(false);
-//   const [addDialogOpen, setAddDialogOpen] = useState(false);
-//   const [newJob, setNewJob] = useState({
-//     jobName: '',
-//     jobTitle: '',
-//     department: '',
-//     experience: '',
-//     jobDesc: '',
-//     status: 'Active'
-//   });
-//   const [formErrors, setFormErrors] = useState({});
-
-//   // Sample data for charts
-//   const jobStatusData = [
-//     { name: 'Active', value: 75 },
-//     { name: 'Closed', value: 25 },
-//   ];
-
-//   const jobTypeData = [
-//     { name: 'Full-time', value: 60 },
-//     { name: 'Part-time', value: 20 },
-//     { name: 'Contract', value: 15 },
-//     { name: 'Remote', value: 5 },
-//   ];
-
-//   const COLORS = [theme.palette.success.main, theme.palette.error.main, theme.palette.warning.main, theme.palette.info.main];
-
-//   const fetchJobs = async () => {
-//     try {
-//       setLoading(true);
-//       const jobs = await getJobs();
-//       setJobs(jobs);
-//       setError(null);
-//     } catch (err) {
-//       console.error('Failed to fetch jobs:', err);
-//       setError(err.message || 'Failed to fetch jobs');
-//       setJobs([]);
-//     } finally {
-//       setLoading(false);
-//       setRefreshing(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchJobs();
-//   }, []);
-
-//   const handleRefresh = () => {
-//     setRefreshing(true);
-//     fetchJobs();
-//   };
-
-//   const filteredJobs = jobs.filter(job => {
-//     const matchesSearch = job.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || 
-//     job.jobDesc.toLowerCase().includes(searchTerm.toLowerCase());
-//     const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
-//     return matchesSearch && matchesStatus;
-//   });
-
-//   const totalJobs = jobs.length;
-//   const activeJobs = jobs.filter(j => j.status === 'Active').length;
-//   const closedJobs = jobs.filter(j => j.status === 'Closed').length;
-
-//   const handleViewJobsPage = () => {
-//     navigate('/jobs');
-//   };
-
-//   const confirmDelete = (job) => {
-//     setJobToDelete(job);
-//     setDeleteDialogOpen(true);
-//   };
-
-//   const handleDeleteJob = async () => {
-//     try {
-//       await deleteJob(jobToDelete._id);
-//       setDeleteDialogOpen(false);
-//       setJobs(jobs.filter(j => j._id !== jobToDelete._id));
-//     } catch (err) {
-//       setError(err.message);
-//     }
-//   };
-
-//   const handleAddDialogOpen = () => {
-//     navigate('/dashboard/jobs/createJob');
-//   };
-
-//   const handleAddDialogClose = () => {
-//     setAddDialogOpen(false);
-//     setNewJob({
-//       jobName: '',
-//       jobTitle: '',
-//       department: '',
-//       experience: '',
-//       jobDesc: '',
-//       status: 'Active'
-//     });
-//     setFormErrors({});
-//   };
-
-//   const handleInputChange = (e) => {
-//     const { name, value } = e.target;
-//     setNewJob(prev => ({
-//       ...prev,
-//       [name]: value
-//     }));
-//   };
-
-//   const validateForm = () => {
-//     const errors = {};
-//     if (!newJob.jobName.trim()) errors.jobName = 'Job name is required';
-//     if (!newJob.jobTitle.trim()) errors.jobTitle = 'Job title is required';
-//     if (!newJob.jobDesc.trim()) errors.jobDesc = 'Description is required';
-//     setFormErrors(errors);
-//     return Object.keys(errors).length === 0;
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     if (validateForm()) {
-//       try {
-//         await createJob(newJob);
-//         handleAddDialogClose();
-//         fetchJobs();
-//       } catch (err) {
-//         setError(err.message);
-//       }
-//     }
-//   };
-
-//   if (loading && !refreshing) {
-//     return (
-//       <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-//         <CircularProgress size={60} />
-//       </Box>
-//     );
-//   }
-
-//   return (
-//     <Box sx={{
-//       height: '100%', 
-//       minHeight: '100vh',
-//       marginRight:'40px',
-//     //   backgroundColor: theme.palette.background.default,
-//       backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))'
-//     }}>
-//       {/* Error Alert */}
-//       {error && (
-//         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-//           {error}
-//         </Alert>
-//       )}
-
-//       {/* Header */}
-//       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} mr={6}>
-//         <Box>
-//           <Typography variant="h4" fontWeight="700" color="text.primary" sx={{ mb: 0.5 }}>
-//             Recruiter Dashboard
-//           </Typography>
-//           <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-//             <WorkIcon fontSize="small" />
-//             Manage job postings and candidate applications
-//           </Typography>
-//         </Box>
-//         <Box display="flex" alignItems="center" gap={2}>
-//           <Button
-//             variant="contained"
-//             startIcon={<RefreshIcon />}
-//             onClick={handleRefresh}
-//             disabled={refreshing}
-//             sx={{
-//               backgroundColor: theme.palette.grey[200],
-//               color: theme.palette.text.primary,
-//               '&:hover': {
-//                 backgroundColor: theme.palette.grey[300]
-//               }
-//             }}
-//           >
-//             Refresh
-//           </Button>
-//           <Button
-//             variant="contained"
-//             startIcon={<AddIcon />}
-//             onClick={handleAddDialogOpen}
-//             sx={{
-//               backgroundColor: theme.palette.primary.main,
-//               color: 'white',
-//               '&:hover': {
-//                 backgroundColor: theme.palette.primary.dark,
-//                 boxShadow: theme.shadows[4]
-//               },
-//               boxShadow: theme.shadows[2]
-//             }}
-//           >
-//             New Job
-//           </Button>
-//           <Button
-//             variant="outlined"
-//             startIcon={<PeopleIcon />}
-//             onClick={handleViewJobsPage}
-//             sx={{
-//               borderColor: theme.palette.primary.main,
-//               color: theme.palette.primary.main,
-//               '&:hover': {
-//                 backgroundColor: theme.palette.primary.light,
-//                 borderColor: theme.palette.primary.dark
-//               }
-//             }}
-//           >
-//             View Jobs Page
-//           </Button>
-//         </Box>
-//       </Box>
-
-//       <Grid container spacing={3}  width={'100%'} >
-//         {/* Left Column - 70% width */}
-//         <Grid item xs={12} md={8}  width={'100%'}>
-//           {/* Stats Cards */}
-//           <Grid container spacing={3} sx={{ mb: 3 }}>
-//             <Grid item xs={12} sm={4}  width={'31%'} >
-//               <Card sx={{ 
-//                 p: 2, 
-//                 borderRadius: 3,
-//                 background: `linear-gradient(195deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-//                 color: 'white',
-//                 boxShadow: theme.shadows[4],
-//                 position: 'relative',
-//                 overflow: 'hidden',
-//                 '&:before': {
-//                   content: '""',
-//                   position: 'absolute',
-//                   top: '-50px',
-//                   right: '-50px',
-//                   width: '120px',
-//                   height: '120px',
-//                   borderRadius: '50%',
-//                   background: 'rgba(255,255,255,0.1)'
-//                 }
-//               }}>
-//                 <Box position="relative" zIndex={1}>
-//                   <Typography variant="body2" sx={{ opacity: 0.8 }}>Total Jobs</Typography>
-//                   <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{totalJobs}</Typography>
-//                   <Box display="flex" alignItems="center">
-//                     <TrendingUpIcon sx={{ mr: 1 }} />
-//                     <Typography variant="body2">0</Typography>
-//                   </Box>
-//                 </Box>
-//               </Card>
-//             </Grid>
-//             <Grid item xs={12} sm={4}  width={'31%'}>
-//               <Card sx={{ 
-//                 p: 2, 
-
-//                 height: '100%', 
-//                 borderRadius: 3,
-//                 background: `linear-gradient(195deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
-//                 color: 'white',
-//                 boxShadow: theme.shadows[4],
-//                 position: 'relative',
-//                 overflow: 'hidden',
-//                 '&:before': {
-//                   content: '""',
-//                   position: 'absolute',
-//                   top: '-50px',
-//                   right: '-50px',
-//                   width: '120px',
-//                   height: '120px',
-//                   borderRadius: '50%',
-//                   background: 'rgba(255,255,255,0.1)'
-//                 }
-//               }}>
-//                 <Box position="relative" zIndex={1} width={180}>
-//                   <Typography variant="body2" sx={{ opacity: 0.8 }}>Active Jobs</Typography>
-//                   <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{activeJobs}</Typography>
-//                   <Box display="flex" alignItems="center">
-//                     <ActiveIcon sx={{ mr: 1 }} />
-//                     {/* <Typography variant="body2">{Math.round((activeJobs/totalJobs)*100)}% of total</Typography> */}
-//                                         <Typography variant="body2">0</Typography>
-
-//                   </Box>
-//                 </Box>
-//               </Card>
-//             </Grid>
-//             <Grid item xs={12} sm={4}  width={'31%'}>
-//               <Card sx={{ 
-//                 p: 2, 
-//                 height: '100%', 
-//                 borderRadius: 3,
-//                 background: `linear-gradient(195deg, ${theme.palette.error.main}, ${theme.palette.error.dark})`,
-//                 color: 'white',
-//                 boxShadow: theme.shadows[4],
-//                 position: 'relative',
-//                 overflow: 'hidden',
-//                 '&:before': {
-//                   content: '""',
-//                   position: 'absolute',
-//                   top: '-50px',
-//                   right: '-50px',
-//                   width: '120px',
-//                   height: '120px',
-//                   borderRadius: '50%',
-//                   background: 'rgba(255,255,255,0.1)'
-//                 }
-//               }}>
-//                 <Box position="relative" zIndex={1} width={180}>
-//                   <Typography variant="body2" sx={{ opacity: 0.8 }}>Closed Jobs</Typography>
-//                   <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{closedJobs}</Typography>
-//                   <Box display="flex" alignItems="center">
-//                     <InactiveIcon sx={{ mr: 1 }} />
-//                     {/* <Typography variant="body2">{Math.round((closedJobs/totalJobs)*100)}% of total</Typography> */}
-//                                         <Typography variant="body2">0</Typography>
-
-//                   </Box>
-//                 </Box>
-//               </Card>
-//             </Grid>
-//           </Grid>
-
-//           {/* Search and Filter Row */}
-//           <Card sx={{ 
-//             p: 2, 
-//             mb: 3, 
-//             mr:5,
-//             borderRadius: 3,
-//             boxShadow: theme.shadows[1],
-//             backgroundColor: theme.palette.background.paper,
-//             border: `1px solid ${theme.palette.divider}`
-//           }}>
-//             <Grid container spacing={2} alignItems="center">
-//               <Grid item xs={12} md={8} width={'65%'}>
-//                 <TextField
-//                   fullWidth
-//                   placeholder="Search jobs by title or description..."
-//                   variant="outlined"
-//                   size="small"
-//                   value={searchTerm}
-//                   onChange={(e) => setSearchTerm(e.target.value)}
-//                   InputProps={{
-//                     startAdornment: (
-//                       <InputAdornment position="start">
-//                         <SearchIcon color="action" />
-//                       </InputAdornment>
-//                     ),
-//                     style: {
-//                       borderRadius: 8,
-//                       backgroundColor: theme.palette.background.default
-//                     }
-//                   }}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={4} width={'30%'}>
-//                 <TextField
-//                   select
-//                   fullWidth
-//                   value={statusFilter}
-//                   onChange={(e) => setStatusFilter(e.target.value)}
-//                   size="small"
-//                   variant="outlined"
-//                   InputProps={{
-//                     startAdornment: (
-//                       <InputAdornment position="start">
-//                         <FilterIcon color="action" fontSize="small" />
-//                       </InputAdornment>
-//                     ),
-//                     style: {
-//                       borderRadius: 8,
-//                       backgroundColor: theme.palette.background.default
-//                     }
-//                   }}
-//                 >
-//                   <MenuItem value="all">All Status</MenuItem>
-//                   <MenuItem value="Active">Active</MenuItem>
-//                   <MenuItem value="Closed">Closed</MenuItem>
-//                 </TextField>
-//               </Grid>
-//             </Grid>
-//           </Card>
-
-//           {/* Jobs Table */}
-//           <Card sx={{ 
-//             p: 0, 
-//             mr:5,
-//             borderRadius: 3,
-//             boxShadow: theme.shadows[1],
-//             backgroundColor: theme.palette.background.paper,
-//             border: `1px solid ${theme.palette.divider}`,
-//             overflow: 'hidden'
-//           }}>
-//             <Box 
-//               display="flex" 
-//               justifyContent="space-between" 
-//               alignItems="center" 
-//               p={3}
-//               sx={{
-//                 borderBottom: `1px solid ${theme.palette.divider}`
-//               }}
-//             >
-//               <Typography variant="h6" fontWeight="600">Job Listings</Typography>
-//               <Box display="flex" alignItems="center" gap={1}>
-//                 <Typography variant="body2" color="text.secondary">
-//                   Showing {filteredJobs.length} of {jobs.length} jobs
-//                 </Typography>
-//                 <Chip 
-//                   label={`${Math.round((filteredJobs.length/jobs.length)*100)}%`} 
-//                   size="small" 
-//                   sx={{ 
-//                     backgroundColor: theme.palette.action.selected,
-//                     fontWeight: 500
-//                   }} 
-//                 />
-//               </Box>
-//             </Box>
-//             <TableContainer>
-//               <Table>
-//                 <TableHead>
-//                   <TableRow sx={{ backgroundColor: theme.palette.background.default }}>
-//                     <TableCell sx={{ fontWeight: 600 }}>Job Name</TableCell>
-//                     <TableCell sx={{ fontWeight: 600 }}>Title</TableCell>
-//                     <TableCell sx={{ fontWeight: 600 }}>Department</TableCell>
-//                     <TableCell sx={{ fontWeight: 600 }}>Experience</TableCell>
-//                     <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-//                     <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
-//                   </TableRow>
-//                 </TableHead>
-//                 <TableBody>
-//                   {filteredJobs.map((job) => (
-//                     <TableRow 
-//                       key={job._id} 
-//                       hover
-//                       sx={{ 
-//                         '&:last-child td': { borderBottom: 0 },
-//                         opacity: job.status === 'Active' ? 1 : 0.9,
-//                         '&:hover': {
-//                           backgroundColor: theme.palette.action.hover
-//                         }
-//                       }}
-//                     >
-//                       <TableCell>
-//                         <Typography fontWeight="600">{job.jobName}</Typography>
-//                       </TableCell>
-//                       <TableCell>
-//                         <Typography>{job.jobTitle}</Typography>
-//                       </TableCell>
-//                       <TableCell>
-//                         <Typography>{job.department}</Typography>
-//                       </TableCell>
-//                       <TableCell>
-//                         <Typography>{job.experience}</Typography>
-//                       </TableCell>
-//                       <TableCell>
-//                         <Chip
-//                           label={job.status}
-//                           size="small"
-//                           sx={{
-//                             backgroundColor: job.status === 'Active' ? 
-//                               theme.palette.success.light : 
-//                               theme.palette.error.light,
-//                             color: job.status === 'Active' ? 
-//                               theme.palette.success.dark : 
-//                               theme.palette.error.dark,
-//                             fontWeight: 500
-//                           }}
-//                         />
-//                       </TableCell>
-//                       <TableCell align="right">
-//                         <Box display="flex" justifyContent="flex-end" gap={1}>
-//                           <Tooltip title="View Details">
-//                             <IconButton
-//                               size="small"
-//                               sx={{
-//                                 backgroundColor: theme.palette.action.hover,
-//                                 color: theme.palette.primary.main,
-//                                 '&:hover': {
-//                                   backgroundColor: theme.palette.primary.main,
-//                                   color: 'white'
-//                                 }
-//                               }}
-//                             >
-//                               <VisibilityIcon fontSize="small" />
-//                             </IconButton>
-//                           </Tooltip>
-//                           <Tooltip title="Delete Job">
-//                             <IconButton
-//                               onClick={() => confirmDelete(job)}
-//                               size="small"
-//                               sx={{
-//                                 backgroundColor: theme.palette.action.hover,
-//                                 color: theme.palette.error.main,
-//                                 '&:hover': {
-//                                   backgroundColor: theme.palette.error.main,
-//                                   color: 'white'
-//                                 }
-//                               }}
-//                             >
-//                               <DeleteIcon fontSize="small" />
-//                             </IconButton>
-//                           </Tooltip>
-//                         </Box>
-//                       </TableCell>
-//                     </TableRow>
-//                   ))}
-//                 </TableBody>
-//               </Table>
-//             </TableContainer>
-//           </Card>
-//         </Grid>
-
-//         {/* Right Column - 30% width */}
-//         <Grid item xs={12} md={4} mr={3} display={'flex'} gap={'35px'} flexDirection={'row'} width={'100%'}>
-//           {/* Job Status Distribution */}
-//           <Card sx={{ 
-//             p: 3,
-//             width:'48%', 
-//             mb: 3,
-//             height: 320,
-//             borderRadius: 3,
-//             boxShadow: theme.shadows[1],
-//             backgroundColor: theme.palette.background.paper,
-//             border: `1px solid ${theme.palette.divider}`
-//           }}>
-//             <Typography variant="h6" fontWeight="600" mb={2}>Job Status Distribution</Typography>
-//             <Box height={250}>
-//               <ResponsiveContainer width="100%" height="100%">
-//                 <PieChart>
-//                   <Pie
-//                     data={jobStatusData}
-//                     cx="50%"
-//                     cy="50%"
-//                     labelLine={false}
-//                     outerRadius={80}
-//                     fill="#8884d8"
-//                     dataKey="value"
-//                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-//                   >
-//                     {jobStatusData.map((entry, index) => (
-//                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-//                     ))}
-//                   </Pie>
-//                   <ChartTooltip 
-//                     contentStyle={{
-//                       borderRadius: 8,
-//                       backgroundColor: theme.palette.background.paper,
-//                       border: `1px solid ${theme.palette.divider}`,
-//                       boxShadow: theme.shadows[2]
-//                     }}
-//                   />
-//                 </PieChart>
-//               </ResponsiveContainer>
-//             </Box>
-//           </Card>
-
-//           {/* Job Type Distribution */}
-//           <Card sx={{ 
-//             width:'48%',
-//             p: 1, 
-//             mb: 3,
-//             height: 320,
-//             borderRadius: 3,
-//             boxShadow: theme.shadows[1],
-//             backgroundColor: theme.palette.background.paper,
-//             border: `1px solid ${theme.palette.divider}`
-//           }}>
-//             <Typography variant="h6" fontWeight="600" mb={2}>Job Type Distribution</Typography>
-//             <Box height={250}>
-//               <ResponsiveContainer width="100%" height="100%">
-//                 <PieChart>
-//                   <Pie
-//                     data={jobTypeData}
-//                     cx="50%"
-//                     cy="50%"
-//                     labelLine={false}
-//                     outerRadius={80}
-//                     fill="#8884d8"
-//                     dataKey="value"
-//                     label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-//                   >
-//                     {jobTypeData.map((entry, index) => (
-//                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-//                     ))}
-//                   </Pie>
-//                   <ChartTooltip 
-//                     contentStyle={{
-//                       borderRadius: 8,
-//                       backgroundColor: theme.palette.background.paper,
-//                       border: `1px solid ${theme.palette.divider}`,
-//                       boxShadow: theme.shadows[2]
-//                     }}
-//                   />
-//                   <Legend />
-//                 </PieChart>
-//               </ResponsiveContainer>
-//             </Box>
-//           </Card>
-// </Grid>
-//           {/* Quick Actions */}
-//           <Card sx={{ 
-//             p: 3,
-//             mr:4,
-//             width:'100%',
-//             borderRadius: 3,
-//             boxShadow: theme.shadows[1],
-//             backgroundColor: theme.palette.background.paper,
-//             border: `1px solid ${theme.palette.divider}`
-//           }}>
-//             <Typography variant="h6" fontWeight="600" mb={2}>Quick Actions</Typography>
-//             <Grid container spacing={2} >
-//               <Grid item xs={12} width={'60%'} ml={'15px'}>
-//                 <Button
-//                   fullWidth
-//                   variant="contained"
-//                   startIcon={<AddIcon />}
-//                   onClick={handleAddDialogOpen}
-//                   sx={{
-//                     py: 1.5,
-//                     borderRadius: 2,
-//                     backgroundColor: theme.palette.primary.main,
-//                     '&:hover': {
-//                       backgroundColor: theme.palette.primary.dark,
-//                       boxShadow: theme.shadows[2]
-//                     },
-//                     boxShadow: theme.shadows[1]
-//                   }}
-//                 >
-//                   Post New Job
-//                 </Button>
-//               </Grid>
-//               <Grid item xs={12} width={'30%'}>
-//                 <Button
-//                   fullWidth
-//                   variant="outlined"
-//                   startIcon={<PeopleIcon />}
-//                   onClick={handleViewJobsPage}
-//                   sx={{
-//                     py: 1.5,
-//                     borderRadius: 2,
-//                     borderColor: theme.palette.divider,
-//                     '&:hover': {
-//                       backgroundColor: theme.palette.action.hover,
-//                       borderColor: theme.palette.primary.main
-//                     }
-//                   }}
-//                 >
-//                   View Jobs Page
-//                 </Button>
-//               </Grid>
-//             </Grid>
-//           </Card>
-//         </Grid>
-    
-
-//       {/* Add Job Dialog */}
-//       <Dialog
-//         open={addDialogOpen}
-//         onClose={handleAddDialogClose}
-//         maxWidth="sm"
-//         fullWidth
-//         PaperProps={{
-//           sx: {
-//             borderRadius: 3,
-//             p: 3,
-//             background: theme.palette.background.paper,
-//             boxShadow: theme.shadows[5]
-//           }
-//         }}
-//       >
-//         <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 3 }}>Create New Job Posting</DialogTitle>
-//         <form onSubmit={handleSubmit}>
-//           <DialogContent sx={{ p: 0 }}>
-//             <Grid container spacing={3}>
-//               <Grid item xs={12} md={6}>
-//                 <TextField
-//                   fullWidth
-//                   label="Job Name"
-//                   name="jobName"
-//                   value={newJob.jobName}
-//                   onChange={handleInputChange}
-//                   error={!!formErrors.jobName}
-//                   helperText={formErrors.jobName}
-//                   variant="outlined"
-//                   InputProps={{
-//                     sx: {
-//                       borderRadius: 2,
-//                       backgroundColor: theme.palette.background.default
-//                     }
-//                   }}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={6}>
-//                 <TextField
-//                   fullWidth
-//                   label="Job Title"
-//                   name="jobTitle"
-//                   value={newJob.jobTitle}
-//                   onChange={handleInputChange}
-//                   error={!!formErrors.jobTitle}
-//                   helperText={formErrors.jobTitle}
-//                   variant="outlined"
-//                   InputProps={{
-//                     sx: {
-//                       borderRadius: 2,
-//                       backgroundColor: theme.palette.background.default
-//                     }
-//                   }}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={6}>
-//                 <TextField
-//                   fullWidth
-//                   label="Department"
-//                   name="department"
-//                   value={newJob.department}
-//                   onChange={handleInputChange}
-//                   variant="outlined"
-//                   InputProps={{
-//                     sx: {
-//                       borderRadius: 2,
-//                       backgroundColor: theme.palette.background.default
-//                     }
-//                   }}
-//                 />
-//               </Grid>
-//               <Grid item xs={12} md={6}>
-//                 <TextField
-//                   fullWidth
-//                   label="Experience Required"
-//                   name="experience"
-//                   value={newJob.experience}
-//                   onChange={handleInputChange}
-//                   variant="outlined"
-//                   InputProps={{
-//                     sx: {
-//                       borderRadius: 2,
-//                       backgroundColor: theme.palette.background.default
-//                     }
-//                   }}
-//                 />
-//               </Grid>
-//               <Grid item xs={12}>
-//                 <TextField
-//                   fullWidth
-//                   label="Job Description"
-//                   name="jobDesc"
-//                   value={newJob.jobDesc}
-//                   onChange={handleInputChange}
-//                   error={!!formErrors.jobDesc}
-//                   helperText={formErrors.jobDesc}
-//                   variant="outlined"
-//                   multiline
-//                   rows={4}
-//                   InputProps={{
-//                     sx: {
-//                       borderRadius: 2,
-//                       backgroundColor: theme.palette.background.default
-//                     }
-//                   }}
-//                 />
-//               </Grid>
-//               <Grid item xs={12}>
-//                 <TextField
-//                   select
-//                   fullWidth
-//                   label="Status"
-//                   name="status"
-//                   value={newJob.status}
-//                   onChange={handleInputChange}
-//                   variant="outlined"
-//                   InputProps={{
-//                     sx: {
-//                       borderRadius: 2,
-//                       backgroundColor: theme.palette.background.default
-//                     }
-//                   }}
-//                 >
-//                   <MenuItem value="Active">Active</MenuItem>
-//                   <MenuItem value="Closed">Closed</MenuItem>
-//                 </TextField>
-//               </Grid>
-//             </Grid>
-//           </DialogContent>
-//           <DialogActions sx={{ p: 0, mt: 3 }}>
-//             <Button 
-//               onClick={handleAddDialogClose}
-//               variant="outlined"
-//               sx={{
-//                 borderRadius: 2,
-//                 textTransform: 'none',
-//                 px: 3,
-//                 py: 1,
-//                 borderColor: theme.palette.divider,
-//                 '&:hover': {
-//                   borderColor: theme.palette.primary.main
-//                 }
-//               }}
-//             >
-//               Cancel
-//             </Button>
-//             <Button 
-//               type="submit"
-//               variant="contained"
-//               sx={{
-//                 borderRadius: 2,
-//                 textTransform: 'none',
-//                 px: 3,
-//                 py: 1,
-//                 backgroundColor: theme.palette.primary.main,
-//                 '&:hover': {
-//                   backgroundColor: theme.palette.primary.dark,
-//                   boxShadow: theme.shadows[1]
-//                 }
-//               }}
-//             >
-//               Create Job
-//             </Button>
-//           </DialogActions>
-//         </form>
-//       </Dialog>
-
-//       {/* Delete Confirmation Dialog */}
-//       <Dialog
-//         open={deleteDialogOpen}
-//         onClose={() => setDeleteDialogOpen(false)}
-//         PaperProps={{
-//           sx: {
-//             borderRadius: 3,
-//             padding: 3,
-//             minWidth: 500,
-//             background: theme.palette.background.paper,
-//             boxShadow: theme.shadows[5]
-//           }
-//         }}
-//       >
-//         <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 2 }}>Confirm Job Deletion</DialogTitle>
-//         <DialogContent sx={{ p: 0, mb: 3 }}>
-//           <Typography>
-//             Are you sure you want to permanently delete the job <strong>{jobToDelete?.jobTitle}</strong>?
-//           </Typography>
-//           <Typography variant="body2" color="error" mt={2}>
-//             <strong>Warning:</strong> This action cannot be undone.
-//           </Typography>
-//         </DialogContent>
-//         <DialogActions sx={{ p: 0 }}>
-//           <Button 
-//             onClick={() => setDeleteDialogOpen(false)}
-//             variant="outlined"
-//             sx={{
-//               borderRadius: 2,
-//               textTransform: 'none',
-//               px: 3,
-//               py: 1,
-//               borderColor: theme.palette.divider,
-//               '&:hover': {
-//                 borderColor: theme.palette.primary.main
-//               }
-//             }}
-//           >
-//             Cancel
-//           </Button>
-//           <Button 
-//             onClick={handleDeleteJob} 
-//             variant="contained"
-//             color="error"
-//             sx={{
-//               borderRadius: 2,
-//               textTransform: 'none',
-//               px: 3,
-//               py: 1,
-//               boxShadow: 'none',
-//               '&:hover': {
-//                 backgroundColor: theme.palette.error.dark,
-//                 boxShadow: 'none'
-//               }
-//             }}
-//           >
-//             Delete Permanently
-//           </Button>
-//         </DialogActions>
-//       </Dialog>
-//     </Box>
-//   );
-// };
-
-// export default RecruiterDashboard; 
-
-
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
+  Grid,
+  Card,
+  CardContent,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
-  CircularProgress,
-  Alert,
+  Chip,
   Button,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Grid,
-  Card,
-  CardContent,
-  Chip,
   TextField,
   InputAdornment,
   MenuItem,
   Select,
-  Divider,
+  Avatar,
+  AvatarGroup,
+  LinearProgress,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   useTheme,
-  Badge,
-  Avatar
+  alpha,
+  Divider,
+  Stack,
+  Fade,
+  Modal
 } from '@mui/material';
 import {
   Add as AddIcon,
+  Search as SearchIcon,
+  TrendingUp as TrendingUpIcon,
+  People as PeopleIcon,
+  Work as WorkIcon,
+  Schedule as ScheduleIcon,
+  LocationOn as LocationIcon,
   Delete as DeleteIcon,
   Visibility as VisibilityIcon,
-  Search as SearchIcon,
-  FilterList as FilterIcon,
-  DateRange as DateRangeIcon,
-  Refresh as RefreshIcon,
-  BarChart as BarChartIcon,
-  TrendingUp as TrendingUpIcon,
-  Work as WorkIcon,
-  People as PeopleIcon,
-  Business as BusinessIcon,
-  CheckCircle as ActiveIcon,
-  Cancel as InactiveIcon
+  Edit as EditIcon,
+  CheckCircle as CheckIcon,
+  Cancel as CancelIcon,
+  Download as DownloadIcon,
+  CalendarToday as CalendarIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { getJobs, createJob, deleteJob } from '../../services/recruiterService';
 import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, Legend, ResponsiveContainer
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+  Tooltip as ChartTooltip, Legend, ResponsiveContainer, AreaChart, Area
 } from 'recharts';
+
+// Static data for demo
+const staticJobsData = [
+  {
+    id: 'JOB-001',
+    title: 'Senior Frontend Developer',
+    company: 'TechCorp Inc.',
+    department: 'Engineering',
+    experience: '5+ years',
+    type: 'Full-time',
+    location: 'San Francisco, CA',
+    salary: '$120,000 - $150,000',
+    status: 'active',
+    priority: 'high',
+    candidates: 24,
+    openings: 3,
+    postedDate: '2024-01-15',
+    deadline: '2024-02-28',
+    recruiter: 'Sarah Johnson',
+    progress: 75
+  },
+  {
+    id: 'JOB-002',
+    title: 'UX/UI Designer',
+    company: 'DesignStudio',
+    department: 'Design',
+    experience: '3+ years',
+    type: 'Full-time',
+    location: 'Remote',
+    salary: '$90,000 - $110,000',
+    status: 'active',
+    priority: 'medium',
+    candidates: 18,
+    openings: 2,
+    postedDate: '2024-01-20',
+    deadline: '2024-03-10',
+    recruiter: 'Michael Chen',
+    progress: 60
+  },
+  {
+    id: 'JOB-003',
+    title: 'DevOps Engineer',
+    company: 'CloudSystems',
+    department: 'Operations',
+    experience: '4+ years',
+    type: 'Contract',
+    location: 'New York, NY',
+    salary: '$130,000 - $160,000',
+    status: 'active',
+    priority: 'high',
+    candidates: 32,
+    openings: 1,
+    postedDate: '2024-01-10',
+    deadline: '2024-02-20',
+    recruiter: 'David Wilson',
+    progress: 90
+  },
+  {
+    id: 'JOB-004',
+    title: 'Product Manager',
+    company: 'ProductLabs',
+    department: 'Product',
+    experience: '6+ years',
+    type: 'Full-time',
+    location: 'Austin, TX',
+    salary: '$140,000 - $180,000',
+    status: 'on-hold',
+    priority: 'medium',
+    candidates: 15,
+    openings: 1,
+    postedDate: '2024-01-05',
+    deadline: '2024-02-15',
+    recruiter: 'Emma Davis',
+    progress: 40
+  },
+  {
+    id: 'JOB-005',
+    title: 'Data Scientist',
+    company: 'DataInsights',
+    department: 'Analytics',
+    experience: '3+ years',
+    type: 'Full-time',
+    location: 'Seattle, WA',
+    salary: '$110,000 - $140,000',
+    status: 'active',
+    priority: 'low',
+    candidates: 28,
+    openings: 2,
+    postedDate: '2024-01-25',
+    deadline: '2024-03-05',
+    recruiter: 'Robert Garcia',
+    progress: 50
+  },
+  {
+    id: 'JOB-006',
+    title: 'Backend Developer',
+    company: 'CodeCraft',
+    department: 'Engineering',
+    experience: '4+ years',
+    type: 'Full-time',
+    location: 'Remote',
+    salary: '$115,000 - $145,000',
+    status: 'closed',
+    priority: 'medium',
+    candidates: 42,
+    openings: 0,
+    postedDate: '2023-12-15',
+    deadline: '2024-01-30',
+    recruiter: 'James Miller',
+    progress: 100
+  },
+  {
+    id: 'JOB-007',
+    title: 'Marketing Specialist',
+    company: 'GrowthHack',
+    department: 'Marketing',
+    experience: '2+ years',
+    type: 'Full-time',
+    location: 'Los Angeles, CA',
+    salary: '$70,000 - $90,000',
+    status: 'active',
+    priority: 'low',
+    candidates: 22,
+    openings: 2,
+    postedDate: '2024-01-30',
+    deadline: '2024-03-15',
+    recruiter: 'Lisa Thompson',
+    progress: 30
+  },
+  {
+    id: 'JOB-008',
+    title: 'QA Engineer',
+    company: 'QualityFirst',
+    department: 'Quality Assurance',
+    experience: '3+ years',
+    type: 'Contract',
+    location: 'Boston, MA',
+    salary: '$85,000 - $105,000',
+    status: 'active',
+    priority: 'medium',
+    candidates: 19,
+    openings: 3,
+    postedDate: '2024-01-18',
+    deadline: '2024-02-25',
+    recruiter: 'Thomas Lee',
+    progress: 65
+  }
+];
+
+// Chart data
+const applicationTrendsData = [
+  { month: 'Jan', applications: 120, interviews: 45 },
+  { month: 'Feb', applications: 180, interviews: 65 },
+  { month: 'Mar', applications: 150, interviews: 55 },
+  { month: 'Apr', applications: 220, interviews: 85 },
+  { month: 'May', applications: 190, interviews: 70 },
+  { month: 'Jun', applications: 250, interviews: 95 }
+];
+
+const jobStatusData = [
+  { name: 'Active', value: 65, color: '#4CAF50' },
+  { name: 'On Hold', value: 15, color: '#FF9800' },
+  { name: 'Closed', value: 20, color: '#F44336' }
+];
+
+const departmentDistributionData = [
+  { department: 'Engineering', jobs: 8, candidates: 150 },
+  { department: 'Design', jobs: 4, candidates: 60 },
+  { department: 'Product', jobs: 3, candidates: 45 },
+  { department: 'Marketing', jobs: 2, candidates: 30 },
+  { department: 'Sales', jobs: 2, candidates: 25 }
+];
 
 const RecruiterDashboard = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [jobToDelete, setJobToDelete] = useState(null);
+  const [jobs, setJobs] = useState(staticJobsData);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [refreshing, setRefreshing] = useState(false);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newJob, setNewJob] = useState({
-    jobName: '',
-    jobTitle: '',
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [jobToEdit, setJobToEdit] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    company: '',
     department: '',
     experience: '',
-    jobDesc: '',
-    status: 'Active'
+    location: '',
+    salary: '',
+    status: 'active',
+    priority: 'medium',
+    openings: 1
   });
-  const [formErrors, setFormErrors] = useState({});
 
-  // Calculate job status data based on real API response
-  const getJobStatusData = () => {
-    if (!jobs || jobs.length === 0) return [];
-    
-    const statusCounts = {};
-    
-    // Count jobs by status
-    jobs.forEach(job => {
-      const status = job.status || 'Unknown';
-      statusCounts[status] = (statusCounts[status] || 0) + 1;
-    });
-    
-    // Convert to array format for the chart
-    return Object.entries(statusCounts).map(([name, value]) => ({
-      name,
-      value
-    }));
+  // Dashboard stats
+  const stats = {
+    totalJobs: jobs.length,
+    activeJobs: jobs.filter(j => j.status === 'active').length,
+    totalCandidates: jobs.reduce((sum, job) => sum + job.candidates, 0),
+    conversionRate: 12.5,
+    avgTimeToHire: 28
   };
 
-  // Calculate job type data based on real API response
-  const getJobTypeData = () => {
-    if (!jobs || jobs.length === 0) return [];
-    
-    const typeCounts = {};
-    
-    // Count jobs by type
-    jobs.forEach(job => {
-      const type = job.jobFormId?.jobType || 'Unknown';
-      typeCounts[type] = (typeCounts[type] || 0) + 1;
-    });
-    
-    // Convert to array format for the chart
-    return Object.entries(typeCounts).map(([name, value]) => ({
-      name,
-      value
-    }));
-  };
-
-  const COLORS = [theme.palette.success.main, theme.palette.error.main, theme.palette.warning.main, theme.palette.info.main];
-
-  const fetchJobs = async () => {
-    try {
-      setLoading(true);
-      const jobs = await getJobs();
-      setJobs(jobs);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to fetch jobs:', err);
-      setError(err.message || 'Failed to fetch jobs');
-      setJobs([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchJobs();
-  };
-
+  // Filtered jobs
   const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.jobTitle.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    job.jobDesc.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = 
+      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.department.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesPriority = priorityFilter === 'all' || job.priority === priorityFilter;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
-  const totalJobs = jobs.length;
-  const activeJobs = jobs.filter(j => j.status === 'Active').length;
-  const closedJobs = jobs.filter(j => j.status === 'Closed').length;
-
-  const handleViewJobsPage = () => {
-    navigate('/jobs');
-  };
-
-  const confirmDelete = (job) => {
-    setJobToDelete(job);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteJob = async () => {
-    try {
-      await deleteJob(jobToDelete._id);
-      setDeleteDialogOpen(false);
-      setJobs(jobs.filter(j => j._id !== jobToDelete._id));
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleAddDialogOpen = () => {
+  const handleCreateJob = () => {
     navigate('/dashboard/jobs/createJob');
   };
 
-  const handleAddDialogClose = () => {
-    setAddDialogOpen(false);
-    setNewJob({
-      jobName: '',
-      jobTitle: '',
-      department: '',
-      experience: '',
-      jobDesc: '',
-      status: 'Active'
+  const handleViewJob = (jobId) => {
+    navigate(`/dashboard/jobs/${jobId}`);
+  };
+
+  const handleEditJob = (job) => {
+    setJobToEdit(job);
+    setEditForm({
+      title: job.title,
+      company: job.company,
+      department: job.department,
+      experience: job.experience,
+      location: job.location,
+      salary: job.salary,
+      status: job.status,
+      priority: job.priority,
+      openings: job.openings
     });
-    setFormErrors({});
+    setEditModalOpen(true);
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewJob(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleSaveEdit = () => {
+    setJobs(jobs.map(job => 
+      job.id === jobToEdit.id ? { ...job, ...editForm } : job
+    ));
+    setEditModalOpen(false);
+    setJobToEdit(null);
   };
 
-  const validateForm = () => {
-    const errors = {};
-    if (!newJob.jobName.trim()) errors.jobName = 'Job name is required';
-    if (!newJob.jobTitle.trim()) errors.jobTitle = 'Job title is required';
-    if (!newJob.jobDesc.trim()) errors.jobDesc = 'Description is required';
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+  const handleDeleteJob = (job) => {
+    setSelectedJob(job);
+    setDeleteDialogOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      try {
-        await createJob(newJob);
-        handleAddDialogClose();
-        fetchJobs();
-      } catch (err) {
-        setError(err.message);
-      }
+  const confirmDelete = () => {
+    setJobs(jobs.filter(j => j.id !== selectedJob.id));
+    setDeleteDialogOpen(false);
+    setSelectedJob(null);
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'active': return <CheckIcon fontSize="small" />;
+      case 'on-hold': return <ScheduleIcon fontSize="small" />;
+      case 'closed': return <CancelIcon fontSize="small" />;
+      default: return null;
     }
   };
 
-  if (loading && !refreshing) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress size={60} />
-      </Box>
-    );
-  }
+  const handleEditFormChange = (field, value) => {
+    setEditForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   return (
-    <Box sx={{
-      height: '100%', 
+    <Box sx={{ 
+      ml: '10px',
+      scrollable:"hidden",
       minHeight: '100vh',
-      marginRight:'40px',
-      backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))'
+      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+      p: 3,
+      boxSizing: 'border-box',
+      width: 'calc(100vw - 180px)',
+      overflowX: 'hidden'
     }}>
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      )}
-
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} mr={6}>
-        <Box>
-          <Typography variant="h4" fontWeight="700" color="text.primary" sx={{ mb: 0.5 }}>
-            Recruiter Dashboard
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <WorkIcon fontSize="small" />
-            Manage job postings and candidate applications
-          </Typography>
-        </Box>
-        <Box display="flex" alignItems="center" gap={2}>
-          <Button
-            variant="contained"
-            startIcon={<RefreshIcon />}
-            onClick={handleRefresh}
-            disabled={refreshing}
-            sx={{
-              backgroundColor: theme.palette.grey[200],
-              color: theme.palette.text.primary,
-              '&:hover': {
-                backgroundColor: theme.palette.grey[300]
-              }
-            }}
-          >
-            Refresh
-          </Button>
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 2,
+          flexWrap: 'wrap',
+          gap: 2
+        }}>
+          <Box>
+            <Typography variant="h4" fontWeight="800" sx={{ 
+              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 1
+            }}>
+              Recruiter Dashboard
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Welcome back! Manage your job postings and track recruitment metrics
+            </Typography>
+          </Box>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={handleAddDialogOpen}
+            onClick={handleCreateJob}
             sx={{
-              backgroundColor: theme.palette.primary.main,
-              color: 'white',
+              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+              borderRadius: 3,
+              px: 3,
+              py: 1,
+              boxShadow: '0 4px 20px rgba(33, 150, 243, 0.3)',
               '&:hover': {
-                backgroundColor: theme.palette.primary.dark,
-                boxShadow: theme.shadows[4]
+                transform: 'translateY(-2px)',
+                boxShadow: '0 6px 25px rgba(33, 150, 243, 0.4)'
               },
-              boxShadow: theme.shadows[2]
+              transition: 'all 0.3s ease'
             }}
           >
-            New Job
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<PeopleIcon />}
-            onClick={handleViewJobsPage}
-            sx={{
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              '&:hover': {
-                backgroundColor: theme.palette.primary.light,
-                borderColor: theme.palette.primary.dark
-              }
-            }}
-          >
-            View Jobs Page
+            Create Job
           </Button>
         </Box>
-      </Box>
 
-      <Grid container spacing={3} width={'100%'} >
-        {/* Left Column - 70% width */}
-        <Grid item xs={12} md={8} width={'100%'}>
-          {/* Stats Cards */}
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={4} width={'31%'} >
+        {/* Stats Cards */}
+        <Grid container spacing={3} sx={{ mb: 4 }}>
+          {[
+            { 
+              title: 'Total Jobs', 
+              value: stats.totalJobs, 
+              icon: <WorkIcon />, 
+              color: '#2196F3',
+              trend: '+12% from last month'
+            },
+            { 
+              title: 'Active Jobs', 
+              value: stats.activeJobs, 
+              icon: <CheckIcon />, 
+              color: '#4CAF50',
+              trend: `${Math.round((stats.activeJobs / stats.totalJobs) * 100)}% of total`
+            },
+            { 
+              title: 'Total Candidates', 
+              value: stats.totalCandidates.toLocaleString(), 
+              icon: <PeopleIcon />, 
+              color: '#FF9800',
+              trend: '+24% from last month'
+            },
+            { 
+              title: 'Avg. Time to Hire', 
+              value: `${stats.avgTimeToHire} days`, 
+              icon: <CalendarIcon />, 
+              color: '#9C27B0',
+              trend: '-5 days from last quarter'
+            }
+          ].map((stat, index) => (
+            <Grid item xs={12} sm={6} md={3} key={index}>
               <Card sx={{ 
-                p: 2, 
-                borderRadius: 3,
-                background: `linear-gradient(195deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                color: 'white',
-                boxShadow: theme.shadows[4],
-                position: 'relative',
+                borderRadius: 4,
                 overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '-50px',
-                  right: '-50px',
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.1)'
+                boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+                backdropFilter: 'blur(4px)',
+                background: 'rgba(255, 255, 255, 0.9)',
+                border: '1px solid rgba(255, 255, 255, 0.18)',
+                transition: 'transform 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 12px 40px rgba(31, 38, 135, 0.15)'
                 }
               }}>
-                <Box position="relative" zIndex={1}>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Total Jobs</Typography>
-                  <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{totalJobs}</Typography>
-                  <Box display="flex" alignItems="center">
-                    <TrendingUpIcon sx={{ mr: 1 }} />
-                    <Typography variant="body2">0</Typography>
+                <CardContent sx={{ p: 3 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Box sx={{
+                      p: 1.5,
+                      borderRadius: 3,
+                      background: `linear-gradient(45deg, ${stat.color} 30%, ${alpha(stat.color, 0.7)} 90%)`,
+                      color: 'white',
+                      mr: 2
+                    }}>
+                      {stat.icon}
+                    </Box>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary" fontWeight="500">
+                        {stat.title}
+                      </Typography>
+                      <Typography variant="h4" fontWeight="800" color="text.primary">
+                        {stat.value}
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TrendingUpIcon sx={{ color: '#4CAF50', fontSize: 16 }} />
+                    <Typography variant="caption" color="text.secondary">
+                      {stat.trend}
+                    </Typography>
+                  </Box>
+                </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} sm={4} width={'31%'}>
-              <Card sx={{ 
-                p: 2, 
-                height: '100%', 
-                borderRadius: 3,
-                background: `linear-gradient(195deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
-                color: 'white',
-                boxShadow: theme.shadows[4],
-                position: 'relative',
-                overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '-50px',
-                  right: '-50px',
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.1)'
-                }
-              }}>
-                <Box position="relative" zIndex={1} width={180}>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Active Jobs</Typography>
-                  <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{activeJobs}</Typography>
-                  <Box display="flex" alignItems="center">
-                    <ActiveIcon sx={{ mr: 1 }} />
-                    <Typography variant="body2">{totalJobs > 0 ? Math.round((activeJobs/totalJobs)*100) : 0}% of total</Typography>
+          ))}
+        </Grid>
+
+        {/* Main Content */}
+        <Grid container spacing={3}>
+          {/* Charts Section */}
+          <Grid item xs={12} lg={8}>
+            {/* Application Trends */}
+            <Card sx={{ 
+              borderRadius: 4,
+              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+              backdropFilter: 'blur(4px)',
+              background: 'rgba(255, 255, 255, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              p: 3,
+              mb: 3
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="600" color="text.primary">
+                  Application Trends
+                </Typography>
+                <Chip 
+                  label="Last 6 months" 
+                  size="small"
+                  sx={{ background: 'rgba(33, 150, 243, 0.1)', color: '#2196F3' }}
+                />
+              </Box>
+              <Box sx={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={applicationTrendsData}>
+                    <defs>
+                      <linearGradient id="colorApplications" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2196F3" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#2196F3" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorInterviews" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <ChartTooltip 
+                      contentStyle={{
+                        borderRadius: 8,
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        border: '1px solid #e0e0e0',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="applications" 
+                      stroke="#2196F3" 
+                      fillOpacity={1} 
+                      fill="url(#colorApplications)"
+                      strokeWidth={2}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="interviews" 
+                      stroke="#4CAF50" 
+                      fillOpacity={1} 
+                      fill="url(#colorInterviews)"
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Box>
+            </Card>
+
+            {/* Smaller Charts */}
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ 
+                  borderRadius: 4,
+                  boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+                  backdropFilter: 'blur(4px)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: '1px solid rgba(255, 255, 255, 0.18)',
+                  p: 3,
+                  height: '100%'
+                }}>
+                  <Typography variant="h6" fontWeight="600" color="text.primary" mb={3}>
+                    Job Status Distribution
+                  </Typography>
+                  <Box sx={{ height: 250 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={jobStatusData}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          outerRadius={80}
+                          innerRadius={40}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {jobStatusData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <ChartTooltip 
+                          contentStyle={{
+                            borderRadius: 8,
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            border: '1px solid #e0e0e0'
+                          }}
+                          formatter={(value) => [value, 'Jobs']}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </Box>
-                </Box>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={4} width={'31%'}>
-              <Card sx={{ 
-                p: 2, 
-                height: '100%', 
-                borderRadius: 3,
-                background: `linear-gradient(195deg, ${theme.palette.error.main}, ${theme.palette.error.dark})`,
-                color: 'white',
-                boxShadow: theme.shadows[4],
-                position: 'relative',
-                overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '-50px',
-                  right: '-50px',
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.1)'
-                }
-              }}>
-                <Box position="relative" zIndex={1} width={180}>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Closed Jobs</Typography>
-                  <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{closedJobs}</Typography>
-                  <Box display="flex" alignItems="center">
-                    <InactiveIcon sx={{ mr: 1 }} />
-                    <Typography variant="body2">{totalJobs > 0 ? Math.round((closedJobs/totalJobs)*100) : 0}% of total</Typography>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Card sx={{ 
+                  borderRadius: 4,
+                  boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+                  backdropFilter: 'blur(4px)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  border: '1px solid rgba(255, 255, 255, 0.18)',
+                  p: 3,
+                  height: '100%'
+                }}>
+                  <Typography variant="h6" fontWeight="600" color="text.primary" mb={3}>
+                    Department Distribution
+                  </Typography>
+                  <Box sx={{ height: 250 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={departmentDistributionData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                        <XAxis 
+                          dataKey="department" 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <YAxis 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12 }}
+                        />
+                        <ChartTooltip 
+                          contentStyle={{
+                            borderRadius: 8,
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            border: '1px solid #e0e0e0'
+                          }}
+                        />
+                        <Bar 
+                          dataKey="jobs" 
+                          fill="#2196F3" 
+                          radius={[4, 4, 0, 0]}
+                          name="Open Positions"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </Box>
-                </Box>
-              </Card>
+                </Card>
+              </Grid>
             </Grid>
           </Grid>
 
-          {/* Search and Filter Row */}
-          <Card sx={{ 
-            p: 2, 
-            mb: 3, 
-            mr:5,
-            borderRadius: 3,
-            boxShadow: theme.shadows[1],
-            backgroundColor: theme.palette.background.paper,
-            border: `1px solid ${theme.palette.divider}`
-          }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={8} width={'65%'}>
-                <TextField
+          {/* Sidebar Content */}
+          <Grid item xs={12} lg={4}>
+            <Card sx={{ 
+              borderRadius: 4,
+              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+              backdropFilter: 'blur(4px)',
+              background: 'rgba(255, 255, 255, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              p: 3,
+              height: '100%'
+            }}>
+              {/* Quick Actions */}
+              <Typography variant="h6" fontWeight="600" color="text.primary" mb={3}>
+                Quick Actions
+              </Typography>
+              <Stack spacing={2} sx={{ mb: 4 }}>
+                <Button
                   fullWidth
-                  placeholder="Search jobs by title or description..."
-                  variant="outlined"
-                  size="small"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon color="action" />
-                      </InputAdornment>
-                    ),
-                    style: {
-                      borderRadius: 8,
-                      backgroundColor: theme.palette.background.default
-                    }
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleCreateJob}
+                  sx={{
+                    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                    borderRadius: 3,
+                    py: 1.5,
+                    boxShadow: '0 4px 20px rgba(33, 150, 243, 0.3)',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 6px 25px rgba(33, 150, 243, 0.4)'
+                    },
+                    transition: 'all 0.3s ease'
                   }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4} width={'30%'}>
-                <TextField
-                  select
+                >
+                  Create New Job
+                </Button>
+                <Button
                   fullWidth
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  size="small"
                   variant="outlined"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <FilterIcon color="action" fontSize="small" />
-                      </InputAdornment>
-                    ),
-                    style: {
-                      borderRadius: 8,
-                      backgroundColor: theme.palette.background.default
+                  startIcon={<PeopleIcon />}
+                  onClick={() => navigate('/candidates')}
+                  sx={{
+                    borderRadius: 3,
+                    py: 1.5,
+                    borderColor: 'rgba(33, 150, 243, 0.3)',
+                    color: '#2196F3',
+                    '&:hover': {
+                      borderColor: '#2196F3',
+                      background: 'rgba(33, 150, 243, 0.04)'
                     }
                   }}
                 >
-                  <MenuItem value="all">All Status</MenuItem>
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Closed">Closed</MenuItem>
-                </TextField>
-              </Grid>
-            </Grid>
-          </Card>
-
-          {/* Jobs Table */}
-          <Card sx={{ 
-            p: 0, 
-            mr:5,
-            borderRadius: 3,
-            boxShadow: theme.shadows[1],
-            backgroundColor: theme.palette.background.paper,
-            border: `1px solid ${theme.palette.divider}`,
-            overflow: 'hidden'
-          }}>
-            <Box 
-              display="flex" 
-              justifyContent="space-between" 
-              alignItems="center" 
-              p={3}
-              sx={{
-                borderBottom: `1px solid ${theme.palette.divider}`
-              }}
-            >
-              <Typography variant="h6" fontWeight="600">Job Listings</Typography>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="body2" color="text.secondary">
-                  Showing {filteredJobs.length} of {jobs.length} jobs
-                </Typography>
-                <Chip 
-                  label={`${jobs.length > 0 ? Math.round((filteredJobs.length/jobs.length)*100) : 0}%`} 
-                  size="small" 
-                  sx={{ 
-                    backgroundColor: theme.palette.action.selected,
-                    fontWeight: 500
-                  }} 
-                />
-              </Box>
-            </Box>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: theme.palette.background.default }}>
-                    <TableCell sx={{ fontWeight: 600 }}>Job Name</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Title</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Department</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Experience</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredJobs.map((job) => (
-                    <TableRow 
-                      key={job._id} 
-                      hover
-                      sx={{ 
-                        '&:last-child td': { borderBottom: 0 },
-                        opacity: job.status === 'Active' ? 1 : 0.9,
-                        '&:hover': {
-                          backgroundColor: theme.palette.action.hover
-                        }
-                      }}
-                    >
-                      <TableCell>
-                        <Typography fontWeight="600">{job.jobName}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography>{job.jobTitle}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography>{job.department}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography>{job.experience}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={job.status}
-                          size="small"
-                          sx={{
-                            backgroundColor: job.status === 'Active' ? 
-                              theme.palette.success.light : 
-                              theme.palette.error.light,
-                            color: job.status === 'Active' ? 
-                              theme.palette.success.dark : 
-                              theme.palette.error.dark,
-                            fontWeight: 500
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="right">
-                        <Box display="flex" justifyContent="flex-end" gap={1}>
-                          <Tooltip title="View Details">
-                            <IconButton
-                              size="small"
-                              sx={{
-                                backgroundColor: theme.palette.action.hover,
-                                color: theme.palette.primary.main,
-                                '&:hover': {
-                                  backgroundColor: theme.palette.primary.main,
-                                  color: 'white'
-                                }
-                              }}
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete Job">
-                            <IconButton
-                              onClick={() => confirmDelete(job)}
-                              size="small"
-                              sx={{
-                                backgroundColor: theme.palette.action.hover,
-                                color: theme.palette.error.main,
-                                '&:hover': {
-                                  backgroundColor: theme.palette.error.main,
-                                  color: 'white'
-                                }
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Card>
-        </Grid>
-
-        {/* Right Column - 30% width */}
-        <Grid item xs={12} md={4} mr={3} display={'flex'} gap={'35px'} flexDirection={'row'} width={'100%'}>
-          {/* Job Status Distribution */}
-          <Card sx={{ 
-            p: 3,
-            width:'48%', 
-            mb: 3,
-            height: 320,
-            borderRadius: 3,
-            boxShadow: theme.shadows[1],
-            backgroundColor: theme.palette.background.paper,
-            border: `1px solid ${theme.palette.divider}`
-          }}>
-            <Typography variant="h6" fontWeight="600" mb={2}>Job Status Distribution</Typography>
-            <Box height={250}>
-              {getJobStatusData().length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={getJobStatusData()}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {getJobStatusData().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip 
-                      contentStyle={{
-                        borderRadius: 8,
-                        backgroundColor: theme.palette.background.paper,
-                        border: `1px solid ${theme.palette.divider}`,
-                        boxShadow: theme.shadows[2]
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                  <Typography variant="body2" color="text.secondary">
-                    No job data available
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          </Card>
-
-          {/* Job Type Distribution */}
-          <Card sx={{ 
-            width:'48%',
-            p: 3, 
-            mb: 3,
-            height: 320,
-            borderRadius: 3,
-            boxShadow: theme.shadows[1],
-            backgroundColor: theme.palette.background.paper,
-            border: `1px solid ${theme.palette.divider}`
-          }}>
-            <Typography variant="h6" fontWeight="600" mb={2}>Job Type Distribution</Typography>
-            <Box height={250}>
-              {getJobTypeData().length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={getJobTypeData()}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {getJobTypeData().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip 
-                      contentStyle={{
-                        borderRadius: 8,
-                        backgroundColor: theme.palette.background.paper,
-                        border: `1px solid ${theme.palette.divider}`,
-                        boxShadow: theme.shadows[2]
-                      }}
-                    />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-                  <Typography variant="body2" color="text.secondary">
-                    No job data available
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-          </Card>
-        </Grid>
-
-        {/* Quick Actions */}
-        <Card sx={{ 
-          p: 3,
-          mr:4,
-          width:'100%',
-          borderRadius: 3,
-          boxShadow: theme.shadows[1],
-          backgroundColor: theme.palette.background.paper,
-          border: `1px solid ${theme.palette.divider}`
-        }}>
-          <Typography variant="h6" fontWeight="600" mb={2}>Quick Actions</Typography>
-          <Grid container spacing={2} >
-            <Grid item xs={12} width={'60%'} ml={'15px'}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleAddDialogOpen}
-                sx={{
-                  py: 1.5,
-                  borderRadius: 2,
-                  backgroundColor: theme.palette.primary.main,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                    boxShadow: theme.shadows[2]
-                  },
-                  boxShadow: theme.shadows[1]
-                }}
-              >
-                Post New Job
-              </Button>
-            </Grid>
-            <Grid item xs={12} width={'30%'}>
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<PeopleIcon />}
-                onClick={handleViewJobsPage}
-                sx={{
-                  py: 1.5,
-                  borderRadius: 2,
-                  borderColor: theme.palette.divider,
-                  '&:hover': {
-                    backgroundColor: theme.palette.action.hover,
-                    borderColor: theme.palette.primary.main
-                  }
-                }}
-              >
-                View Jobs Page
-              </Button>
-            </Grid>
-          </Grid>
-        </Card>
-      </Grid>
-
-      {/* Add Job Dialog */}
-      <Dialog
-        open={addDialogOpen}
-        onClose={handleAddDialogClose}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            p: 3,
-            background: theme.palette.background.paper,
-            boxShadow: theme.shadows[5]
-          }
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 3 }}>Create New Job Posting</DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ p: 0 }}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TextField
+                  View Candidates
+                </Button>
+                <Button
                   fullWidth
-                  label="Job Name"
-                  name="jobName"
-                  value={newJob.jobName}
-                  onChange={handleInputChange}
-                  error={!!formErrors.jobName}
-                  helperText={formErrors.jobName}
                   variant="outlined"
-                  InputProps={{
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: theme.palette.background.default
+                  startIcon={<DownloadIcon />}
+                  sx={{
+                    borderRadius: 3,
+                    py: 1.5,
+                    borderColor: 'rgba(76, 175, 80, 0.3)',
+                    color: '#4CAF50',
+                    '&:hover': {
+                      borderColor: '#4CAF50',
+                      background: 'rgba(76, 175, 80, 0.04)'
                     }
                   }}
+                >
+                  Export Reports
+                </Button>
+              </Stack>
+
+              <Divider sx={{ my: 3 }} />
+
+              {/* Recent Activity */}
+              <Typography variant="h6" fontWeight="600" color="text.primary" mb={3}>
+                Recent Activity
+              </Typography>
+              <Stack spacing={2} sx={{ maxHeight: 300, overflowY: 'auto', pr: 1 }}>
+                {[
+                  { action: 'New application received for Senior Developer', time: '2 hours ago' },
+                  { action: 'Interview scheduled for UX Designer position', time: '4 hours ago' },
+                  { action: 'Job posting "Data Scientist" published', time: '1 day ago' },
+                  { action: 'Candidate Michael Chen hired', time: '2 days ago' },
+                  { action: 'New job "DevOps Engineer" created', time: '3 days ago' },
+                  { action: 'Job "Backend Developer" closed', time: '4 days ago' }
+                ].map((activity, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      background: index === 0 ? 'rgba(33, 150, 243, 0.05)' : 'transparent',
+                      border: '1px solid rgba(0, 0, 0, 0.05)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        background: 'rgba(33, 150, 243, 0.05)',
+                        borderColor: 'rgba(33, 150, 243, 0.2)'
+                      }
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight="500" color="text.primary">
+                      {activity.action}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {activity.time}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Jobs Table */}
+        <Card sx={{ 
+          borderRadius: 4,
+          boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+          backdropFilter: 'blur(4px)',
+          background: 'rgba(255, 255, 255, 0.9)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+          overflow: 'hidden',
+          mt: 3
+        }}>
+          <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              mb: 2,
+              flexWrap: 'wrap',
+              gap: 2
+            }}>
+              <Typography variant="h6" fontWeight="600" color="text.primary">
+                Recent Job Postings
+              </Typography>
+              <Box sx={{ 
+                display: 'flex', 
+                gap: 2, 
+                alignItems: 'center', 
+                flexWrap: 'wrap'
+              }}>
+                <TextField
+                  size="small"
+                  placeholder="Search jobs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{
+                    width: { xs: '100%', sm: 200 },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 3,
+                      background: 'rgba(255, 255, 255, 0.8)'
+                    }
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }}
                 />
-              </Grid>
-              <Grid item xs={12} md={6}>
+                <Select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  size="small"
+                  displayEmpty
+                  sx={{ 
+                    borderRadius: 3,
+                    minWidth: 120,
+                    background: 'rgba(255, 255, 255, 0.8)'
+                  }}
+                >
+                  <MenuItem value="all">All Status</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="on-hold">On Hold</MenuItem>
+                  <MenuItem value="closed">Closed</MenuItem>
+                </Select>
+                <Select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  size="small"
+                  displayEmpty
+                  sx={{ 
+                    borderRadius: 3,
+                    minWidth: 120,
+                    background: 'rgba(255, 255, 255, 0.8)'
+                  }}
+                >
+                  <MenuItem value="all">All Priority</MenuItem>
+                  <MenuItem value="high">High</MenuItem>
+                  <MenuItem value="medium">Medium</MenuItem>
+                  <MenuItem value="low">Low</MenuItem>
+                </Select>
+              </Box>
+            </Box>
+          </Box>
+
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ background: 'rgba(0, 0, 0, 0.02)' }}>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Job Title</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Department</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Location</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Candidates</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Progress</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }} align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredJobs.map((job) => (
+                  <TableRow 
+                    key={job.id}
+                    hover
+                    sx={{
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        background: 'rgba(33, 150, 243, 0.02)'
+                      }
+                    }}
+                  >
+                    <TableCell>
+                      <Box>
+                        <Typography fontWeight="600" color="text.primary">
+                          {job.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {job.company} • {job.id}
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={job.department}
+                        size="small"
+                        sx={{
+                          background: 'rgba(33, 150, 243, 0.1)',
+                          color: '#2196F3',
+                          fontWeight: 500
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <LocationIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                        <Typography>{job.location}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AvatarGroup max={3} sx={{ '& .MuiAvatar-root': { width: 24, height: 24 } }}>
+                          {[...Array(Math.min(job.candidates, 3))].map((_, i) => (
+                            <Avatar key={i} alt={`Candidate ${i + 1}`} />
+                          ))}
+                        </AvatarGroup>
+                        <Typography fontWeight="500">{job.candidates}</Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{ flex: 1 }}>
+                          <LinearProgress 
+                            variant="determinate" 
+                            value={job.progress}
+                            sx={{
+                              height: 6,
+                              borderRadius: 3,
+                              background: 'rgba(0, 0, 0, 0.05)',
+                              '& .MuiLinearProgress-bar': {
+                                borderRadius: 3,
+                                background: job.progress === 100 ? '#4CAF50' : '#2196F3'
+                              }
+                            }}
+                          />
+                        </Box>
+                        <Typography variant="body2" fontWeight="500" sx={{ minWidth: 40 }}>
+                          {job.progress}%
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        icon={getStatusIcon(job.status)}
+                        label={job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                        size="small"
+                        sx={{
+                          background: `rgba(${
+                            job.status === 'active' ? '76, 175, 80' : 
+                            job.status === 'on-hold' ? '255, 152, 0' : '244, 67, 54'
+                          }, 0.1)`,
+                          color: job.status === 'active' ? '#4CAF50' : 
+                                 job.status === 'on-hold' ? '#FF9800' : '#F44336',
+                          fontWeight: 500
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <Tooltip title="View Details">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleViewJob(job.id)}
+                            sx={{
+                              background: 'rgba(33, 150, 243, 0.1)',
+                              color: '#2196F3',
+                              '&:hover': {
+                                background: '#2196F3',
+                                color: 'white'
+                              }
+                            }}
+                          >
+                            <VisibilityIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Edit Job">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleEditJob(job)}
+                            sx={{
+                              background: 'rgba(255, 152, 0, 0.1)',
+                              color: '#FF9800',
+                              '&:hover': {
+                                background: '#FF9800',
+                                color: 'white'
+                              }
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete Job">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleDeleteJob(job)}
+                            sx={{
+                              background: 'rgba(244, 67, 54, 0.1)',
+                              color: '#F44336',
+                              '&:hover': {
+                                background: '#F44336',
+                                color: 'white'
+                              }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      </Box>
+
+      {/* Edit Job Modal */}
+      <Modal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2
+        }}
+      >
+        <Fade in={editModalOpen}>
+          <Card sx={{
+            width: '100%',
+            maxWidth: 500,
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            borderRadius: 4,
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            p: 3
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5" fontWeight="700" color="text.primary">
+                Edit Job
+              </Typography>
+              <IconButton onClick={() => setEditModalOpen(false)}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+            
+            <Divider sx={{ mb: 3 }} />
+            
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Job Title"
-                  name="jobTitle"
-                  value={newJob.jobTitle}
-                  onChange={handleInputChange}
-                  error={!!formErrors.jobTitle}
-                  helperText={formErrors.jobTitle}
-                  variant="outlined"
-                  InputProps={{
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: theme.palette.background.default
-                    }
-                  }}
+                  value={editForm.title}
+                  onChange={(e) => handleEditFormChange('title', e.target.value)}
+                  size="small"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Company"
+                  value={editForm.company}
+                  onChange={(e) => handleEditFormChange('company', e.target.value)}
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={6}>
                 <TextField
                   fullWidth
                   label="Department"
-                  name="department"
-                  value={newJob.department}
-                  onChange={handleInputChange}
-                  variant="outlined"
-                  InputProps={{
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: theme.palette.background.default
-                    }
-                  }}
+                  value={editForm.department}
+                  onChange={(e) => handleEditFormChange('department', e.target.value)}
+                  size="small"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid item xs={6}>
                 <TextField
                   fullWidth
-                  label="Experience Required"
-                  name="experience"
-                  value={newJob.experience}
-                  onChange={handleInputChange}
-                  variant="outlined"
-                  InputProps={{
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: theme.palette.background.default
-                    }
-                  }}
+                  label="Experience"
+                  value={editForm.experience}
+                  onChange={(e) => handleEditFormChange('experience', e.target.value)}
+                  size="small"
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={6}>
                 <TextField
                   fullWidth
-                  label="Job Description"
-                  name="jobDesc"
-                  value={newJob.jobDesc}
-                  onChange={handleInputChange}
-                  error={!!formErrors.jobDesc}
-                  helperText={formErrors.jobDesc}
-                  variant="outlined"
-                  multiline
-                  rows={4}
-                  InputProps={{
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: theme.palette.background.default
-                    }
-                  }}
+                  label="Location"
+                  value={editForm.location}
+                  onChange={(e) => handleEditFormChange('location', e.target.value)}
+                  size="small"
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  label="Salary"
+                  value={editForm.salary}
+                  onChange={(e) => handleEditFormChange('salary', e.target.value)}
+                  size="small"
+                />
+              </Grid>
+              <Grid item xs={6}>
                 <TextField
                   select
                   fullWidth
                   label="Status"
-                  name="status"
-                  value={newJob.status}
-                  onChange={handleInputChange}
-                  variant="outlined"
-                  InputProps={{
-                    sx: {
-                      borderRadius: 2,
-                      backgroundColor: theme.palette.background.default
-                    }
-                  }}
+                  value={editForm.status}
+                  onChange={(e) => handleEditFormChange('status', e.target.value)}
+                  size="small"
                 >
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Closed">Closed</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="on-hold">On Hold</MenuItem>
+                  <MenuItem value="closed">Closed</MenuItem>
                 </TextField>
               </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Priority"
+                  value={editForm.priority}
+                  onChange={(e) => handleEditFormChange('priority', e.target.value)}
+                  size="small"
+                >
+                  <MenuItem value="high">High</MenuItem>
+                  <MenuItem value="medium">Medium</MenuItem>
+                  <MenuItem value="low">Low</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Open Positions"
+                  type="number"
+                  value={editForm.openings}
+                  onChange={(e) => handleEditFormChange('openings', e.target.value)}
+                  size="small"
+                />
+              </Grid>
             </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 0, mt: 3 }}>
-            <Button 
-              onClick={handleAddDialogClose}
-              variant="outlined"
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                px: 3,
-                py: 1,
-                borderColor: theme.palette.divider,
-                '&:hover': {
-                  borderColor: theme.palette.primary.main
-                }
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit"
-              variant="contained"
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                px: 3,
-                py: 1,
-                backgroundColor: theme.palette.primary.main,
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.dark,
-                  boxShadow: theme.shadows[1]
-                }
-              }}
-            >
-              Create Job
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
+              <Button
+                variant="outlined"
+                onClick={() => setEditModalOpen(false)}
+                sx={{
+                  borderRadius: 3,
+                  px: 3,
+                  borderColor: 'rgba(0, 0, 0, 0.1)',
+                  color: 'text.secondary',
+                  '&:hover': {
+                    borderColor: '#2196F3',
+                    color: '#2196F3'
+                  }
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSaveEdit}
+                sx={{
+                  borderRadius: 3,
+                  px: 3,
+                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #1976D2 30%, #2196F3 90%)'
+                  }
+                }}
+              >
+                Save Changes
+              </Button>
+            </Box>
+          </Card>
+        </Fade>
+      </Modal>
 
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -1871,57 +1159,59 @@ const RecruiterDashboard = () => {
         onClose={() => setDeleteDialogOpen(false)}
         PaperProps={{
           sx: {
-            borderRadius: 3,
-            padding: 3,
-            minWidth: 500,
-            background: theme.palette.background.paper,
-            boxShadow: theme.shadows[5]
+            borderRadius: 4,
+            p: 3,
+            width: '100%',
+            maxWidth: 400,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
           }
         }}
       >
-        <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 2 }}>Confirm Job Deletion</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 2, color: 'text.primary' }}>
+          Confirm Deletion
+        </DialogTitle>
         <DialogContent sx={{ p: 0, mb: 3 }}>
-          <Typography>
-            Are you sure you want to permanently delete the job <strong>{jobToDelete?.jobTitle}</strong>?
+          <Typography color="text.primary">
+            Are you sure you want to delete the job posting for <strong>{selectedJob?.title}</strong>?
           </Typography>
           <Typography variant="body2" color="error" mt={2}>
-            <strong>Warning:</strong> This action cannot be undone.
+            This action cannot be undone. All associated candidate data will be permanently removed.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ p: 0 }}>
+        <DialogActions sx={{ p: 0, gap: 2 }}>
           <Button 
             onClick={() => setDeleteDialogOpen(false)}
             variant="outlined"
             sx={{
-              borderRadius: 2,
-              textTransform: 'none',
+              borderRadius: 3,
               px: 3,
               py: 1,
-              borderColor: theme.palette.divider,
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+              color: 'text.secondary',
               '&:hover': {
-                borderColor: theme.palette.primary.main
+                borderColor: '#2196F3',
+                color: '#2196F3'
               }
             }}
           >
             Cancel
           </Button>
           <Button 
-            onClick={handleDeleteJob} 
+            onClick={confirmDelete}
             variant="contained"
-            color="error"
             sx={{
-              borderRadius: 2,
-              textTransform: 'none',
+              borderRadius: 3,
               px: 3,
               py: 1,
-              boxShadow: 'none',
+              background: 'linear-gradient(45deg, #F44336 30%, #FF5252 90%)',
               '&:hover': {
-                backgroundColor: theme.palette.error.dark,
-                boxShadow: 'none'
+                background: 'linear-gradient(45deg, #D32F2F 30%, #F44336 90%)'
               }
             }}
           >
-            Delete Permanently
+            Delete Job
           </Button>
         </DialogActions>
       </Dialog>

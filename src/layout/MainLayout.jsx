@@ -20,7 +20,7 @@ const LayoutContent = ({ children,width }) => {
     setMobileOpen((prev) => !prev);
   };
   
-const drawerWidth = width ? width : 110;
+const drawerWidth = width ? width : 65;
 console.log("drawerwidht",drawerWidth)
 
 

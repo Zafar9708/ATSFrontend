@@ -129,6 +129,7 @@ const Profile = () => {
       <Box sx={{ 
         p: { xs: 2, md: 4 }, 
         pt: 10,
+        marginLeft:12,
         minHeight: '100vh',
         // background: `linear-gradient(135deg, ${alpha(primaryColor, 0.05)} 0%, ${alpha(secondaryColor, 0.05)} 100%)`,
       }}>

@@ -495,7 +495,8 @@ const TotalInterviews = () => {
         bgcolor: theme.palette.background.default,
         boxSizing: 'border-box',
         p: 2,             // remove extra padding
-        m: 0              // remove margin
+        m: 0  ,
+        marginLeft:12            // remove margin
       }}
     >
       <Paper

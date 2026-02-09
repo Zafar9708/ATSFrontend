@@ -184,6 +184,7 @@ import VendorRegister from '../pages/Vendor/VendorRegister';
 import NotificationCenter from '../pages/NotificationCenter';
 import VendorUploadPage from '../services/Vendor/VendorUploadPage';
 import VendorCandidatesPage from '../pages/Vendor/VendorCandidates';
+import ReportsPage from '../pages/Reports';
 // Create a wrapper component for routes that need MainLayout
 const LayoutWrapper = ({ children,width }) => {
  
@@ -386,9 +387,18 @@ const AppRoutes = () => {
               <VendorCandidatesPage />
             </LayoutWrapper>
           </ProtectedRoute>
-
         }
-       
+      />
+
+       <Route
+        path="/reports"
+        element={
+          <ProtectedRoute >
+            <LayoutWrapper  >
+              <ReportsPage />
+            </LayoutWrapper>
+          </ProtectedRoute>
+        }
       />
       
       

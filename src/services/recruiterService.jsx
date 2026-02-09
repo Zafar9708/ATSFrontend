@@ -40,7 +40,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/job'; // Adjust endpoint path
+const API_BASE_URL = 'http://localhost:5000/api/v1/job'; // Adjust endpoint path
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
