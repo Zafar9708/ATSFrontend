@@ -1,6 +1,6 @@
 
 import axios from "axios";
-const API_BASE_URL = "https://atsbackend-jl6t.onrender.com/api/v1";
+const API_BASE_URL = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1";
 
 export const loginUser = async (credentials) => {
   try {
