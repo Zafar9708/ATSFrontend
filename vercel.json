@@ -1,5 +1,12 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/api/:path*",
+      "destination": "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
   ]
 }
