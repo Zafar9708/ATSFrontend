@@ -85,10 +85,10 @@ const Sidebar = () => {
           { icon: <TodayIcon />, text: 'Interviews', path: '/total-interviews' },
           { icon: <BusinessIcon />, text: 'Vendors', path: '/total-vendors' },
 
-          { icon: <NotificationsIcon />, text: 'Notifications', path: '/notifications' },
+          // { icon: <NotificationsIcon />, text: 'Notifications', path: '/notifications' },
           { icon: <BarChartIcon />, text: 'Reports', path: '/dashboard/reports' },
-          { icon: <TaskIcon />, text: 'Tasks', path: '/tasks' },
-          { icon: <SettingsIcon />, text: 'Settings', path: '/dashboard/settings' },
+          // { icon: <TaskIcon />, text: 'Tasks', path: '/tasks' },
+          // { icon: <SettingsIcon />, text: 'Settings', path: '/dashboard/settings' },
           { icon: <HelpIcon />, text: 'Help', path: '/dashboard/help' },
           // { icon: <FeedbackIcon />, text: 'Feedback', path: '/dashboard/feedback' },
         ].map((item, index) => {
