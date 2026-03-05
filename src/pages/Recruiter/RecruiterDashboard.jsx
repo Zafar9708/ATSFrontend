@@ -232,132 +232,394 @@
         </Box>
 
         {/* ── STAT CARDS ── */}
-        <Grid container spacing={{ xs:2, sm:2.5 }} sx={{ mb:3 }}>
-          {[
-            { label:'Total Jobs',       value:stats.total,      sub:'All postings', icon:<WorkIcon sx={{ fontSize:20 }}/>,    color:C.primary,  bg:C.primaryLight, up:true,  trend:'+12%' },
-            { label:'Active Jobs',      value:stats.active,     sub:'Currently open', icon:<CheckIcon sx={{ fontSize:20 }}/>,   color:C.success,  bg:'#f0fdf4',      up:true,  trend:`${Math.round(stats.active/stats.total*100)}%` },
-            { label:'Total Candidates', value:stats.candidates, sub:'Across all jobs', icon:<PeopleIcon sx={{ fontSize:20 }}/>, color:C.accent,   bg:'#faf5ff',      up:true,  trend:'+24%' },
-            { label:'Open Positions',   value:stats.openings,   sub:'Seats to fill',  icon:<CalendarIcon sx={{ fontSize:20 }}/>, color:C.warning, bg:'#fffbeb',      up:false, trend:'-2 this week' },
-          ].map((s, i) => (
-            <Grid item xs={6} sm={6} md={3} key={i}>
-              <Card sx={{ ...cardSx, p:0, transition:'transform 0.18s, box-shadow 0.18s', '&:hover':{ transform:'translateY(-2px)', boxShadow:'0 8px 24px rgba(0,0,0,0.09)' } }}>
-                <CardContent sx={{ p:{ xs:2, sm:2.5 }, '&:last-child':{ pb:{ xs:2, sm:2.5 } } }}>
-                  <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:1.5 }}>
-                    <Typography sx={{ fontSize:12, fontWeight:700, color:C.textSub, textTransform:'uppercase', letterSpacing:0.8 }}>{s.label}</Typography>
-                    <Box sx={{ width:36, height:36, borderRadius:2, background:s.bg, display:'flex', alignItems:'center', justifyContent:'center', color:s.color }}>
-                      {s.icon}
-                    </Box>
-                  </Box>
-                  <Typography sx={{ fontSize:{ xs:26, sm:30 }, fontWeight:900, color:C.text, lineHeight:1, mb:1 }}>{s.value}</Typography>
-                  <Box sx={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:1 }}>
-                    <Typography sx={{ fontSize:11, color:C.textMuted, fontWeight:500 }}>{s.sub}</Typography>
-                    <StatChip value={s.trend} up={s.up} label=""/>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+     <Grid container spacing={{ xs: 2, sm: 2.5 }} sx={{ mb: 3 }}>
+  {[
+    {
+      label: "Total Jobs",
+      value: stats.total,
+      sub: "All postings",
+      icon: <WorkIcon sx={{ fontSize: 20 }} />,
+      color: C.primary,
+      bg: C.primaryLight,
+      up: true,
+      trend: "+12%",
+    },
+    {
+      label: "Active Jobs",
+      value: stats.active,
+      sub: "Currently open",
+      icon: <CheckIcon sx={{ fontSize: 20 }} />,
+      color: C.success,
+      bg: "#f0fdf4",
+      up: true,
+      trend: `${Math.round((stats.active / stats.total) * 100)}%`,
+    },
+    {
+      label: "Total Candidates",
+      value: stats.candidates,
+      sub: "Across all jobs",
+      icon: <PeopleIcon sx={{ fontSize: 20 }} />,
+      color: C.accent,
+      bg: "#faf5ff",
+      up: true,
+      trend: "+24%",
+    },
+    {
+      label: "Open Positions",
+      value: stats.openings,
+      sub: "Seats to fill",
+      icon: <CalendarIcon sx={{ fontSize: 20 }} />,
+      color: C.warning,
+      bg: "#fffbeb",
+      up: false,
+      trend: "-2 this week",
+    },
+  ].map((s, i) => (
+    <Grid item xs={6} sm={6} md={3} key={i}>
+      <Card
+        sx={{
+          ...cardSx,
+          width: "20vw",
+          p: 0,
+          transition: "transform 0.18s, box-shadow 0.18s",
+          "&:hover": {
+            transform: "translateY(-2px)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.09)",
+          },
+        }}
+      >
+        <CardContent
+          sx={{
+            p: { xs: 2, sm: 2.5 },
+            "&:last-child": { pb: { xs: 2, sm: 2.5 } },
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              mb: 1.5,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 12,
+                fontWeight: 700,
+                color: C.textSub,
+                textTransform: "uppercase",
+                letterSpacing: 0.8,
+              }}
+            >
+              {s.label}
+            </Typography>
 
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: 2,
+                background: s.bg,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: s.color,
+              }}
+            >
+              {s.icon}
+            </Box>
+          </Box>
+
+          <Typography
+            sx={{
+              fontSize: { xs: 26, sm: 30 },
+              fontWeight: 900,
+              color: C.text,
+              lineHeight: 1,
+              mb: 1,
+            }}
+          >
+            {s.value}
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 1,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: C.textMuted,
+                fontWeight: 500,
+              }}
+            >
+              {s.sub}
+            </Typography>
+
+            <StatChip value={s.trend} up={s.up} label="" />
+          </Box>
+        </CardContent>
+      </Card>
+    </Grid>
+  ))}
+</Grid>
         {/* ── CHARTS ROW ── */}
         <Grid container spacing={{ xs:2, sm:2.5 }} sx={{ mb:3 }}>
 
           {/* Area Chart — Application Trends */}
-          <Grid item xs={12} lg={8}>
-            <Card sx={{ ...cardSx, height:'100%' }}>
-              <Box sx={{ p:{ xs:2, sm:2.5 }, display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:`1px solid ${C.border}` }}>
-                <Box>
-                  <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Application Trends</Typography>
-                  <Typography sx={{ fontSize:11, color:C.textMuted, mt:0.25 }}>Last 6 months · applications, interviews & hires</Typography>
-                </Box>
-                <Chip label="6M" size="small" sx={{ fontSize:11, fontWeight:700, background:C.primaryLight, color:C.primary, height:24 }}/>
-              </Box>
-              <Box sx={{ p:{ xs:2, sm:2.5 }, pt:{ xs:1.5, sm:2 } }}>
-                <ResponsiveContainer width="100%" height={240}>
-                  <AreaChart data={trendData} margin={{ top:4, right:4, bottom:0, left:-20 }}>
-                    <defs>
-                      <linearGradient id="gApp" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={C.primary} stopOpacity={0.15}/>
-                        <stop offset="100%" stopColor={C.primary} stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="gInt" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={C.accent} stopOpacity={0.12}/>
-                        <stop offset="100%" stopColor={C.accent} stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="gHire" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={C.success} stopOpacity={0.15}/>
-                        <stop offset="100%" stopColor={C.success} stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill:C.textMuted, fontSize:11, fontWeight:600 }}/>
-                    <YAxis axisLine={false} tickLine={false} tick={{ fill:C.textMuted, fontSize:11 }}/>
-                    <ChartTooltip content={<CustomTooltip/>}/>
-                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize:12, fontWeight:600, paddingTop:8 }}/>
-                    <Area type="monotone" dataKey="applications" name="Applications" stroke={C.primary} strokeWidth={2} fill="url(#gApp)"/>
-                    <Area type="monotone" dataKey="interviews" name="Interviews" stroke={C.accent} strokeWidth={2} fill="url(#gInt)"/>
-                    <Area type="monotone" dataKey="hired" name="Hired" stroke={C.success} strokeWidth={2} fill="url(#gHire)"/>
-                  </AreaChart>
-                </ResponsiveContainer>
-              </Box>
-            </Card>
-          </Grid>
+       <Grid item xs={12} lg={8}>
+  <Card sx={{ ...cardSx, height: "100%", width: "52.5vw" }}>
+    <Box
+      sx={{
+        p: { xs: 2, sm: 2.5 },
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        borderBottom: `1px solid ${C.border}`,
+      }}
+    >
+      <Box>
+        <Typography sx={{ fontSize: 14, fontWeight: 800, color: C.text }}>
+          Application Trends
+        </Typography>
+        <Typography
+          sx={{ fontSize: 11, color: C.textMuted, mt: 0.25 }}
+        >
+          Last 6 months · applications, interviews & hires
+        </Typography>
+      </Box>
+
+      <Chip
+        label="6M"
+        size="small"
+        sx={{
+          fontSize: 11,
+          fontWeight: 700,
+          background: C.primaryLight,
+          color: C.primary,
+          height: 24,
+        }}
+      />
+    </Box>
+
+    <Box sx={{ p: { xs: 2, sm: 2.5 }, pt: { xs: 1.5, sm: 2 } }}>
+      <ResponsiveContainer width="100%" height={240}>
+        <AreaChart
+          data={trendData}
+          margin={{ top: 4, right: 4, bottom: 0, left: -20 }}
+        >
+          <defs>
+            <linearGradient id="gApp" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={C.primary} stopOpacity={0.15} />
+              <stop offset="100%" stopColor={C.primary} stopOpacity={0} />
+            </linearGradient>
+
+            <linearGradient id="gInt" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={C.accent} stopOpacity={0.12} />
+              <stop offset="100%" stopColor={C.accent} stopOpacity={0} />
+            </linearGradient>
+
+            <linearGradient id="gHire" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={C.success} stopOpacity={0.15} />
+              <stop offset="100%" stopColor={C.success} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#f1f5f9"
+            vertical={false}
+          />
+
+          <XAxis
+            dataKey="month"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: C.textMuted, fontSize: 11, fontWeight: 600 }}
+          />
+
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: C.textMuted, fontSize: 11 }}
+          />
+
+          <ChartTooltip content={<CustomTooltip />} />
+
+          <Legend
+            iconType="circle"
+            iconSize={8}
+            wrapperStyle={{
+              fontSize: 12,
+              fontWeight: 600,
+              paddingTop: 8,
+            }}
+          />
+
+          <Area
+            type="monotone"
+            dataKey="applications"
+            name="Applications"
+            stroke={C.primary}
+            strokeWidth={2}
+            fill="url(#gApp)"
+          />
+
+          <Area
+            type="monotone"
+            dataKey="interviews"
+            name="Interviews"
+            stroke={C.accent}
+            strokeWidth={2}
+            fill="url(#gInt)"
+          />
+
+          <Area
+            type="monotone"
+            dataKey="hired"
+            name="Hired"
+            stroke={C.success}
+            strokeWidth={2}
+            fill="url(#gHire)"
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </Box>
+  </Card>
+</Grid>
 
           {/* Right column: Pie + Activity */}
-          <Grid item xs={12} lg={4}>
-            <Stack spacing={{ xs:2, sm:2.5 }} sx={{ height:'100%' }}>
+         <Grid item xs={12} lg={4}>
+  <Stack spacing={{ xs: 2, sm: 2.5 }} sx={{ height: "100%" }}>
 
-              {/* Donut */}
-              <Card sx={cardSx}>
-                <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}` }}>
-                  <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Job Status</Typography>
-                </Box>
-                <Box sx={{ px:2, py:1.5, display:'flex', alignItems:'center', gap:2 }}>
-                  <Box sx={{ width:110, flexShrink:0 }}>
-                    <ResponsiveContainer width="100%" height={110}>
-                      <PieChart>
-                        <Pie data={statusDist} cx="50%" cy="50%" innerRadius={30} outerRadius={48} dataKey="value" paddingAngle={3}>
-                          {statusDist.map((e,i) => <Cell key={i} fill={e.color}/>)}
-                        </Pie>
-                        <ChartTooltip contentStyle={{ borderRadius:8, fontSize:12, background:'#1e293b', border:'none', color:'#fff' }} itemStyle={{ color:'#fff' }}/>
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </Box>
-                  <Stack spacing={1} sx={{ flex:1 }}>
-                    {statusDist.map(s => (
-                      <Box key={s.name} sx={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                        <Box sx={{ display:'flex', alignItems:'center', gap:1 }}>
-                          <Box sx={{ width:8, height:8, borderRadius:'50%', background:s.color, flexShrink:0 }}/>
-                          <Typography sx={{ fontSize:12, color:C.textSub, fontWeight:600 }}>{s.name}</Typography>
-                        </Box>
-                        <Typography sx={{ fontSize:13, fontWeight:800, color:C.text }}>{s.value}%</Typography>
-                      </Box>
-                    ))}
-                  </Stack>
-                </Box>
-              </Card>
+    {/* Donut */}
+    <Card sx={{ ...cardSx, width: "30vw" }}>
+      <Box sx={{ p: { xs: 2, sm: 2.5 }, borderBottom: `1px solid ${C.border}` }}>
+        <Typography sx={{ fontSize: 14, fontWeight: 800, color: C.text }}>
+          Job Status
+        </Typography>
+      </Box>
 
-              {/* Department Bar */}
-              <Card sx={{ ...cardSx, flex:1 }}>
-                <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}` }}>
-                  <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>By Department</Typography>
-                </Box>
-                <Box sx={{ px:2, py:1.5 }}>
-                  <ResponsiveContainer width="100%" height={130}>
-                    <BarChart data={deptData} margin={{ top:0, right:0, bottom:0, left:-30 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
-                      <XAxis dataKey="dept" axisLine={false} tickLine={false} tick={{ fill:C.textMuted, fontSize:10, fontWeight:600 }}/>
-                      <YAxis axisLine={false} tickLine={false} tick={{ fill:C.textMuted, fontSize:10 }}/>
-                      <ChartTooltip content={<CustomTooltip/>}/>
-                      <Bar dataKey="jobs" name="Jobs" radius={[4,4,0,0]}>
-                        {deptData.map((d,i) => <Cell key={i} fill={d.fill}/>)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Box>
-              </Card>
-            </Stack>
-          </Grid>
+      <Box sx={{ px: 2, py: 1.5, display: "flex", alignItems: "center", gap: 2 }}>
+        <Box sx={{ width: 110, flexShrink: 0 }}>
+          <ResponsiveContainer width="100%" height={110}>
+            <PieChart>
+              <Pie
+                data={statusDist}
+                cx="50%"
+                cy="50%"
+                innerRadius={30}
+                outerRadius={48}
+                dataKey="value"
+                paddingAngle={3}
+              >
+                {statusDist.map((e, i) => (
+                  <Cell key={i} fill={e.color} />
+                ))}
+              </Pie>
+
+              <ChartTooltip
+                contentStyle={{
+                  borderRadius: 8,
+                  fontSize: 12,
+                  background: "#1e293b",
+                  border: "none",
+                  color: "#fff",
+                }}
+                itemStyle={{ color: "#fff" }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </Box>
+
+        <Stack spacing={1} sx={{ flex: 1 }}>
+          {statusDist.map((s) => (
+            <Box
+              key={s.name}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: s.color,
+                    flexShrink: 0,
+                  }}
+                />
+
+                <Typography
+                  sx={{ fontSize: 12, color: C.textSub, fontWeight: 600 }}
+                >
+                  {s.name}
+                </Typography>
+              </Box>
+
+              <Typography sx={{ fontSize: 13, fontWeight: 800, color: C.text }}>
+                {s.value}%
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+      </Box>
+    </Card>
+
+    {/* Department Bar */}
+    <Card sx={{ ...cardSx, flex: 1, width: "30vw" }}>
+      <Box sx={{ p: { xs: 2, sm: 2.5 }, borderBottom: `1px solid ${C.border}` }}>
+        <Typography sx={{ fontSize: 14, fontWeight: 800, color: C.text }}>
+          By Department
+        </Typography>
+      </Box>
+
+      <Box sx={{ px: 2, py: 1.5 }}>
+        <ResponsiveContainer width="100%" height={130}>
+          <BarChart
+            data={deptData}
+            margin={{ top: 0, right: 0, bottom: 0, left: -30 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#f1f5f9"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="dept"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: C.textMuted, fontSize: 10, fontWeight: 600 }}
+            />
+
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: C.textMuted, fontSize: 10 }}
+            />
+
+            <ChartTooltip content={<CustomTooltip />} />
+
+            <Bar dataKey="jobs" name="Jobs" radius={[4, 4, 0, 0]}>
+              {deptData.map((d, i) => (
+                <Cell key={i} fill={d.fill} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </Box>
+    </Card>
+
+  </Stack>
+</Grid>
         </Grid>
 
         {/* ── BOTTOM ROW: Table + Activity ── */}
@@ -365,7 +627,7 @@
 
           {/* Jobs Table */}
           <Grid item xs={12} xl={8}>
-            <Card sx={cardSx}>
+            <Card sx={{cardSx, width: "65vw" }}>
               {/* Table Header */}
               <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}`, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:2 }}>
                 <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Job Postings</Typography>
