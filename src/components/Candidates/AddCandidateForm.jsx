@@ -1395,7 +1395,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
     setIsSharingJob(true);
     
     try {
-      const response = await axios.post('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/share-with-vendor', {
+      const response = await axios.post('http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/share-with-vendor', {
         vendorEmail,
         jobId
       }, {

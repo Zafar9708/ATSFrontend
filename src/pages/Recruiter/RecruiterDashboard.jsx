@@ -1,462 +1,257 @@
-import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  Button,
-  IconButton,
-  TextField,
-  InputAdornment,
-  MenuItem,
-  Select,
-  Avatar,
-  AvatarGroup,
-  LinearProgress,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  useTheme,
-  alpha,
-  Divider,
-  Stack,
-  Fade,
-  Modal
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Search as SearchIcon,
-  TrendingUp as TrendingUpIcon,
-  People as PeopleIcon,
-  Work as WorkIcon,
-  Schedule as ScheduleIcon,
-  LocationOn as LocationIcon,
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-  Edit as EditIcon,
-  CheckCircle as CheckIcon,
-  Cancel as CancelIcon,
-  Download as DownloadIcon,
-  CalendarToday as CalendarIcon,
-  Close as CloseIcon
-} from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import {
-  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
-  Tooltip as ChartTooltip, Legend, ResponsiveContainer, AreaChart, Area
-} from 'recharts';
+  import React, { useState } from 'react';
+  import {
+    Box, Typography, Grid, Card, CardContent, Table, TableBody,
+    TableCell, TableContainer, TableHead, TableRow, Chip, Button,
+    IconButton, TextField, InputAdornment, MenuItem, Select,
+    LinearProgress, Tooltip, Dialog, DialogTitle, DialogContent,
+    DialogActions, Divider, Stack, Fade, Modal, useTheme,
+    useMediaQuery, Avatar, Badge, Menu, ListItemIcon, ListItemText
+  } from '@mui/material';
+  import {
+    Add as AddIcon, Search as SearchIcon, TrendingUp as TrendingUpIcon,
+    TrendingDown as TrendingDownIcon, People as PeopleIcon,
+    Work as WorkIcon, Schedule as ScheduleIcon, LocationOn as LocationIcon,
+    Delete as DeleteIcon, Visibility as VisibilityIcon, Edit as EditIcon,
+    CheckCircle as CheckIcon, Cancel as CancelIcon, Download as DownloadIcon,
+    CalendarToday as CalendarIcon, Close as CloseIcon, MoreVert as MoreVertIcon,
+    Notifications as NotifIcon, FilterList as FilterIcon,
+    ArrowUpward as UpIcon, ArrowDownward as DownIcon,
+    FiberManualRecord as DotIcon, Star as StarIcon,
+    Timeline as TimelineIcon, Assessment as AssessmentIcon
+  } from '@mui/icons-material';
+  import { useNavigate } from 'react-router-dom';
+  import {
+    PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+    Tooltip as ChartTooltip, ResponsiveContainer, AreaChart, Area, Legend
+  } from 'recharts';
 
-// Static data for demo
-const staticJobsData = [
-  {
-    id: 'JOB-001',
-    title: 'Senior Frontend Developer',
-    company: 'TechCorp Inc.',
-    department: 'Engineering',
-    experience: '5+ years',
-    type: 'Full-time',
-    location: 'San Francisco, CA',
-    salary: '$120,000 - $150,000',
-    status: 'active',
-    priority: 'high',
-    candidates: 24,
-    openings: 3,
-    postedDate: '2024-01-15',
-    deadline: '2024-02-28',
-    recruiter: 'Sarah Johnson',
-    progress: 75
-  },
-  {
-    id: 'JOB-002',
-    title: 'UX/UI Designer',
-    company: 'DesignStudio',
-    department: 'Design',
-    experience: '3+ years',
-    type: 'Full-time',
-    location: 'Remote',
-    salary: '$90,000 - $110,000',
-    status: 'active',
-    priority: 'medium',
-    candidates: 18,
-    openings: 2,
-    postedDate: '2024-01-20',
-    deadline: '2024-03-10',
-    recruiter: 'Michael Chen',
-    progress: 60
-  },
-  {
-    id: 'JOB-003',
-    title: 'DevOps Engineer',
-    company: 'CloudSystems',
-    department: 'Operations',
-    experience: '4+ years',
-    type: 'Contract',
-    location: 'New York, NY',
-    salary: '$130,000 - $160,000',
-    status: 'active',
-    priority: 'high',
-    candidates: 32,
-    openings: 1,
-    postedDate: '2024-01-10',
-    deadline: '2024-02-20',
-    recruiter: 'David Wilson',
-    progress: 90
-  },
-  {
-    id: 'JOB-004',
-    title: 'Product Manager',
-    company: 'ProductLabs',
-    department: 'Product',
-    experience: '6+ years',
-    type: 'Full-time',
-    location: 'Austin, TX',
-    salary: '$140,000 - $180,000',
-    status: 'on-hold',
-    priority: 'medium',
-    candidates: 15,
-    openings: 1,
-    postedDate: '2024-01-05',
-    deadline: '2024-02-15',
-    recruiter: 'Emma Davis',
-    progress: 40
-  },
-  {
-    id: 'JOB-005',
-    title: 'Data Scientist',
-    company: 'DataInsights',
-    department: 'Analytics',
-    experience: '3+ years',
-    type: 'Full-time',
-    location: 'Seattle, WA',
-    salary: '$110,000 - $140,000',
-    status: 'active',
-    priority: 'low',
-    candidates: 28,
-    openings: 2,
-    postedDate: '2024-01-25',
-    deadline: '2024-03-05',
-    recruiter: 'Robert Garcia',
-    progress: 50
-  },
-  {
-    id: 'JOB-006',
-    title: 'Backend Developer',
-    company: 'CodeCraft',
-    department: 'Engineering',
-    experience: '4+ years',
-    type: 'Full-time',
-    location: 'Remote',
-    salary: '$115,000 - $145,000',
-    status: 'closed',
-    priority: 'medium',
-    candidates: 42,
-    openings: 0,
-    postedDate: '2023-12-15',
-    deadline: '2024-01-30',
-    recruiter: 'James Miller',
-    progress: 100
-  },
-  {
-    id: 'JOB-007',
-    title: 'Marketing Specialist',
-    company: 'GrowthHack',
-    department: 'Marketing',
-    experience: '2+ years',
-    type: 'Full-time',
-    location: 'Los Angeles, CA',
-    salary: '$70,000 - $90,000',
-    status: 'active',
-    priority: 'low',
-    candidates: 22,
-    openings: 2,
-    postedDate: '2024-01-30',
-    deadline: '2024-03-15',
-    recruiter: 'Lisa Thompson',
-    progress: 30
-  },
-  {
-    id: 'JOB-008',
-    title: 'QA Engineer',
-    company: 'QualityFirst',
-    department: 'Quality Assurance',
-    experience: '3+ years',
-    type: 'Contract',
-    location: 'Boston, MA',
-    salary: '$85,000 - $105,000',
-    status: 'active',
-    priority: 'medium',
-    candidates: 19,
-    openings: 3,
-    postedDate: '2024-01-18',
-    deadline: '2024-02-25',
-    recruiter: 'Thomas Lee',
-    progress: 65
+  // ─── DATA ────────────────────────────────────────────────────────────────────
+  const staticJobsData = [
+    { id:'JOB-001', title:'Senior Frontend Developer', company:'TechCorp Inc.', department:'Engineering', experience:'5+ years', type:'Full-time', location:'San Francisco, CA', salary:'$120K–$150K', status:'active', priority:'high', candidates:24, openings:3, postedDate:'2024-01-15', deadline:'2024-02-28', recruiter:'Sarah Johnson', progress:75 },
+    { id:'JOB-002', title:'UX/UI Designer', company:'DesignStudio', department:'Design', experience:'3+ years', type:'Full-time', location:'Remote', salary:'$90K–$110K', status:'active', priority:'medium', candidates:18, openings:2, postedDate:'2024-01-20', deadline:'2024-03-10', recruiter:'Michael Chen', progress:60 },
+    { id:'JOB-003', title:'DevOps Engineer', company:'CloudSystems', department:'Operations', experience:'4+ years', type:'Contract', location:'New York, NY', salary:'$130K–$160K', status:'active', priority:'high', candidates:32, openings:1, postedDate:'2024-01-10', deadline:'2024-02-20', recruiter:'David Wilson', progress:90 },
+    { id:'JOB-004', title:'Product Manager', company:'ProductLabs', department:'Product', experience:'6+ years', type:'Full-time', location:'Austin, TX', salary:'$140K–$180K', status:'on-hold', priority:'medium', candidates:15, openings:1, postedDate:'2024-01-05', deadline:'2024-02-15', recruiter:'Emma Davis', progress:40 },
+    { id:'JOB-005', title:'Data Scientist', company:'DataInsights', department:'Analytics', experience:'3+ years', type:'Full-time', location:'Seattle, WA', salary:'$110K–$140K', status:'active', priority:'low', candidates:28, openings:2, postedDate:'2024-01-25', deadline:'2024-03-05', recruiter:'Robert Garcia', progress:50 },
+    { id:'JOB-006', title:'Backend Developer', company:'CodeCraft', department:'Engineering', experience:'4+ years', type:'Full-time', location:'Remote', salary:'$115K–$145K', status:'closed', priority:'medium', candidates:42, openings:0, postedDate:'2023-12-15', deadline:'2024-01-30', recruiter:'James Miller', progress:100 },
+    { id:'JOB-007', title:'Marketing Specialist', company:'GrowthHack', department:'Marketing', experience:'2+ years', type:'Full-time', location:'Los Angeles, CA', salary:'$70K–$90K', status:'active', priority:'low', candidates:22, openings:2, postedDate:'2024-01-30', deadline:'2024-03-15', recruiter:'Lisa Thompson', progress:30 },
+    { id:'JOB-008', title:'QA Engineer', company:'QualityFirst', department:'QA', experience:'3+ years', type:'Contract', location:'Boston, MA', salary:'$85K–$105K', status:'active', priority:'medium', candidates:19, openings:3, postedDate:'2024-01-18', deadline:'2024-02-25', recruiter:'Thomas Lee', progress:65 },
+  ];
+
+  const trendData = [
+    { month:'Aug', applications:95, interviews:32, hired:8 },
+    { month:'Sep', applications:120, interviews:45, hired:12 },
+    { month:'Oct', applications:180, interviews:65, hired:18 },
+    { month:'Nov', applications:150, interviews:55, hired:14 },
+    { month:'Dec', applications:130, interviews:48, hired:11 },
+    { month:'Jan', applications:220, interviews:85, hired:24 },
+  ];
+
+  const statusDist = [
+    { name:'Active', value:65, color:'#1d4ed8' },
+    { name:'On Hold', value:15, color:'#f59e0b' },
+    { name:'Closed', value:20, color:'#e2e8f0' },
+  ];
+
+  const deptData = [
+    { dept:'Eng', jobs:8, fill:'#1d4ed8' },
+    { dept:'Design', jobs:4, fill:'#3b82f6' },
+    { dept:'Product', jobs:3, fill:'#60a5fa' },
+    { dept:'Marketing', jobs:2, fill:'#93c5fd' },
+    { dept:'Ops', jobs:2, fill:'#bfdbfe' },
+  ];
+
+  const activities = [
+    { text:'New application for Senior Developer', time:'2h ago', type:'application', dot:'#1d4ed8' },
+    { text:'Interview scheduled — UX Designer', time:'4h ago', type:'interview', dot:'#7c3aed' },
+    { text:'"Data Scientist" posting published', time:'1d ago', type:'publish', dot:'#059669' },
+    { text:'Candidate Michael Chen hired', time:'2d ago', type:'hire', dot:'#059669' },
+    { text:'"DevOps Engineer" created', time:'3d ago', type:'create', dot:'#1d4ed8' },
+    { text:'"Backend Developer" closed', time:'4d ago', type:'close', dot:'#dc2626' },
+  ];
+
+  // ─── THEME TOKENS ─────────────────────────────────────────────────────────────
+  const C = {
+    bg: '#f0f4f8',
+    surface: '#ffffff',
+    border: '#e2e8f0',
+    primary: '#1d4ed8',
+    primaryLight: '#eff6ff',
+    primaryMid: '#dbeafe',
+    text: '#0f172a',
+    textSub: '#64748b',
+    textMuted: '#94a3b8',
+    success: '#059669',
+    warning: '#d97706',
+    danger: '#dc2626',
+    accent: '#7c3aed',
+  };
+
+  // ─── HELPERS ─────────────────────────────────────────────────────────────────
+  const STATUS_META = {
+    active:   { label:'Active',   bg:'#dcfce7', color:'#15803d' },
+    'on-hold':{ label:'On Hold',  bg:'#fef9c3', color:'#a16207' },
+    closed:   { label:'Closed',   bg:'#f1f5f9', color:'#64748b' },
+  };
+  const PRIORITY_META = {
+    high:   { label:'High',   bg:'#fee2e2', color:'#b91c1c' },
+    medium: { label:'Med',    bg:'#fef3c7', color:'#b45309' },
+    low:    { label:'Low',    bg:'#f0fdf4', color:'#15803d' },
+  };
+
+  function StatChip({ label, value, up }) {
+    return (
+      <Box sx={{ display:'flex', alignItems:'center', gap:0.5 }}>
+        {up ? <UpIcon sx={{ fontSize:13, color:C.success }}/> : <DownIcon sx={{ fontSize:13, color:C.danger }}/>}
+        <Typography variant="caption" sx={{ color: up ? C.success : C.danger, fontWeight:700, fontSize:11 }}>{value}</Typography>
+        <Typography variant="caption" sx={{ color:C.textMuted, fontSize:11 }}>{label}</Typography>
+      </Box>
+    );
   }
-];
 
-// Chart data
-const applicationTrendsData = [
-  { month: 'Jan', applications: 120, interviews: 45 },
-  { month: 'Feb', applications: 180, interviews: 65 },
-  { month: 'Mar', applications: 150, interviews: 55 },
-  { month: 'Apr', applications: 220, interviews: 85 },
-  { month: 'May', applications: 190, interviews: 70 },
-  { month: 'Jun', applications: 250, interviews: 95 }
-];
-
-const jobStatusData = [
-  { name: 'Active', value: 65, color: '#4CAF50' },
-  { name: 'On Hold', value: 15, color: '#FF9800' },
-  { name: 'Closed', value: 20, color: '#F44336' }
-];
-
-const departmentDistributionData = [
-  { department: 'Engineering', jobs: 8, candidates: 150 },
-  { department: 'Design', jobs: 4, candidates: 60 },
-  { department: 'Product', jobs: 3, candidates: 45 },
-  { department: 'Marketing', jobs: 2, candidates: 30 },
-  { department: 'Sales', jobs: 2, candidates: 25 }
-];
-
-const RecruiterDashboard = () => {
-  const theme = useTheme();
-  const navigate = useNavigate();
-  const [jobs, setJobs] = useState(staticJobsData);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [priorityFilter, setPriorityFilter] = useState('all');
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [jobToEdit, setJobToEdit] = useState(null);
-  const [editForm, setEditForm] = useState({
-    title: '',
-    company: '',
-    department: '',
-    experience: '',
-    location: '',
-    salary: '',
-    status: 'active',
-    priority: 'medium',
-    openings: 1
-  });
-
-  // Dashboard stats
-  const stats = {
-    totalJobs: jobs.length,
-    activeJobs: jobs.filter(j => j.status === 'active').length,
-    totalCandidates: jobs.reduce((sum, job) => sum + job.candidates, 0),
-    conversionRate: 12.5,
-    avgTimeToHire: 28
+  // Custom Tooltip for charts
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <Box sx={{ background:'#1e293b', borderRadius:2, p:1.5, boxShadow:'0 8px 24px rgba(0,0,0,0.2)' }}>
+        <Typography sx={{ color:'#94a3b8', fontSize:11, fontWeight:700, mb:0.5 }}>{label}</Typography>
+        {payload.map((p,i) => (
+          <Box key={i} sx={{ display:'flex', alignItems:'center', gap:1 }}>
+            <Box sx={{ width:8, height:8, borderRadius:'50%', background:p.color }}/>
+            <Typography sx={{ color:'#fff', fontSize:12, fontWeight:600 }}>{p.name}: {p.value}</Typography>
+          </Box>
+        ))}
+      </Box>
+    );
   };
 
-  // Filtered jobs
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = 
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.department.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || job.status === statusFilter;
-    const matchesPriority = priorityFilter === 'all' || job.priority === priorityFilter;
-    return matchesSearch && matchesStatus && matchesPriority;
-  });
+  // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+  const RecruiterDashboard = () => {
+    const navigate = useNavigate();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
 
-  const handleCreateJob = () => {
-    navigate('/dashboard/jobs/createJob');
-  };
+    const [jobs, setJobs] = useState(staticJobsData);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [jobToEdit, setJobToEdit] = useState(null);
+    const [actionMenu, setActionMenu] = useState({ anchor: null, job: null });
+    const [editForm, setEditForm] = useState({ title:'', company:'', department:'', experience:'', location:'', salary:'', status:'active', priority:'medium', openings:1 });
 
-  const handleViewJob = (jobId) => {
-    navigate(`/dashboard/jobs/${jobId}`);
-  };
+    const stats = {
+      total: jobs.length,
+      active: jobs.filter(j => j.status === 'active').length,
+      candidates: jobs.reduce((s, j) => s + j.candidates, 0),
+      openings: jobs.reduce((s, j) => s + j.openings, 0),
+    };
 
-  const handleEditJob = (job) => {
-    setJobToEdit(job);
-    setEditForm({
-      title: job.title,
-      company: job.company,
-      department: job.department,
-      experience: job.experience,
-      location: job.location,
-      salary: job.salary,
-      status: job.status,
-      priority: job.priority,
-      openings: job.openings
+    const filtered = jobs.filter(j => {
+      const q = searchTerm.toLowerCase();
+      return (j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q) || j.department.toLowerCase().includes(q))
+        && (statusFilter === 'all' || j.status === statusFilter)
+        && (priorityFilter === 'all' || j.priority === priorityFilter);
     });
-    setEditModalOpen(true);
-  };
 
-  const handleSaveEdit = () => {
-    setJobs(jobs.map(job => 
-      job.id === jobToEdit.id ? { ...job, ...editForm } : job
-    ));
-    setEditModalOpen(false);
-    setJobToEdit(null);
-  };
+    const openEdit = (job) => {
+      setJobToEdit(job);
+      setEditForm({ title:job.title, company:job.company, department:job.department, experience:job.experience, location:job.location, salary:job.salary, status:job.status, priority:job.priority, openings:job.openings });
+      setEditModalOpen(true);
+      setActionMenu({ anchor:null, job:null });
+    };
 
-  const handleDeleteJob = (job) => {
-    setSelectedJob(job);
-    setDeleteDialogOpen(true);
-  };
+    const saveEdit = () => {
+      setJobs(jobs.map(j => j.id === jobToEdit.id ? { ...j, ...editForm } : j));
+      setEditModalOpen(false);
+    };
 
-  const confirmDelete = () => {
-    setJobs(jobs.filter(j => j.id !== selectedJob.id));
-    setDeleteDialogOpen(false);
-    setSelectedJob(null);
-  };
+    const openDelete = (job) => {
+      setSelectedJob(job);
+      setDeleteDialogOpen(true);
+      setActionMenu({ anchor:null, job:null });
+    };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'active': return <CheckIcon fontSize="small" />;
-      case 'on-hold': return <ScheduleIcon fontSize="small" />;
-      case 'closed': return <CancelIcon fontSize="small" />;
-      default: return null;
-    }
-  };
+    const confirmDelete = () => {
+      setJobs(jobs.filter(j => j.id !== selectedJob.id));
+      setDeleteDialogOpen(false);
+    };
 
-  const handleEditFormChange = (field, value) => {
-    setEditForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+    // Shared card style
+    const cardSx = {
+      borderRadius: 3,
+      border: `1px solid ${C.border}`,
+      boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+      background: C.surface,
+      overflow: 'hidden',
+    };
 
-  return (
-    <Box sx={{ 
-      ml: '10px',
-      scrollable:"hidden",
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-      p: 3,
-      boxSizing: 'border-box',
-      width: 'calc(100vw - 180px)',
-      overflowX: 'hidden'
-    }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          mb: 2,
-          flexWrap: 'wrap',
-          gap: 2
-        }}>
+    return (
+      <Box sx={{
+        ml: { xs: 0, sm: '10px' },
+        minHeight: '100vh',
+        background: C.bg,
+        p: { xs: 2, sm: 3 },
+        boxSizing: 'border-box',
+        width: { xs: '100%', sm: 'calc(100vw - 180px)' },
+        maxWidth: '100%',
+        overflowX: 'hidden',
+        fontFamily: "'DM Sans', 'Outfit', sans-serif",
+      }}>
+
+        {/* ── TOP HEADER ── */}
+        <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:3, gap:2, flexWrap:'wrap' }}>
           <Box>
-            <Typography variant="h4" fontWeight="800" sx={{ 
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              mb: 1
-            }}>
+            <Typography sx={{ fontSize:{ xs:20, sm:24 }, fontWeight:800, color:C.text, letterSpacing:'-0.5px', lineHeight:1.2 }}>
               Recruiter Dashboard
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Welcome back! Manage your job postings and track recruitment metrics
+            <Typography sx={{ fontSize:13, color:C.textSub, mt:0.5, fontWeight:500 }}>
+              Thursday, March 2026 · {stats.active} active openings
             </Typography>
           </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreateJob}
-            sx={{
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              borderRadius: 3,
-              px: 3,
-              py: 1,
-              boxShadow: '0 4px 20px rgba(33, 150, 243, 0.3)',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 6px 25px rgba(33, 150, 243, 0.4)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-          >
-            Create Job
-          </Button>
+          <Box sx={{ display:'flex', gap:1.5, alignItems:'center' }}>
+            <IconButton size="small" sx={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:2 }}>
+              <NotifIcon sx={{ fontSize:18, color:C.textSub }}/>
+            </IconButton>
+            <Button
+              startIcon={<AddIcon sx={{ fontSize:16 }}/>}
+              onClick={() => navigate('/dashboard/jobs/createJob')}
+              sx={{
+                background: C.primary, color:'#fff', borderRadius:2, px:2.5, py:1,
+                fontSize:13, fontWeight:700, textTransform:'none', letterSpacing:0,
+                boxShadow: '0 2px 8px rgba(29,78,216,0.25)',
+                '&:hover': { background:'#1e40af', boxShadow:'0 4px 14px rgba(29,78,216,0.35)' },
+                transition:'all 0.18s',
+              }}
+            >
+              {isMobile ? 'New Job' : 'Create Job'}
+            </Button>
+          </Box>
         </Box>
 
-        {/* Stats Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* ── STAT CARDS ── */}
+        <Grid container spacing={{ xs:2, sm:2.5 }} sx={{ mb:3 }}>
           {[
-            { 
-              title: 'Total Jobs', 
-              value: stats.totalJobs, 
-              icon: <WorkIcon />, 
-              color: '#2196F3',
-              trend: '+12% from last month'
-            },
-            { 
-              title: 'Active Jobs', 
-              value: stats.activeJobs, 
-              icon: <CheckIcon />, 
-              color: '#4CAF50',
-              trend: `${Math.round((stats.activeJobs / stats.totalJobs) * 100)}% of total`
-            },
-            { 
-              title: 'Total Candidates', 
-              value: stats.totalCandidates.toLocaleString(), 
-              icon: <PeopleIcon />, 
-              color: '#FF9800',
-              trend: '+24% from last month'
-            },
-            { 
-              title: 'Avg. Time to Hire', 
-              value: `${stats.avgTimeToHire} days`, 
-              icon: <CalendarIcon />, 
-              color: '#9C27B0',
-              trend: '-5 days from last quarter'
-            }
-          ].map((stat, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <Card sx={{ 
-                borderRadius: 4,
-                overflow: 'hidden',
-                boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
-                backdropFilter: 'blur(4px)',
-                background: 'rgba(255, 255, 255, 0.9)',
-                border: '1px solid rgba(255, 255, 255, 0.18)',
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 12px 40px rgba(31, 38, 135, 0.15)'
-                }
-              }}>
-                <CardContent sx={{ p: 3 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Box sx={{
-                      p: 1.5,
-                      borderRadius: 3,
-                      background: `linear-gradient(45deg, ${stat.color} 30%, ${alpha(stat.color, 0.7)} 90%)`,
-                      color: 'white',
-                      mr: 2
-                    }}>
-                      {stat.icon}
-                    </Box>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary" fontWeight="500">
-                        {stat.title}
-                      </Typography>
-                      <Typography variant="h4" fontWeight="800" color="text.primary">
-                        {stat.value}
-                      </Typography>
+            { label:'Total Jobs',       value:stats.total,      sub:'All postings', icon:<WorkIcon sx={{ fontSize:20 }}/>,    color:C.primary,  bg:C.primaryLight, up:true,  trend:'+12%' },
+            { label:'Active Jobs',      value:stats.active,     sub:'Currently open', icon:<CheckIcon sx={{ fontSize:20 }}/>,   color:C.success,  bg:'#f0fdf4',      up:true,  trend:`${Math.round(stats.active/stats.total*100)}%` },
+            { label:'Total Candidates', value:stats.candidates, sub:'Across all jobs', icon:<PeopleIcon sx={{ fontSize:20 }}/>, color:C.accent,   bg:'#faf5ff',      up:true,  trend:'+24%' },
+            { label:'Open Positions',   value:stats.openings,   sub:'Seats to fill',  icon:<CalendarIcon sx={{ fontSize:20 }}/>, color:C.warning, bg:'#fffbeb',      up:false, trend:'-2 this week' },
+          ].map((s, i) => (
+            <Grid item xs={6} sm={6} md={3} key={i}>
+              <Card sx={{ ...cardSx, p:0, transition:'transform 0.18s, box-shadow 0.18s', '&:hover':{ transform:'translateY(-2px)', boxShadow:'0 8px 24px rgba(0,0,0,0.09)' } }}>
+                <CardContent sx={{ p:{ xs:2, sm:2.5 }, '&:last-child':{ pb:{ xs:2, sm:2.5 } } }}>
+                  <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:1.5 }}>
+                    <Typography sx={{ fontSize:12, fontWeight:700, color:C.textSub, textTransform:'uppercase', letterSpacing:0.8 }}>{s.label}</Typography>
+                    <Box sx={{ width:36, height:36, borderRadius:2, background:s.bg, display:'flex', alignItems:'center', justifyContent:'center', color:s.color }}>
+                      {s.icon}
                     </Box>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <TrendingUpIcon sx={{ color: '#4CAF50', fontSize: 16 }} />
-                    <Typography variant="caption" color="text.secondary">
-                      {stat.trend}
-                    </Typography>
+                  <Typography sx={{ fontSize:{ xs:26, sm:30 }, fontWeight:900, color:C.text, lineHeight:1, mb:1 }}>{s.value}</Typography>
+                  <Box sx={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:1 }}>
+                    <Typography sx={{ fontSize:11, color:C.textMuted, fontWeight:500 }}>{s.sub}</Typography>
+                    <StatChip value={s.trend} up={s.up} label=""/>
                   </Box>
                 </CardContent>
               </Card>
@@ -464,759 +259,416 @@ const RecruiterDashboard = () => {
           ))}
         </Grid>
 
-        {/* Main Content */}
-        <Grid container spacing={3}>
-          {/* Charts Section */}
+        {/* ── CHARTS ROW ── */}
+        <Grid container spacing={{ xs:2, sm:2.5 }} sx={{ mb:3 }}>
+
+          {/* Area Chart — Application Trends */}
           <Grid item xs={12} lg={8}>
-            {/* Application Trends */}
-            <Card sx={{ 
-              borderRadius: 4,
-              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
-              backdropFilter: 'blur(4px)',
-              background: 'rgba(255, 255, 255, 0.9)',
-              border: '1px solid rgba(255, 255, 255, 0.18)',
-              p: 3,
-              mb: 3
-            }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h6" fontWeight="600" color="text.primary">
-                  Application Trends
-                </Typography>
-                <Chip 
-                  label="Last 6 months" 
-                  size="small"
-                  sx={{ background: 'rgba(33, 150, 243, 0.1)', color: '#2196F3' }}
-                />
+            <Card sx={{ ...cardSx, height:'100%' }}>
+              <Box sx={{ p:{ xs:2, sm:2.5 }, display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:`1px solid ${C.border}` }}>
+                <Box>
+                  <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Application Trends</Typography>
+                  <Typography sx={{ fontSize:11, color:C.textMuted, mt:0.25 }}>Last 6 months · applications, interviews & hires</Typography>
+                </Box>
+                <Chip label="6M" size="small" sx={{ fontSize:11, fontWeight:700, background:C.primaryLight, color:C.primary, height:24 }}/>
               </Box>
-              <Box sx={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={applicationTrendsData}>
+              <Box sx={{ p:{ xs:2, sm:2.5 }, pt:{ xs:1.5, sm:2 } }}>
+                <ResponsiveContainer width="100%" height={240}>
+                  <AreaChart data={trendData} margin={{ top:4, right:4, bottom:0, left:-20 }}>
                     <defs>
-                      <linearGradient id="colorApplications" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2196F3" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#2196F3" stopOpacity={0}/>
+                      <linearGradient id="gApp" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.primary} stopOpacity={0.15}/>
+                        <stop offset="100%" stopColor={C.primary} stopOpacity={0}/>
                       </linearGradient>
-                      <linearGradient id="colorInterviews" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#4CAF50" stopOpacity={0}/>
+                      <linearGradient id="gInt" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.accent} stopOpacity={0.12}/>
+                        <stop offset="100%" stopColor={C.accent} stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="gHire" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={C.success} stopOpacity={0.15}/>
+                        <stop offset="100%" stopColor={C.success} stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} />
-                    <ChartTooltip 
-                      contentStyle={{
-                        borderRadius: 8,
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        border: '1px solid #e0e0e0',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                      }}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="applications" 
-                      stroke="#2196F3" 
-                      fillOpacity={1} 
-                      fill="url(#colorApplications)"
-                      strokeWidth={2}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="interviews" 
-                      stroke="#4CAF50" 
-                      fillOpacity={1} 
-                      fill="url(#colorInterviews)"
-                      strokeWidth={2}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill:C.textMuted, fontSize:11, fontWeight:600 }}/>
+                    <YAxis axisLine={false} tickLine={false} tick={{ fill:C.textMuted, fontSize:11 }}/>
+                    <ChartTooltip content={<CustomTooltip/>}/>
+                    <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize:12, fontWeight:600, paddingTop:8 }}/>
+                    <Area type="monotone" dataKey="applications" name="Applications" stroke={C.primary} strokeWidth={2} fill="url(#gApp)"/>
+                    <Area type="monotone" dataKey="interviews" name="Interviews" stroke={C.accent} strokeWidth={2} fill="url(#gInt)"/>
+                    <Area type="monotone" dataKey="hired" name="Hired" stroke={C.success} strokeWidth={2} fill="url(#gHire)"/>
                   </AreaChart>
                 </ResponsiveContainer>
               </Box>
             </Card>
+          </Grid>
 
-            {/* Smaller Charts */}
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Card sx={{ 
-                  borderRadius: 4,
-                  boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
-                  backdropFilter: 'blur(4px)',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  border: '1px solid rgba(255, 255, 255, 0.18)',
-                  p: 3,
-                  height: '100%'
-                }}>
-                  <Typography variant="h6" fontWeight="600" color="text.primary" mb={3}>
-                    Job Status Distribution
-                  </Typography>
-                  <Box sx={{ height: 250 }}>
-                    <ResponsiveContainer width="100%" height="100%">
+          {/* Right column: Pie + Activity */}
+          <Grid item xs={12} lg={4}>
+            <Stack spacing={{ xs:2, sm:2.5 }} sx={{ height:'100%' }}>
+
+              {/* Donut */}
+              <Card sx={cardSx}>
+                <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}` }}>
+                  <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Job Status</Typography>
+                </Box>
+                <Box sx={{ px:2, py:1.5, display:'flex', alignItems:'center', gap:2 }}>
+                  <Box sx={{ width:110, flexShrink:0 }}>
+                    <ResponsiveContainer width="100%" height={110}>
                       <PieChart>
-                        <Pie
-                          data={jobStatusData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={80}
-                          innerRadius={40}
-                          fill="#8884d8"
-                          dataKey="value"
-                        >
-                          {jobStatusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
+                        <Pie data={statusDist} cx="50%" cy="50%" innerRadius={30} outerRadius={48} dataKey="value" paddingAngle={3}>
+                          {statusDist.map((e,i) => <Cell key={i} fill={e.color}/>)}
                         </Pie>
-                        <ChartTooltip 
-                          contentStyle={{
-                            borderRadius: 8,
-                            background: 'rgba(255, 255, 255, 0.95)',
-                            border: '1px solid #e0e0e0'
-                          }}
-                          formatter={(value) => [value, 'Jobs']}
-                        />
+                        <ChartTooltip contentStyle={{ borderRadius:8, fontSize:12, background:'#1e293b', border:'none', color:'#fff' }} itemStyle={{ color:'#fff' }}/>
                       </PieChart>
                     </ResponsiveContainer>
                   </Box>
-                </Card>
-              </Grid>
+                  <Stack spacing={1} sx={{ flex:1 }}>
+                    {statusDist.map(s => (
+                      <Box key={s.name} sx={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                        <Box sx={{ display:'flex', alignItems:'center', gap:1 }}>
+                          <Box sx={{ width:8, height:8, borderRadius:'50%', background:s.color, flexShrink:0 }}/>
+                          <Typography sx={{ fontSize:12, color:C.textSub, fontWeight:600 }}>{s.name}</Typography>
+                        </Box>
+                        <Typography sx={{ fontSize:13, fontWeight:800, color:C.text }}>{s.value}%</Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              </Card>
 
-              <Grid item xs={12} md={6}>
-                <Card sx={{ 
-                  borderRadius: 4,
-                  boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
-                  backdropFilter: 'blur(4px)',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  border: '1px solid rgba(255, 255, 255, 0.18)',
-                  p: 3,
-                  height: '100%'
-                }}>
-                  <Typography variant="h6" fontWeight="600" color="text.primary" mb={3}>
-                    Department Distribution
-                  </Typography>
-                  <Box sx={{ height: 250 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={departmentDistributionData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                        <XAxis 
-                          dataKey="department" 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <YAxis 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <ChartTooltip 
-                          contentStyle={{
-                            borderRadius: 8,
-                            background: 'rgba(255, 255, 255, 0.95)',
-                            border: '1px solid #e0e0e0'
-                          }}
-                        />
-                        <Bar 
-                          dataKey="jobs" 
-                          fill="#2196F3" 
-                          radius={[4, 4, 0, 0]}
-                          name="Open Positions"
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </Card>
-              </Grid>
-            </Grid>
-          </Grid>
-
-          {/* Sidebar Content */}
-          <Grid item xs={12} lg={4}>
-            <Card sx={{ 
-              borderRadius: 4,
-              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
-              backdropFilter: 'blur(4px)',
-              background: 'rgba(255, 255, 255, 0.9)',
-              border: '1px solid rgba(255, 255, 255, 0.18)',
-              p: 3,
-              height: '100%'
-            }}>
-              {/* Quick Actions */}
-              <Typography variant="h6" fontWeight="600" color="text.primary" mb={3}>
-                Quick Actions
-              </Typography>
-              <Stack spacing={2} sx={{ mb: 4 }}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleCreateJob}
-                  sx={{
-                    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                    borderRadius: 3,
-                    py: 1.5,
-                    boxShadow: '0 4px 20px rgba(33, 150, 243, 0.3)',
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 6px 25px rgba(33, 150, 243, 0.4)'
-                    },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  Create New Job
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<PeopleIcon />}
-                  onClick={() => navigate('/candidates')}
-                  sx={{
-                    borderRadius: 3,
-                    py: 1.5,
-                    borderColor: 'rgba(33, 150, 243, 0.3)',
-                    color: '#2196F3',
-                    '&:hover': {
-                      borderColor: '#2196F3',
-                      background: 'rgba(33, 150, 243, 0.04)'
-                    }
-                  }}
-                >
-                  View Candidates
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<DownloadIcon />}
-                  sx={{
-                    borderRadius: 3,
-                    py: 1.5,
-                    borderColor: 'rgba(76, 175, 80, 0.3)',
-                    color: '#4CAF50',
-                    '&:hover': {
-                      borderColor: '#4CAF50',
-                      background: 'rgba(76, 175, 80, 0.04)'
-                    }
-                  }}
-                >
-                  Export Reports
-                </Button>
-              </Stack>
-
-              <Divider sx={{ my: 3 }} />
-
-              {/* Recent Activity */}
-              <Typography variant="h6" fontWeight="600" color="text.primary" mb={3}>
-                Recent Activity
-              </Typography>
-              <Stack spacing={2} sx={{ maxHeight: 300, overflowY: 'auto', pr: 1 }}>
-                {[
-                  { action: 'New application received for Senior Developer', time: '2 hours ago' },
-                  { action: 'Interview scheduled for UX Designer position', time: '4 hours ago' },
-                  { action: 'Job posting "Data Scientist" published', time: '1 day ago' },
-                  { action: 'Candidate Michael Chen hired', time: '2 days ago' },
-                  { action: 'New job "DevOps Engineer" created', time: '3 days ago' },
-                  { action: 'Job "Backend Developer" closed', time: '4 days ago' }
-                ].map((activity, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      background: index === 0 ? 'rgba(33, 150, 243, 0.05)' : 'transparent',
-                      border: '1px solid rgba(0, 0, 0, 0.05)',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        background: 'rgba(33, 150, 243, 0.05)',
-                        borderColor: 'rgba(33, 150, 243, 0.2)'
-                      }
-                    }}
-                  >
-                    <Typography variant="body2" fontWeight="500" color="text.primary">
-                      {activity.action}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {activity.time}
-                    </Typography>
-                  </Box>
-                ))}
-              </Stack>
-            </Card>
+              {/* Department Bar */}
+              <Card sx={{ ...cardSx, flex:1 }}>
+                <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}` }}>
+                  <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>By Department</Typography>
+                </Box>
+                <Box sx={{ px:2, py:1.5 }}>
+                  <ResponsiveContainer width="100%" height={130}>
+                    <BarChart data={deptData} margin={{ top:0, right:0, bottom:0, left:-30 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
+                      <XAxis dataKey="dept" axisLine={false} tickLine={false} tick={{ fill:C.textMuted, fontSize:10, fontWeight:600 }}/>
+                      <YAxis axisLine={false} tickLine={false} tick={{ fill:C.textMuted, fontSize:10 }}/>
+                      <ChartTooltip content={<CustomTooltip/>}/>
+                      <Bar dataKey="jobs" name="Jobs" radius={[4,4,0,0]}>
+                        {deptData.map((d,i) => <Cell key={i} fill={d.fill}/>)}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </Box>
+              </Card>
+            </Stack>
           </Grid>
         </Grid>
 
-        {/* Jobs Table */}
-        <Card sx={{ 
-          borderRadius: 4,
-          boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
-          backdropFilter: 'blur(4px)',
-          background: 'rgba(255, 255, 255, 0.9)',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          overflow: 'hidden',
-          mt: 3
-        }}>
-          <Box sx={{ p: 3, borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              mb: 2,
-              flexWrap: 'wrap',
-              gap: 2
-            }}>
-              <Typography variant="h6" fontWeight="600" color="text.primary">
-                Recent Job Postings
-              </Typography>
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 2, 
-                alignItems: 'center', 
-                flexWrap: 'wrap'
-              }}>
-                <TextField
-                  size="small"
-                  placeholder="Search jobs..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  sx={{
-                    width: { xs: '100%', sm: 200 },
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 3,
-                      background: 'rgba(255, 255, 255, 0.8)'
-                    }
-                  }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    )
-                  }}
-                />
-                <Select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  size="small"
-                  displayEmpty
-                  sx={{ 
-                    borderRadius: 3,
-                    minWidth: 120,
-                    background: 'rgba(255, 255, 255, 0.8)'
-                  }}
-                >
-                  <MenuItem value="all">All Status</MenuItem>
-                  <MenuItem value="active">Active</MenuItem>
-                  <MenuItem value="on-hold">On Hold</MenuItem>
-                  <MenuItem value="closed">Closed</MenuItem>
-                </Select>
-                <Select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                  size="small"
-                  displayEmpty
-                  sx={{ 
-                    borderRadius: 3,
-                    minWidth: 120,
-                    background: 'rgba(255, 255, 255, 0.8)'
-                  }}
-                >
-                  <MenuItem value="all">All Priority</MenuItem>
-                  <MenuItem value="high">High</MenuItem>
-                  <MenuItem value="medium">Medium</MenuItem>
-                  <MenuItem value="low">Low</MenuItem>
-                </Select>
+        {/* ── BOTTOM ROW: Table + Activity ── */}
+        <Grid container spacing={{ xs:2, sm:2.5 }}>
+
+          {/* Jobs Table */}
+          <Grid item xs={12} xl={8}>
+            <Card sx={cardSx}>
+              {/* Table Header */}
+              <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}`, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:2 }}>
+                <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Job Postings</Typography>
+                <Box sx={{ display:'flex', gap:1.5, alignItems:'center', flexWrap:'wrap' }}>
+                  <TextField
+                    size="small" placeholder="Search…" value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    sx={{ width:{ xs:'100%', sm:180 }, '& .MuiOutlinedInput-root':{ borderRadius:2, fontSize:13, background:C.bg, '& fieldset':{ borderColor:C.border } } }}
+                    InputProps={{ startAdornment:<InputAdornment position="start"><SearchIcon sx={{ fontSize:16, color:C.textMuted }}/></InputAdornment> }}
+                  />
+                  <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} size="small" displayEmpty
+                    sx={{ borderRadius:2, fontSize:12, fontWeight:700, minWidth:110, background:C.bg, '& fieldset':{ borderColor:C.border } }}>
+                    <MenuItem value="all" sx={{ fontSize:13 }}>All Status</MenuItem>
+                    <MenuItem value="active" sx={{ fontSize:13 }}>Active</MenuItem>
+                    <MenuItem value="on-hold" sx={{ fontSize:13 }}>On Hold</MenuItem>
+                    <MenuItem value="closed" sx={{ fontSize:13 }}>Closed</MenuItem>
+                  </Select>
+                  <Select value={priorityFilter} onChange={e => setPriorityFilter(e.target.value)} size="small" displayEmpty
+                    sx={{ borderRadius:2, fontSize:12, fontWeight:700, minWidth:110, background:C.bg, '& fieldset':{ borderColor:C.border }, display:{ xs:'none', sm:'flex' } }}>
+                    <MenuItem value="all" sx={{ fontSize:13 }}>All Priority</MenuItem>
+                    <MenuItem value="high" sx={{ fontSize:13 }}>High</MenuItem>
+                    <MenuItem value="medium" sx={{ fontSize:13 }}>Medium</MenuItem>
+                    <MenuItem value="low" sx={{ fontSize:13 }}>Low</MenuItem>
+                  </Select>
+                </Box>
               </Box>
+
+              <TableContainer sx={{ overflowX:'auto' }}>
+                <Table sx={{ minWidth:640 }}>
+                  <TableHead>
+                    <TableRow sx={{ background:'#fafafa' }}>
+                      {['Job', 'Dept', 'Location', 'Candidates', 'Progress', 'Status', ''].map(h => (
+                        <TableCell key={h} sx={{ fontSize:11, fontWeight:800, color:C.textMuted, textTransform:'uppercase', letterSpacing:0.7, py:1.5, px:{ xs:1.5, sm:2 }, borderColor:C.border, whiteSpace:'nowrap' }}>{h}</TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filtered.map(job => {
+                      const sm = STATUS_META[job.status];
+                      const pm = PRIORITY_META[job.priority];
+                      return (
+                        <TableRow key={job.id} hover sx={{ cursor:'pointer', '&:hover':{ background:'#fafbff' }, '& td':{ borderColor:'#f1f5f9' } }}>
+                          <TableCell sx={{ px:{ xs:1.5, sm:2 }, py:1.5 }}>
+                            <Box sx={{ display:'flex', alignItems:'center', gap:1.5 }}>
+                              <Box sx={{ width:36, height:36, borderRadius:2, background:C.primaryLight, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                                <WorkIcon sx={{ fontSize:16, color:C.primary }}/>
+                              </Box>
+                              <Box sx={{ minWidth:0 }}>
+                                <Typography sx={{ fontSize:13, fontWeight:800, color:C.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:{ xs:120, sm:160, md:'unset' } }}>{job.title}</Typography>
+                                <Typography sx={{ fontSize:11, color:C.textMuted, fontWeight:500 }}>{job.company} · {job.id}</Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ px:{ xs:1.5, sm:2 } }}>
+                            <Typography sx={{ fontSize:12, fontWeight:700, color:C.primary, background:C.primaryLight, px:1.2, py:0.4, borderRadius:1.5, display:'inline-block', whiteSpace:'nowrap' }}>{job.department}</Typography>
+                          </TableCell>
+                          <TableCell sx={{ px:{ xs:1.5, sm:2 } }}>
+                            <Box sx={{ display:'flex', alignItems:'center', gap:0.5 }}>
+                              <LocationIcon sx={{ fontSize:13, color:C.textMuted }}/>
+                              <Typography sx={{ fontSize:12, color:C.textSub, whiteSpace:'nowrap', fontWeight:500 }}>{job.location}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ px:{ xs:1.5, sm:2 } }}>
+                            <Box sx={{ display:'flex', alignItems:'center', gap:1 }}>
+                              <Box sx={{ width:28, height:28, borderRadius:'50%', background:C.primaryLight, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                                <PeopleIcon sx={{ fontSize:14, color:C.primary }}/>
+                              </Box>
+                              <Typography sx={{ fontSize:13, fontWeight:800, color:C.text }}>{job.candidates}</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ px:{ xs:1.5, sm:2 }, minWidth:120 }}>
+                            <Box sx={{ display:'flex', alignItems:'center', gap:1.5 }}>
+                              <LinearProgress variant="determinate" value={job.progress}
+                                sx={{ flex:1, height:5, borderRadius:3, background:'#f1f5f9',
+                                  '& .MuiLinearProgress-bar':{ borderRadius:3, background: job.progress === 100 ? C.success : job.progress >= 70 ? C.primary : C.warning }}}/>
+                              <Typography sx={{ fontSize:11, fontWeight:800, color:C.textSub, minWidth:30 }}>{job.progress}%</Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ px:{ xs:1.5, sm:2 } }}>
+                            <Box sx={{ display:'flex', alignItems:'center', gap:1 }}>
+                              <Chip label={sm.label} size="small" sx={{ fontSize:11, fontWeight:700, height:22, background:sm.bg, color:sm.color, borderRadius:1.5 }}/>
+                              <Chip label={pm.label} size="small" sx={{ fontSize:10, fontWeight:700, height:20, background:pm.bg, color:pm.color, borderRadius:1.5, display:{ xs:'none', md:'flex' } }}/>
+                            </Box>
+                          </TableCell>
+                          <TableCell align="right" sx={{ px:{ xs:1, sm:1.5 } }}>
+                            <IconButton size="small"
+                              onClick={e => { e.stopPropagation(); setActionMenu({ anchor:e.currentTarget, job }); }}
+                              sx={{ borderRadius:1.5, '&:hover':{ background:C.primaryLight } }}>
+                              <MoreVertIcon sx={{ fontSize:18, color:C.textMuted }}/>
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {filtered.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center" sx={{ py:6 }}>
+                          <Typography sx={{ color:C.textMuted, fontSize:13, fontWeight:600 }}>No jobs match your filters</Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              <Box sx={{ px:{ xs:2, sm:2.5 }, py:1.5, borderTop:`1px solid ${C.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <Typography sx={{ fontSize:12, color:C.textMuted, fontWeight:600 }}>Showing {filtered.length} of {jobs.length} jobs</Typography>
+                <Button size="small" sx={{ fontSize:12, fontWeight:700, color:C.primary, textTransform:'none' }} endIcon={<ArrowUpRight sx={{ fontSize:14 }}/>} onClick={() => navigate('/dashboard/jobs')}>
+                  View all
+                </Button>
+              </Box>
+            </Card>
+          </Grid>
+
+          {/* Right: Quick Actions + Activity */}
+          <Grid item xs={12} xl={4}>
+            <Stack spacing={{ xs:2, sm:2.5 }}>
+
+              {/* Quick Actions */}
+              <Card sx={cardSx}>
+                <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}` }}>
+                  <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Quick Actions</Typography>
+                </Box>
+                <Box sx={{ p:{ xs:2, sm:2.5 } }}>
+                  <Stack spacing={1.5}>
+                    <Button fullWidth startIcon={<AddIcon sx={{ fontSize:16 }}/>}
+                      onClick={() => navigate('/dashboard/jobs/createJob')}
+                      sx={{ background:C.primary, color:'#fff', borderRadius:2, py:1.2, fontSize:13, fontWeight:700, textTransform:'none',
+                        boxShadow:'0 2px 8px rgba(29,78,216,0.2)', '&:hover':{ background:'#1e40af' }, justifyContent:'flex-start', gap:0.5 }}>
+                      Create New Job Posting
+                    </Button>
+                    <Button fullWidth startIcon={<PeopleIcon sx={{ fontSize:16 }}/>}
+                      onClick={() => navigate('/candidates')}
+                      variant="outlined"
+                      sx={{ borderRadius:2, py:1.2, fontSize:13, fontWeight:700, textTransform:'none', borderColor:C.border, color:C.textSub,
+                        '&:hover':{ borderColor:C.primary, color:C.primary, background:C.primaryLight }, justifyContent:'flex-start' }}>
+                      View All Candidates
+                    </Button>
+                    <Button fullWidth startIcon={<DownloadIcon sx={{ fontSize:16 }}/>} variant="outlined"
+                      sx={{ borderRadius:2, py:1.2, fontSize:13, fontWeight:700, textTransform:'none', borderColor:C.border, color:C.textSub,
+                        '&:hover':{ borderColor:C.success, color:C.success, background:'#f0fdf4' }, justifyContent:'flex-start' }}>
+                      Export Report (CSV)
+                    </Button>
+                  </Stack>
+                </Box>
+              </Card>
+
+              {/* Activity Feed */}
+              <Card sx={cardSx}>
+                <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Recent Activity</Typography>
+                  <Typography sx={{ fontSize:11, fontWeight:700, color:C.primary, cursor:'pointer' }}>View all</Typography>
+                </Box>
+                <Box sx={{ p:{ xs:1.5, sm:2 } }}>
+                  <Stack>
+                    {activities.map((a, i) => (
+                      <Box key={i} sx={{ display:'flex', gap:2, py:1.5, borderBottom: i < activities.length-1 ? `1px solid ${C.border}` : 'none', alignItems:'flex-start' }}>
+                        <Box sx={{ width:8, height:8, borderRadius:'50%', background:a.dot, mt:0.7, flexShrink:0 }}/>
+                        <Box sx={{ flex:1, minWidth:0 }}>
+                          <Typography sx={{ fontSize:12, fontWeight:600, color:C.text, lineHeight:1.4 }}>{a.text}</Typography>
+                          <Typography sx={{ fontSize:11, color:C.textMuted, mt:0.3, fontWeight:500 }}>{a.time}</Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              </Card>
+
+            </Stack>
+          </Grid>
+        </Grid>
+
+        {/* ── ACTION MENU ── */}
+        <Menu
+          anchorEl={actionMenu.anchor}
+          open={Boolean(actionMenu.anchor)}
+          onClose={() => setActionMenu({ anchor:null, job:null })}
+          PaperProps={{ sx:{ borderRadius:2.5, boxShadow:'0 8px 32px rgba(0,0,0,0.12)', border:`1px solid ${C.border}`, minWidth:160 } }}
+          transformOrigin={{ horizontal:'right', vertical:'top' }}
+          anchorOrigin={{ horizontal:'right', vertical:'bottom' }}
+        >
+          <MenuItem onClick={() => { navigate(`/dashboard/jobs/${actionMenu.job?.id}`); setActionMenu({ anchor:null, job:null }); }}
+            sx={{ fontSize:13, fontWeight:600, gap:1.5, py:1.2 }}>
+            <VisibilityIcon sx={{ fontSize:17, color:C.primary }}/> View Details
+          </MenuItem>
+          <MenuItem onClick={() => openEdit(actionMenu.job)} sx={{ fontSize:13, fontWeight:600, gap:1.5, py:1.2 }}>
+            <EditIcon sx={{ fontSize:17, color:C.warning }}/> Edit Job
+          </MenuItem>
+          <Divider sx={{ my:0.5 }}/>
+          <MenuItem onClick={() => openDelete(actionMenu.job)} sx={{ fontSize:13, fontWeight:600, gap:1.5, py:1.2, color:C.danger }}>
+            <DeleteIcon sx={{ fontSize:17 }}/> Delete
+          </MenuItem>
+        </Menu>
+
+        {/* ── EDIT MODAL ── */}
+        <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)}
+          sx={{ display:'flex', alignItems:'center', justifyContent:'center', p:2 }}>
+          <Fade in={editModalOpen}>
+            <Card sx={{ width:'100%', maxWidth:520, maxHeight:'92vh', overflowY:'auto', borderRadius:3,
+              boxShadow:'0 24px 64px rgba(0,0,0,0.18)', background:C.surface, border:`1px solid ${C.border}` }}>
+              <Box sx={{ p:3, borderBottom:`1px solid ${C.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <Box>
+                  <Typography sx={{ fontSize:17, fontWeight:800, color:C.text }}>Edit Job</Typography>
+                  <Typography sx={{ fontSize:12, color:C.textMuted, mt:0.25 }}>{jobToEdit?.id}</Typography>
+                </Box>
+                <IconButton onClick={() => setEditModalOpen(false)} size="small" sx={{ borderRadius:2, '&:hover':{ background:C.bg } }}>
+                  <CloseIcon sx={{ fontSize:18 }}/>
+                </IconButton>
+              </Box>
+              <Box sx={{ p:3 }}>
+                <Grid container spacing={2}>
+                  {[
+                    { label:'Job Title', key:'title', xs:12 },
+                    { label:'Company', key:'company', xs:12 },
+                    { label:'Department', key:'department', xs:6 },
+                    { label:'Experience', key:'experience', xs:6 },
+                    { label:'Location', key:'location', xs:6 },
+                    { label:'Salary', key:'salary', xs:6 },
+                  ].map(f => (
+                    <Grid item xs={f.xs} key={f.key}>
+                      <TextField fullWidth label={f.label} value={editForm[f.key]}
+                        onChange={e => setEditForm(p => ({ ...p, [f.key]:e.target.value }))}
+                        size="small" sx={{ '& .MuiOutlinedInput-root':{ borderRadius:2, fontSize:13 }, '& label':{ fontSize:13 } }}/>
+                    </Grid>
+                  ))}
+                  <Grid item xs={6}>
+                    <TextField select fullWidth label="Status" value={editForm.status}
+                      onChange={e => setEditForm(p => ({ ...p, status:e.target.value }))}
+                      size="small" sx={{ '& .MuiOutlinedInput-root':{ borderRadius:2, fontSize:13 }, '& label':{ fontSize:13 } }}>
+                      <MenuItem value="active" sx={{ fontSize:13 }}>Active</MenuItem>
+                      <MenuItem value="on-hold" sx={{ fontSize:13 }}>On Hold</MenuItem>
+                      <MenuItem value="closed" sx={{ fontSize:13 }}>Closed</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField select fullWidth label="Priority" value={editForm.priority}
+                      onChange={e => setEditForm(p => ({ ...p, priority:e.target.value }))}
+                      size="small" sx={{ '& .MuiOutlinedInput-root':{ borderRadius:2, fontSize:13 }, '& label':{ fontSize:13 } }}>
+                      <MenuItem value="high" sx={{ fontSize:13 }}>High</MenuItem>
+                      <MenuItem value="medium" sx={{ fontSize:13 }}>Medium</MenuItem>
+                      <MenuItem value="low" sx={{ fontSize:13 }}>Low</MenuItem>
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Open Positions" type="number" value={editForm.openings}
+                      onChange={e => setEditForm(p => ({ ...p, openings:e.target.value }))}
+                      size="small" sx={{ '& .MuiOutlinedInput-root':{ borderRadius:2, fontSize:13 }, '& label':{ fontSize:13 } }}/>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{ px:3, pb:3, display:'flex', justifyContent:'flex-end', gap:1.5 }}>
+                <Button onClick={() => setEditModalOpen(false)} variant="outlined"
+                  sx={{ borderRadius:2, px:3, fontSize:13, fontWeight:700, textTransform:'none', borderColor:C.border, color:C.textSub, '&:hover':{ borderColor:C.primary, color:C.primary } }}>
+                  Cancel
+                </Button>
+                <Button onClick={saveEdit} variant="contained"
+                  sx={{ borderRadius:2, px:3, fontSize:13, fontWeight:700, textTransform:'none', background:C.primary, boxShadow:'0 2px 8px rgba(29,78,216,0.2)', '&:hover':{ background:'#1e40af' } }}>
+                  Save Changes
+                </Button>
+              </Box>
+            </Card>
+          </Fade>
+        </Modal>
+
+        {/* ── DELETE DIALOG ── */}
+        <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}
+          PaperProps={{ sx:{ borderRadius:3, p:3, width:'100%', maxWidth:400, background:C.surface, boxShadow:'0 24px 64px rgba(0,0,0,0.15)', border:`1px solid ${C.border}` } }}>
+          <Box sx={{ display:'flex', alignItems:'center', gap:2, mb:2 }}>
+            <Box sx={{ width:44, height:44, borderRadius:2, background:'#fee2e2', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <DeleteIcon sx={{ color:C.danger, fontSize:20 }}/>
+            </Box>
+            <Box>
+              <Typography sx={{ fontSize:16, fontWeight:800, color:C.text }}>Delete Job?</Typography>
+              <Typography sx={{ fontSize:12, color:C.textMuted }}>This action cannot be undone</Typography>
             </Box>
           </Box>
+          <Divider sx={{ mb:2 }}/>
+          <Typography sx={{ fontSize:13, color:C.textSub, mb:1.5 }}>
+            You're about to delete <Box component="strong" sx={{ color:C.text }}>{selectedJob?.title}</Box>. All associated candidate data will be permanently removed.
+          </Typography>
+          <Box sx={{ display:'flex', gap:1.5, justifyContent:'flex-end', mt:2 }}>
+            <Button onClick={() => setDeleteDialogOpen(false)} variant="outlined"
+              sx={{ borderRadius:2, px:3, fontSize:13, fontWeight:700, textTransform:'none', borderColor:C.border, color:C.textSub }}>
+              Cancel
+            </Button>
+            <Button onClick={confirmDelete} variant="contained"
+              sx={{ borderRadius:2, px:3, fontSize:13, fontWeight:700, textTransform:'none', background:C.danger, boxShadow:'0 2px 8px rgba(220,38,38,0.2)', '&:hover':{ background:'#b91c1c' } }}>
+              Delete Job
+            </Button>
+          </Box>
+        </Dialog>
 
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow sx={{ background: 'rgba(0, 0, 0, 0.02)' }}>
-                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Job Title</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Department</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Location</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Candidates</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Progress</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 600, color: 'text.primary' }} align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredJobs.map((job) => (
-                  <TableRow 
-                    key={job.id}
-                    hover
-                    sx={{
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        background: 'rgba(33, 150, 243, 0.02)'
-                      }
-                    }}
-                  >
-                    <TableCell>
-                      <Box>
-                        <Typography fontWeight="600" color="text.primary">
-                          {job.title}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {job.company} • {job.id}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={job.department}
-                        size="small"
-                        sx={{
-                          background: 'rgba(33, 150, 243, 0.1)',
-                          color: '#2196F3',
-                          fontWeight: 500
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LocationIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-                        <Typography>{job.location}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <AvatarGroup max={3} sx={{ '& .MuiAvatar-root': { width: 24, height: 24 } }}>
-                          {[...Array(Math.min(job.candidates, 3))].map((_, i) => (
-                            <Avatar key={i} alt={`Candidate ${i + 1}`} />
-                          ))}
-                        </AvatarGroup>
-                        <Typography fontWeight="500">{job.candidates}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Box sx={{ flex: 1 }}>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={job.progress}
-                            sx={{
-                              height: 6,
-                              borderRadius: 3,
-                              background: 'rgba(0, 0, 0, 0.05)',
-                              '& .MuiLinearProgress-bar': {
-                                borderRadius: 3,
-                                background: job.progress === 100 ? '#4CAF50' : '#2196F3'
-                              }
-                            }}
-                          />
-                        </Box>
-                        <Typography variant="body2" fontWeight="500" sx={{ minWidth: 40 }}>
-                          {job.progress}%
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={getStatusIcon(job.status)}
-                        label={job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-                        size="small"
-                        sx={{
-                          background: `rgba(${
-                            job.status === 'active' ? '76, 175, 80' : 
-                            job.status === 'on-hold' ? '255, 152, 0' : '244, 67, 54'
-                          }, 0.1)`,
-                          color: job.status === 'active' ? '#4CAF50' : 
-                                 job.status === 'on-hold' ? '#FF9800' : '#F44336',
-                          fontWeight: 500
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                        <Tooltip title="View Details">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewJob(job.id)}
-                            sx={{
-                              background: 'rgba(33, 150, 243, 0.1)',
-                              color: '#2196F3',
-                              '&:hover': {
-                                background: '#2196F3',
-                                color: 'white'
-                              }
-                            }}
-                          >
-                            <VisibilityIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Edit Job">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditJob(job)}
-                            sx={{
-                              background: 'rgba(255, 152, 0, 0.1)',
-                              color: '#FF9800',
-                              '&:hover': {
-                                background: '#FF9800',
-                                color: 'white'
-                              }
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete Job">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDeleteJob(job)}
-                            sx={{
-                              background: 'rgba(244, 67, 54, 0.1)',
-                              color: '#F44336',
-                              '&:hover': {
-                                background: '#F44336',
-                                color: 'white'
-                              }
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Card>
       </Box>
+    );
+  };
 
-      {/* Edit Job Modal */}
-      <Modal
-        open={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 2
-        }}
-      >
-        <Fade in={editModalOpen}>
-          <Card sx={{
-            width: '100%',
-            maxWidth: 500,
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            borderRadius: 4,
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            p: 3
-          }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5" fontWeight="700" color="text.primary">
-                Edit Job
-              </Typography>
-              <IconButton onClick={() => setEditModalOpen(false)}>
-                <CloseIcon />
-              </IconButton>
-            </Box>
-            
-            <Divider sx={{ mb: 3 }} />
-            
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Job Title"
-                  value={editForm.title}
-                  onChange={(e) => handleEditFormChange('title', e.target.value)}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Company"
-                  value={editForm.company}
-                  onChange={(e) => handleEditFormChange('company', e.target.value)}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Department"
-                  value={editForm.department}
-                  onChange={(e) => handleEditFormChange('department', e.target.value)}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Experience"
-                  value={editForm.experience}
-                  onChange={(e) => handleEditFormChange('experience', e.target.value)}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Location"
-                  value={editForm.location}
-                  onChange={(e) => handleEditFormChange('location', e.target.value)}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Salary"
-                  value={editForm.salary}
-                  onChange={(e) => handleEditFormChange('salary', e.target.value)}
-                  size="small"
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Status"
-                  value={editForm.status}
-                  onChange={(e) => handleEditFormChange('status', e.target.value)}
-                  size="small"
-                >
-                  <MenuItem value="active">Active</MenuItem>
-                  <MenuItem value="on-hold">On Hold</MenuItem>
-                  <MenuItem value="closed">Closed</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Priority"
-                  value={editForm.priority}
-                  onChange={(e) => handleEditFormChange('priority', e.target.value)}
-                  size="small"
-                >
-                  <MenuItem value="high">High</MenuItem>
-                  <MenuItem value="medium">Medium</MenuItem>
-                  <MenuItem value="low">Low</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Open Positions"
-                  type="number"
-                  value={editForm.openings}
-                  onChange={(e) => handleEditFormChange('openings', e.target.value)}
-                  size="small"
-                />
-              </Grid>
-            </Grid>
+  export default RecruiterDashboard;
 
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 4 }}>
-              <Button
-                variant="outlined"
-                onClick={() => setEditModalOpen(false)}
-                sx={{
-                  borderRadius: 3,
-                  px: 3,
-                  borderColor: 'rgba(0, 0, 0, 0.1)',
-                  color: 'text.secondary',
-                  '&:hover': {
-                    borderColor: '#2196F3',
-                    color: '#2196F3'
-                  }
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleSaveEdit}
-                sx={{
-                  borderRadius: 3,
-                  px: 3,
-                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #1976D2 30%, #2196F3 90%)'
-                  }
-                }}
-              >
-                Save Changes
-              </Button>
-            </Box>
-          </Card>
-        </Fade>
-      </Modal>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: 4,
-            p: 3,
-            width: '100%',
-            maxWidth: 400,
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
-          }
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 2, color: 'text.primary' }}>
-          Confirm Deletion
-        </DialogTitle>
-        <DialogContent sx={{ p: 0, mb: 3 }}>
-          <Typography color="text.primary">
-            Are you sure you want to delete the job posting for <strong>{selectedJob?.title}</strong>?
-          </Typography>
-          <Typography variant="body2" color="error" mt={2}>
-            This action cannot be undone. All associated candidate data will be permanently removed.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 0, gap: 2 }}>
-          <Button 
-            onClick={() => setDeleteDialogOpen(false)}
-            variant="outlined"
-            sx={{
-              borderRadius: 3,
-              px: 3,
-              py: 1,
-              borderColor: 'rgba(0, 0, 0, 0.1)',
-              color: 'text.secondary',
-              '&:hover': {
-                borderColor: '#2196F3',
-                color: '#2196F3'
-              }
-            }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={confirmDelete}
-            variant="contained"
-            sx={{
-              borderRadius: 3,
-              px: 3,
-              py: 1,
-              background: 'linear-gradient(45deg, #F44336 30%, #FF5252 90%)',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #D32F2F 30%, #F44336 90%)'
-              }
-            }}
-          >
-            Delete Job
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
-  );
-};
-
-export default RecruiterDashboard;
+  // Missing import fix
+  function ArrowUpRight(props) {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+      </svg>
+    );
+  }

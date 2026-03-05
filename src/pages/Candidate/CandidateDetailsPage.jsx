@@ -466,7 +466,7 @@ const previewCandidateResume = async (id) => {
   try {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-      `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/preview-resume/${id}`,
+      `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -729,7 +729,7 @@ const CandidateDetailsPage = () => {
       return;
     }
 
-    const resumeUrl = `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/preview-resume/${id}`;
+    const resumeUrl = `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`;
 
     try {
       if (method === 'native' && navigator.share) {

@@ -119,7 +119,7 @@ const VendorRegister = () => {
     setLoading(true);
     try {
       await axios.post(
-        `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/register?token=${token}`,
+        `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/register?token=${token}`,
         formData
       );
 

@@ -202,7 +202,7 @@ const ReportsPage = () => {
       if (!useDummyData) {
         const token = localStorage.getItem('token');
         const response = await axios.get(
-          `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/reports`,
+          `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/reports`,
           {
             headers: { Authorization: `Bearer ${token}` },
             params: {

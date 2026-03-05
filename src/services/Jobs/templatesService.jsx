@@ -1,6 +1,6 @@
 // import axios from 'axios';
 
-// const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/templates';
+// const API_BASE_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/templates';
 
 // export const fetchJobTemplates = async () => {
 //     try {
@@ -15,7 +15,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/templates';
+const API_BASE_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/templates';
 
 export const fetchJobTemplates = async () => {
     try {

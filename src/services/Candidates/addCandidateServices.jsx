@@ -1,6 +1,6 @@
 // import axios from "axios";
 
-// const API_BASE_URL = "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1";
+// const API_BASE_URL = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1";
 
 // const getAuthHeader = () => {
 //   const token = localStorage.getItem("token");
@@ -153,7 +153,7 @@
 
 import axios from "axios";
 
-const API_BASE_URL = "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1";
+const API_BASE_URL = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1";
 
 const getAuthHeader = () => {
   const token = localStorage.getItem("token");
@@ -290,7 +290,7 @@ export const getAllStages = async () => {
 //     }
     
 //     const response = await axios.post(
-//       "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/resumes/analyze",
+//       "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/resumes/analyze",
 //       formData,
 //       {
 //         ...getAuthHeader(),
@@ -322,7 +322,7 @@ export const analyzeResume = async (file, jobId = null) => {
     }
     
     const response = await axios.post(
-      "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/candidates/resumes/analyze",
+      "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/resumes/analyze",
       formData,
       {
         ...getAuthHeader(),

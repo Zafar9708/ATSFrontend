@@ -303,7 +303,7 @@ const VendorCandidatesPage = () => {
       if (!useDummyData) {
         const token = localStorage.getItem('token');
         const response = await axios.get(
-          `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/candidates?status=${status}`,
+          `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/candidates?status=${status}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -343,7 +343,7 @@ const VendorCandidatesPage = () => {
     try {
       if (!useDummyData) {
         const response = await axios.patch(
-          `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/candidates/${selectedCandidate._id}/approve`,
+          `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/candidates/${selectedCandidate._id}/approve`,
           {},
           getAuthHeaders()
         );
@@ -381,7 +381,7 @@ const VendorCandidatesPage = () => {
     try {
       if (!useDummyData) {
         const response = await axios.patch(
-          `https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/candidates/${selectedCandidate._id}/reject`,
+          `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/candidates/${selectedCandidate._id}/reject`,
           { reason: rejectReason },
           getAuthHeaders()
         );

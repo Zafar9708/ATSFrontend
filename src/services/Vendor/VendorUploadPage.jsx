@@ -118,7 +118,7 @@ const VendorUploadPage = () => {
     useEffect(() => {
         const validateToken = async () => {
             try {
-                const response = await axios.get(`https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/validate-token/${token}`);
+                const response = await axios.get(`http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/validate-token/${token}`);
 
                 if (response.data.valid) {
                     setJobDetails(response.data.job);
@@ -146,9 +146,9 @@ const VendorUploadPage = () => {
                 setLoadingSources(true);
 
                 const [stagesData, locationsData, sourcesData] = await Promise.all([
-                    axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/stages/all', getAuthHeaders()),
-                    axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/locations', getAuthHeaders()),
-                    axios.get('https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/sources', getAuthHeaders()),
+                    axios.get('http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/stages/all', getAuthHeaders()),
+                    axios.get('http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/locations', getAuthHeaders()),
+                    axios.get('http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/sources', getAuthHeaders()),
                 ]);
 
                 setStages(stagesData.data);
@@ -229,7 +229,7 @@ const VendorUploadPage = () => {
     formData.append('jobId', jobIdFromToken);
 
     const response = await axios.post(
-      'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/resumes/analyze',
+      'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/resumes/analyze',
       formData,
       {
         headers: {
@@ -441,7 +441,7 @@ const VendorUploadPage = () => {
     formDataToSend.append('vendorEmail', vendorEmail);
 
     const response = await axios.post(
-      'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/vendor/submit-candidate',
+      'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/vendor/submit-candidate',
       formDataToSend,
       {
         headers: {
@@ -527,7 +527,7 @@ const VendorUploadPage = () => {
         try {
             setIsLoading(true);
             const response = await axios.post(
-                'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/location',
+                'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/location',
                 { name: newLocation },
                 getAuthHeaders()
             );
@@ -561,7 +561,7 @@ const VendorUploadPage = () => {
         try {
             setIsLoading(true);
             const response = await axios.post(
-                'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/source',
+                'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/source',
                 { name: newSource },
                 // getAuthHeaders()
             );

@@ -1,7 +1,7 @@
 // src/services/Candidates/bulkUploadService.js
 import axios from 'axios';
 
-const API_URL = "https://ungroupable-appallingly-bryan.ngrok-free.dev"
+const API_URL = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com"
 ;
 
 // Download Excel template

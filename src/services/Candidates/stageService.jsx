@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const STAGE_API_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1/stages';
+const STAGE_API_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/stages';
 
 const stageApi = axios.create({
   baseURL: STAGE_API_URL,

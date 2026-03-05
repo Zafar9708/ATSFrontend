@@ -36,7 +36,7 @@ import {
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
-const API_BASE = "https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1";
+const API_BASE = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1";
 
 // Dummy data for templates
 const DUMMY_TEMPLATES = [

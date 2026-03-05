@@ -3,7 +3,7 @@
 // services/api.js
 import axios from 'axios';
 
-const API_BASE_URL = 'https://ungroupable-appallingly-bryan.ngrok-free.dev/api/v1';
+const API_BASE_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

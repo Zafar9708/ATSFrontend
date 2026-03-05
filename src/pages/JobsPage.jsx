@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect } from "react";
 import {
   Typography,
@@ -61,6 +58,7 @@ import {
 import { parseISO, format, isAfter } from "date-fns";
 import { useNavigate, useLocation } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
+import axios from "axios";
 
 const statusOptions = {
   'Active': ['Inactive', 'On Hold', 'Closed Own', 'Archived'],
@@ -73,219 +71,14 @@ const statusOptions = {
 
 const businessUnitOptions = ["Internal", "External"];
 
-// Static data for jobs
-const staticJobsData = [
-  {
-    _id: "job-1",
-    jobTitle: "Senior Frontend Developer",
-    jobName: "WR01",
-    formattedJobNumber: "WR01",
-    department: "Engineering",
-    experience: "5+ years",
-    jobDesc: "Develop and maintain React-based applications",
-    status: "Active",
-    jobFormId: {
-      jobType: "Full-time",
-      locations: [{ _id: "loc-1", name: "New York" }, { _id: "loc-2", name: "Remote" }],
-      openings: 3,
-      targetHireDate: "2024-02-15",
-      currency: "USD",
-      amount: "120000",
-      allowReapply: true,
-      reapplyDate: 90,
-      markPriority: true,
-      hiringFlow: ["Screening", "Technical Interview", "HR Round"],
-      BusinessUnit: "internal",
-      salesPerson: "John Doe",
-      recruitingPerson: ["alice@example.com", "bob@example.com"]
-    }
-  },
-  {
-    _id: "job-2",
-    jobTitle: "QA Automation Engineer",
-    jobName: "WR02",
-    formattedJobNumber: "WR02",
-    department: "Quality Assurance",
-    experience: "3+ years",
-    jobDesc: "Develop automated test scripts",
-    status: "Active",
-    jobFormId: {
-      jobType: "Full-time",
-      locations: [{ _id: "loc-3", name: "San Francisco" }],
-      openings: 2,
-      targetHireDate: "2024-01-30",
-      currency: "USD",
-      amount: "95000",
-      allowReapply: false,
-      reapplyDate: 60,
-      markPriority: false,
-      hiringFlow: ["Screening", "Technical Test", "Interview"],
-      BusinessUnit: "external",
-      Client: { _id: "client-1", name: "TechCorp Inc." },
-      salesPerson: "Jane Smith",
-      recruitingPerson: ["charlie@example.com"]
-    }
-  },
-  {
-    _id: "job-3",
-    jobTitle: "DevOps Engineer",
-    jobName: "WR03",
-    formattedJobNumber: "WR03",
-    department: "Operations",
-    experience: "4+ years",
-    jobDesc: "Manage cloud infrastructure and CI/CD pipelines",
-    status: "Inactive",
-    jobFormId: {
-      jobType: "Contract",
-      locations: [{ _id: "loc-4", name: "Remote" }],
-      openings: 1,
-      targetHireDate: "2023-12-10",
-      currency: "USD",
-      amount: "110000",
-      allowReapply: true,
-      reapplyDate: 120,
-      markPriority: false,
-      hiringFlow: ["Screening", "Technical Interview", "Offer"],
-      BusinessUnit: "internal",
-      salesPerson: "Mike Johnson",
-      recruitingPerson: ["david@example.com"]
-    }
-  },
-  {
-    _id: "job-4",
-    jobTitle: "Product Manager",
-    jobName: "WR04",
-    formattedJobNumber: "WR04",
-    department: "Product",
-    experience: "6+ years",
-    jobDesc: "Lead product development and strategy",
-    status: "On Hold",
-    jobFormId: {
-      jobType: "Full-time",
-      locations: [{ _id: "loc-1", name: "New York" }, { _id: "loc-5", name: "Boston" }],
-      openings: 1,
-      targetHireDate: "2024-03-01",
-      currency: "USD",
-      amount: "140000",
-      allowReapply: false,
-      reapplyDate: 90,
-      markPriority: true,
-      hiringFlow: ["Screening", "Case Study", "Interview Panel"],
-      BusinessUnit: "external",
-      Client: { _id: "client-2", name: "Global Solutions Ltd." },
-      salesPerson: "Sarah Wilson",
-      recruitingPerson: ["emma@example.com", "frank@example.com"]
-    }
-  },
-  {
-    _id: "job-5",
-    jobTitle: "UX Designer",
-    jobName: "WR05",
-    formattedJobNumber: "WR05",
-    department: "Design",
-    experience: "3+ years",
-    jobDesc: "Create user-centered design solutions",
-    status: "Closed Own",
-    jobFormId: {
-      jobType: "Full-time",
-      locations: [{ _id: "loc-2", name: "Remote" }],
-      openings: 0,
-      targetHireDate: "2023-11-20",
-      currency: "USD",
-      amount: "85000",
-      allowReapply: true,
-      reapplyDate: 180,
-      markPriority: false,
-      hiringFlow: ["Portfolio Review", "Design Challenge", "Interview"],
-      BusinessUnit: "internal",
-      salesPerson: "Tom Brown",
-      recruitingPerson: ["grace@example.com"]
-    }
-  },
-  {
-    _id: "job-6",
-    jobTitle: "Data Analyst",
-    jobName: "WR06",
-    formattedJobNumber: "WR06",
-    department: "Analytics",
-    experience: "2+ years",
-    jobDesc: "Analyze business data and generate insights",
-    status: "Archived",
-    jobFormId: {
-      jobType: "Part-time",
-      locations: [{ _id: "loc-3", name: "San Francisco" }],
-      openings: 2,
-      targetHireDate: "2023-10-15",
-      currency: "USD",
-      amount: "75000",
-      allowReapply: false,
-      reapplyDate: 60,
-      markPriority: false,
-      hiringFlow: ["Screening", "Analytical Test", "Interview"],
-      BusinessUnit: "external",
-      Client: { _id: "client-3", name: "Data Insights Co." },
-      salesPerson: "Robert Taylor",
-      recruitingPerson: ["henry@example.com"]
-    }
-  },
-  {
-    _id: "job-7",
-    jobTitle: "Backend Developer",
-    jobName: "WR07",
-    formattedJobNumber: "WR07",
-    department: "Engineering",
-    experience: "4+ years",
-    jobDesc: "Develop server-side applications and APIs",
-    status: "Active",
-    jobFormId: {
-      jobType: "Full-time",
-      locations: [{ _id: "loc-1", name: "New York" }],
-      openings: 4,
-      targetHireDate: "2024-02-28",
-      currency: "USD",
-      amount: "125000",
-      allowReapply: true,
-      reapplyDate: 90,
-      markPriority: true,
-      hiringFlow: ["Screening", "Code Review", "System Design", "Interview"],
-      BusinessUnit: "internal",
-      salesPerson: "Alex Miller",
-      recruitingPerson: ["isabella@example.com", "jack@example.com"]
-    }
-  },
-  {
-    _id: "job-8",
-    jobTitle: "Marketing Specialist",
-    jobName: "WR08",
-    formattedJobNumber: "WR08",
-    department: "Marketing",
-    experience: "3+ years",
-    jobDesc: "Develop and execute marketing campaigns",
-    status: "Active",
-    jobFormId: {
-      jobType: "Full-time",
-      locations: [{ _id: "loc-2", name: "Remote" }],
-      openings: 2,
-      targetHireDate: "2024-01-25",
-      currency: "USD",
-      amount: "70000",
-      allowReapply: false,
-      reapplyDate: 60,
-      markPriority: false,
-      hiringFlow: ["Screening", "Presentation", "Interview"],
-      BusinessUnit: "external",
-      Client: { _id: "client-4", name: "Creative Agency Inc." },
-      salesPerson: "Lisa Anderson",
-      recruitingPerson: ["karen@example.com"]
-    }
-  }
-];
+// API Base URL
+const API_BASE_URL = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1";
 
 const JobsPage = () => {
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [archivedJobs, setArchivedJobs] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState("card");
   const [showPriority, setShowPriority] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -329,47 +122,62 @@ const JobsPage = () => {
     return () => window.removeEventListener('popstate', handleBackButton);
   }, [navigate, location.state]);
 
+  // Fetch jobs from API
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchJobs = async () => {
       try {
         setLoading(true);
         
-        // Use static data instead of API call
-        const allJobs = staticJobsData.map((job) => ({
-          ...job,
-          formattedJobNumber: job.jobName || job.formattedJobNumber,
-          status: job.status || 'Active'
-        }));
+        // Get auth token from localStorage
+        const token = localStorage.getItem('token');
+        
+        const response = await axios.get(`${API_BASE_URL}/job`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-        const activeJobs = allJobs.filter(job => job.status !== 'Archived');
-        const archived = allJobs.filter(job => job.status === 'Archived');
+        if (response.data && response.data.jobs) {
+          const allJobs = response.data.jobs.map((job) => ({
+            ...job,
+            formattedJobNumber: job.jobName || `WR${String(job._id).slice(-4)}`,
+            status: job.status || 'Active'
+          }));
 
-        setJobs(activeJobs);
-        setArchivedJobs(archived);
-        setFilteredJobs(activeJobs);
+          const activeJobs = allJobs.filter(job => job.status !== 'Archived');
+          const archived = allJobs.filter(job => job.status === 'Archived');
 
-        // Extract unique values for filters
-        const uniqueRecruiters = [...new Set(
-          allJobs.flatMap(job => {
-            const recruiters = job.jobFormId?.recruitingPerson || [];
-            return Array.isArray(recruiters) ? recruiters : [recruiters];
-          }).filter(Boolean)
-        )];
+          setJobs(activeJobs);
+          setArchivedJobs(archived);
+          setFilteredJobs(activeJobs);
 
-        const uniqueDepartments = [...new Set(allJobs.map(job => job.department).filter(Boolean))];
-        const uniqueLocations = [...new Set(
-          allJobs.flatMap(job =>
-            job.jobFormId?.locations?.map(loc => loc.name) || []
-          ).filter(Boolean)
-        )];
+          // Extract unique values for filters
+          const uniqueRecruiters = [...new Set(
+            allJobs.flatMap(job => {
+              const recruiters = job.jobFormId?.recruitingPerson || [];
+              return Array.isArray(recruiters) ? recruiters : [recruiters];
+            }).filter(Boolean)
+          )];
 
-        setRecruiters(uniqueRecruiters);
-        setDepartments(uniqueDepartments);
-        setLocations(uniqueLocations);
+          const uniqueDepartments = [...new Set(allJobs.map(job => job.department).filter(Boolean))];
+          const uniqueLocations = [...new Set(
+            allJobs.flatMap(job =>
+              job.jobFormId?.locations?.map(loc => loc.name) || []
+            ).filter(Boolean)
+          )];
 
+          setRecruiters(uniqueRecruiters);
+          setDepartments(uniqueDepartments);
+          setLocations(uniqueLocations);
+        }
       } catch (error) {
-        console.error('Failed to fetch data:', error);
-        setSnackbar({ open: true, message: 'Failed to fetch jobs', severity: "error" });
+        console.error('Failed to fetch jobs:', error);
+        setSnackbar({ 
+          open: true, 
+          message: error.response?.data?.message || 'Failed to fetch jobs', 
+          severity: "error" 
+        });
         setJobs([]);
         setArchivedJobs([]);
         setFilteredJobs([]);
@@ -378,8 +186,8 @@ const JobsPage = () => {
       }
     };
 
-    fetchData();
-  }, [navigate]);
+    fetchJobs();
+  }, []);
 
   const formatJobNumber = (index) => {
     const number = index + 1;
@@ -435,11 +243,6 @@ const JobsPage = () => {
         const clientName = job.jobFormId?.BusinessUnit === 'external' ?
           getClientName(job.jobFormId.Client).toLowerCase() :
           '';
-
-
-
-
-
 
         return (
           jobTitle.toLowerCase().includes(term) ||
@@ -534,8 +337,21 @@ const JobsPage = () => {
 
   const updateJobStatusAPI = async (jobId, newStatus, reason) => {
     try {
-      // Simulate API call with static data
-      setTimeout(() => {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.patch(
+        `${API_BASE_URL}/job/${jobId}/status`,
+        { status: newStatus, statusReason: reason },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data) {
         if (newStatus === 'Archived') {
           const jobToArchive = jobs.find(job => job._id === jobId);
           if (jobToArchive) {
@@ -548,15 +364,21 @@ const JobsPage = () => {
           ));
         }
 
-        setSnackbar({ open: true, message: `Job status updated to ${newStatus}`, severity: "success" });
-      }, 300);
+        setSnackbar({ 
+          open: true, 
+          message: `Job status updated to ${newStatus}`, 
+          severity: "success" 
+        });
+      }
     } catch (error) {
       console.error('Failed to update job status:', error);
       setSnackbar({ 
         open: true, 
-        message: error.message || 'Failed to update job status', 
+        message: error.response?.data?.message || 'Failed to update job status', 
         severity: "error" 
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -573,6 +395,7 @@ const JobsPage = () => {
     }
 
     await updateJobStatusAPI(currentJobId, newStatus, '');
+    handleStatusMenuClose();
   };
 
   const handleStatusChangeDialogClose = () => {
@@ -595,23 +418,42 @@ const JobsPage = () => {
 
   const handleArchiveConfirm = async () => {
     try {
-      // Simulate API call with static data
-      setTimeout(() => {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.patch(
+        `${API_BASE_URL}/job/${jobToArchive}/status`,
+        { status: 'Archived', statusReason: 'Archived by user' },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data) {
         const jobToMove = jobs.find(job => job._id === jobToArchive);
         setJobs(jobs.filter(job => job._id !== jobToArchive));
         setArchivedJobs([...archivedJobs, { ...jobToMove, status: 'Archived' }]);
 
         setShowArchiveDialog(false);
         setJobToArchive(null);
-        setSnackbar({ open: true, message: 'Job archived successfully', severity: "success" });
-      }, 300);
+        setSnackbar({ 
+          open: true, 
+          message: 'Job archived successfully', 
+          severity: "success" 
+        });
+      }
     } catch (error) {
       console.error('Failed to archive job:', error);
       setSnackbar({ 
         open: true, 
-        message: error.message || 'Failed to archive job', 
+        message: error.response?.data?.message || 'Failed to archive job', 
         severity: "error" 
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -704,37 +546,58 @@ const JobsPage = () => {
 
     try {
       setLoading(true);
-      // Simulate import with static data
-      setTimeout(() => {
-        const newJob = {
-          _id: `imported-${Date.now()}`,
-          jobTitle: "Imported Job",
-          formattedJobNumber: formatJobNumber(jobs.length),
-          department: "Engineering",
-          status: "Active",
-          jobFormId: {
-            locations: [{ name: "Remote" }],
-            openings: 1,
-            markPriority: false,
-            recruitingPerson: [userData?.email || "admin@example.com"],
-            BusinessUnit: "external",
-            Client: "Sample Client",
-            jobType: "Full-time",
-            targetHireDate: "2024-03-01",
-            currency: "USD",
-            amount: "100000"
-          }
-        };
+      const token = localStorage.getItem('token');
+      
+      const formData = new FormData();
+      formData.append('file', importFile);
 
-        setJobs([newJob, ...jobs]);
+      const response = await axios.post(`${API_BASE_URL}/job/import`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data) {
+        // Refresh jobs list after import
+        const jobsResponse = await axios.get(`${API_BASE_URL}/job`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (jobsResponse.data && jobsResponse.data.jobs) {
+          const allJobs = jobsResponse.data.jobs.map((job) => ({
+            ...job,
+            formattedJobNumber: job.jobName || `WR${String(job._id).slice(-4)}`,
+            status: job.status || 'Active'
+          }));
+
+          const activeJobs = allJobs.filter(job => job.status !== 'Archived');
+          const archived = allJobs.filter(job => job.status === 'Archived');
+
+          setJobs(activeJobs);
+          setArchivedJobs(archived);
+          setFilteredJobs(activeJobs);
+        }
+
         setShowImportDialog(false);
         setImportFile(null);
-        setSnackbar({ open: true, message: 'Jobs imported successfully', severity: "success" });
-        setLoading(false);
-      }, 1000);
+        setSnackbar({ 
+          open: true, 
+          message: response.data.message || 'Jobs imported successfully', 
+          severity: "success" 
+        });
+      }
     } catch (error) {
       console.error('Failed to import jobs:', error);
-      setSnackbar({ open: true, message: 'Failed to import jobs', severity: "error" });
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.message || 'Failed to import jobs', 
+        severity: "error" 
+      });
+    } finally {
       setLoading(false);
     }
   };
@@ -749,23 +612,57 @@ const JobsPage = () => {
 
     try {
       setLoading(true);
-      const jobToDuplicate = jobs.find(job => job._id === currentJobId);
-      if (!jobToDuplicate) throw new Error("Job not found");
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.post(
+        `${API_BASE_URL}/job/${currentJobId}/duplicate`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
 
-      const duplicatedJob = {
-        ...jobToDuplicate,
-        _id: `duplicated-${Date.now()}`,
-        formattedJobNumber: formatJobNumber(jobs.length),
-        jobTitle: `${jobToDuplicate.jobTitle} (Copy)`,
-        status: getJobStatus(jobToDuplicate)
-      };
+      if (response.data) {
+        // Refresh jobs list after duplication
+        const jobsResponse = await axios.get(`${API_BASE_URL}/job`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-      setJobs([duplicatedJob, ...jobs]);
-      setSnackbar({ open: true, message: 'Job duplicated successfully', severity: "success" });
-      setLoading(false);
+        if (jobsResponse.data && jobsResponse.data.jobs) {
+          const allJobs = jobsResponse.data.jobs.map((job) => ({
+            ...job,
+            formattedJobNumber: job.jobName || `WR${String(job._id).slice(-4)}`,
+            status: job.status || 'Active'
+          }));
+
+          const activeJobs = allJobs.filter(job => job.status !== 'Archived');
+          const archived = allJobs.filter(job => job.status === 'Archived');
+
+          setJobs(activeJobs);
+          setArchivedJobs(archived);
+          setFilteredJobs(activeJobs);
+        }
+
+        setSnackbar({ 
+          open: true, 
+          message: response.data.message || 'Job duplicated successfully', 
+          severity: "success" 
+        });
+      }
     } catch (error) {
       console.error('Failed to duplicate job:', error);
-      setSnackbar({ open: true, message: 'Failed to duplicate job', severity: "error" });
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.message || 'Failed to duplicate job', 
+        severity: "error" 
+      });
+    } finally {
       setLoading(false);
     }
   };
@@ -793,7 +690,7 @@ const JobsPage = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  if (loading) {
+  if (loading && jobs.length === 0) {
     return (
       <MainLayout>
         <Box sx={{
@@ -812,7 +709,7 @@ const JobsPage = () => {
 
   return (
     <MainLayout>
-      <Container maxWidth="lg" sx={{ py: 3,marginLeft:5 }}>
+      <Container maxWidth="lg" sx={{ py: 3, marginLeft: 5 }}>
         {/* Archive Dialog */}
         <Dialog open={showArchiveDialog} onClose={handleArchiveDialogClose}>
           <DialogTitle>Archive Job</DialogTitle>
@@ -1180,7 +1077,7 @@ const JobsPage = () => {
                       )}
                       <TableCell align="center">{jobForm.openings || 0}</TableCell>
                       <TableCell>
-                        {targetDate ? format(targetDate, 'MMM dd') : "-"}
+                        {targetDate ? format(targetDate, 'MMM dd, yyyy') : "-"}
                       </TableCell>
                       <TableCell>
                         {Array.isArray(jobForm.recruitingPerson) ?
@@ -1372,7 +1269,7 @@ const JobsPage = () => {
                               display: 'inline-block'
                             }}
                           >
-                            Hire Date: {targetDate ? format(targetDate, 'MMM dd') : "Not set"}
+                            Hire Date: {targetDate ? format(targetDate, 'MMM dd, yyyy') : "Not set"}
                           </Typography>
                         </Box>
                       </Box>
