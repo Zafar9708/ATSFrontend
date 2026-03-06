@@ -1,2036 +1,928 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  CircularProgress,
-  Alert,
-  Button,
-  Avatar,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Grid,
-  Card,
-  Chip,
-  Switch,
-  TextField,
-  InputAdornment,
-  MenuItem,
-  Select,
-  Divider,
-  Tooltip,
-  useTheme,
-  Badge,
-  Snackbar,
-  FormControl,
-  InputLabel,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Tabs,
-  Tab
+  Box, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, CircularProgress, Alert, Button, Avatar,
+  IconButton, Dialog, DialogContent, Grid, Card, Chip, Switch,
+  TextField, InputAdornment, MenuItem, Select, Tooltip, Snackbar,
+  FormControl, InputLabel, useMediaQuery
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-  Search as SearchIcon,
-  FilterList as FilterIcon,
-  CheckCircle as ActiveIcon,
-  Cancel as InactiveIcon,
-  MoreVert as MoreIcon,
-  Refresh as RefreshIcon,
-  BarChart as BarChartIcon,
-  TrendingUp as TrendingUpIcon,
-  People as PeopleIcon,
-  Business as BusinessIcon,
-  Settings as SettingsIcon,
-  Email as EmailIcon,
-  Link as LinkIcon,
-  ExpandMore as ExpandMoreIcon,
-  LocationOn as LocationIcon,
-  AccountBalance as BankIcon,
-  Receipt as ComplianceIcon
+  Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
+  Visibility as VisibilityIcon, Search as SearchIcon,
+  CheckCircle as ActiveIcon, Cancel as InactiveIcon,
+  Refresh as RefreshIcon, TrendingUp as TrendingUpIcon,
+  People as PeopleIcon, Business as BusinessIcon,
+  Settings as SettingsIcon, Email as EmailIcon,
+  ContentCopy as CopyIcon, Close as CloseIcon,
+  MarkEmailRead as MailSentIcon, BarChart as BarChartIcon
 } from '@mui/icons-material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate } from 'react-router-dom';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as ChartTooltip,
-  Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  PieChart,
-  Pie,
-  Cell
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip as ChartTooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
+import {
+  getTenants, createTenant, updateTenantStatus,
+  deleteTenant, resendWelcomeEmail
+} from '../../services/tenantService';
 
-// Dummy data for tenants
-const DUMMY_TENANTS = [
-  {
-    _id: '1',
-    name: 'Acme Corporation',
-    domain: 'acme.example.com',
-    email: 'admin@acmecorp.com',
-    isActive: true,
-    createdAt: '2024-01-15T10:30:00Z',
-    updatedAt: '2024-03-01T14:20:00Z',
-    companyName: 'Acme Corporation Ltd.',
-    tradeName: 'Acme',
-    companyType: 'Private Limited',
-    industryType: 'Information Technology',
-    companySize: '201-500',
-    website: 'https://acmecorp.com',
-    registeredAddress: '123 Tech Park, Silicon Valley, California',
-    phone: '+1 (555) 123-4567',
-    contactPerson: 'John Smith'
-  },
-  {
-    _id: '2',
-    name: 'Tech Innovators Inc',
-    domain: 'techinnovators.example.com',
-    email: 'admin@techinnovators.com',
-    isActive: true,
-    createdAt: '2024-02-10T09:15:00Z',
-    updatedAt: '2024-03-05T11:45:00Z',
-    companyName: 'Tech Innovators Inc.',
-    tradeName: 'Tech Innovators',
-    companyType: 'LLP',
-    industryType: 'Software Services',
-    companySize: '51-200',
-    website: 'https://techinnovators.com',
-    registeredAddress: '456 Innovation Drive, Austin, Texas',
-    phone: '+1 (555) 987-6543',
-    contactPerson: 'Sarah Johnson'
-  },
-  {
-    _id: '3',
-    name: 'Global Enterprises',
-    domain: 'global.example.com',
-    email: 'admin@globalenterprises.com',
-    isActive: false,
-    createdAt: '2024-01-28T16:45:00Z',
-    updatedAt: '2024-02-20T10:10:00Z',
-    companyName: 'Global Enterprises Pvt. Ltd.',
-    tradeName: 'Global',
-    companyType: 'Private Limited',
-    industryType: 'Manufacturing',
-    companySize: '1000+',
-    website: 'https://globalenterprises.com',
-    registeredAddress: '789 Industrial Area, Detroit, Michigan',
-    phone: '+1 (555) 456-7890',
-    contactPerson: 'Robert Chen'
-  },
-  {
-    _id: '4',
-    name: 'Digital Solutions',
-    domain: 'digitalsolutions.example.com',
-    email: 'admin@digitalsolutions.com',
-    isActive: true,
-    createdAt: '2024-03-01T08:20:00Z',
-    updatedAt: '2024-03-10T15:30:00Z',
-    companyName: 'Digital Solutions LLC',
-    tradeName: 'Digital Solutions',
-    companyType: 'LLC',
-    industryType: 'Digital Marketing',
-    companySize: '11-50',
-    website: 'https://digitalsolutions.com',
-    registeredAddress: '101 Digital Avenue, San Francisco, California',
-    phone: '+1 (555) 234-5678',
-    contactPerson: 'Emma Wilson'
-  },
-  {
-    _id: '5',
-    name: 'Medical Research Group',
-    domain: 'medicalresearch.example.com',
-    email: 'admin@medicalresearch.com',
-    isActive: true,
-    createdAt: '2024-02-15T13:10:00Z',
-    updatedAt: '2024-03-08T09:25:00Z',
-    companyName: 'Medical Research Group Inc.',
-    tradeName: 'MedResearch',
-    companyType: 'Public Limited',
-    industryType: 'Healthcare',
-    companySize: '501-1000',
-    website: 'https://medicalresearch.com',
-    registeredAddress: '222 Research Park, Boston, Massachusetts',
-    phone: '+1 (555) 345-6789',
-    contactPerson: 'Dr. Michael Brown'
-  },
-  {
-    _id: '6',
-    name: 'Eco Friendly Products',
-    domain: 'ecofriendly.example.com',
-    email: 'admin@ecofriendly.com',
-    isActive: false,
-    createdAt: '2024-02-05T11:55:00Z',
-    updatedAt: '2024-02-25T14:40:00Z',
-    companyName: 'Eco Friendly Products Co.',
-    tradeName: 'EcoFriendly',
-    companyType: 'Partnership',
-    industryType: 'Retail',
-    companySize: '1-10',
-    website: 'https://ecofriendlyproducts.com',
-    registeredAddress: '333 Green Street, Portland, Oregon',
-    phone: '+1 (555) 567-8901',
-    contactPerson: 'Lisa Miller'
-  },
-  {
-    _id: '7',
-    name: 'Financial Services Ltd',
-    domain: 'financialservices.example.com',
-    email: 'admin@financialservices.com',
-    isActive: true,
-    createdAt: '2024-01-20T14:25:00Z',
-    updatedAt: '2024-03-12T10:15:00Z',
-    companyName: 'Financial Services Limited',
-    tradeName: 'FinServe',
-    companyType: 'Private Limited',
-    industryType: 'Finance',
-    companySize: '201-500',
-    website: 'https://financialservices.com',
-    registeredAddress: '444 Wall Street, New York, New York',
-    phone: '+1 (555) 678-9012',
-    contactPerson: 'David Garcia'
-  },
-  {
-    _id: '8',
-    name: 'Educational Solutions',
-    domain: 'educationalsolutions.example.com',
-    email: 'admin@educationalsolutions.com',
-    isActive: true,
-    createdAt: '2024-03-05T09:40:00Z',
-    updatedAt: '2024-03-15T16:20:00Z',
-    companyName: 'Educational Solutions Inc.',
-    tradeName: 'EduSolutions',
-    companyType: 'NGO',
-    industryType: 'Education',
-    companySize: '51-200',
-    website: 'https://educationalsolutions.com',
-    registeredAddress: '555 Learning Lane, Chicago, Illinois',
-    phone: '+1 (555) 789-0123',
-    contactPerson: 'Jennifer Taylor'
-  }
-];
-
-// Mock API functions
-const getTenants = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        data: {
-          tenants: DUMMY_TENANTS
-        }
-      });
-    }, 500);
-  });
+/* ── Design tokens ────────────────────────────────────────────────────── */
+const T = {
+  navy:    '#0F172A',
+  slate:   '#334155',
+  muted:   '#64748B',
+  border:  '#E2E8F0',
+  bg:      '#F1F5F9',
+  card:    '#FFFFFF',
+  indigo:  '#4F46E5',
+  indigoL: '#818CF8',
+  emerald: '#10B981',
+  rose:    '#F43F5E',
+  amber:   '#F59E0B',
+  sky:     '#0EA5E9',
 };
 
-const createTenant = async (tenantData) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newTenant = {
-        _id: (DUMMY_TENANTS.length + 1).toString(),
-        name: tenantData.companyName,
-        domain: tenantData.companyName.toLowerCase().replace(/\s+/g, '') + '.example.com',
-        email: tenantData.email,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        ...tenantData
-      };
-      
-      DUMMY_TENANTS.unshift(newTenant);
-      
-      resolve({
-        status: 'success',
-        data: {
-          loginLink: `https://app.example.com/login/${tenantData.email}`
-        }
-      });
-    }, 1000);
-  });
+/* ── Stat Card ────────────────────────────────────────────────────────── */
+const StatCard = ({ title, value, icon, from, to, sub }) => (
+  <Card sx={{
+    p: 2.5, borderRadius: '20px', border: 'none', height: '100%',
+    background: `linear-gradient(135deg, ${from} 0%, ${to} 100%)`,
+    color: '#fff', position: 'relative', overflow: 'hidden',
+    boxShadow: `0 8px 28px ${from}55`,
+    transition: 'transform .22s, box-shadow .22s',
+    '&:hover': { transform: 'translateY(-3px)', boxShadow: `0 14px 36px ${from}77` },
+  }}>
+    <Box sx={{ position:'absolute', top:-28, right:-28, width:100, height:100, borderRadius:'50%', background:'rgba(255,255,255,0.10)' }} />
+    <Box sx={{ position:'relative', zIndex:1 }}>
+      <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:1.5 }}>
+        <Typography sx={{ fontSize:11, fontWeight:700, opacity:.8, letterSpacing:.8, textTransform:'uppercase' }}>{title}</Typography>
+        <Box sx={{ p:.7, borderRadius:'8px', background:'rgba(255,255,255,0.18)', display:'flex' }}>
+          {React.cloneElement(icon, { sx:{ fontSize:17 } })}
+        </Box>
+      </Box>
+      <Typography sx={{ fontSize:34, fontWeight:800, lineHeight:1, letterSpacing:-1, mb:1.2 }}>{value}</Typography>
+      <Box sx={{ display:'flex', alignItems:'center', gap:.5 }}>
+        <TrendingUpIcon sx={{ fontSize:13, opacity:.7 }} />
+        <Typography sx={{ fontSize:11, opacity:.8 }}>{sub}</Typography>
+      </Box>
+    </Box>
+  </Card>
+);
+
+/* ── Chart Tooltip ────────────────────────────────────────────────────── */
+const CTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <Box sx={{ background:T.navy, borderRadius:'10px', p:'8px 14px', boxShadow:'0 4px 20px rgba(0,0,0,.3)' }}>
+      <Typography sx={{ color:'#fff', fontSize:11, fontWeight:700, mb:.5 }}>{label}</Typography>
+      {payload.map((p,i) => (
+        <Typography key={i} sx={{ color:p.color, fontSize:11 }}>{p.name}: <b>{p.value}</b></Typography>
+      ))}
+    </Box>
+  );
 };
 
-const updateTenantStatus = async (tenantId, status) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const tenant = DUMMY_TENANTS.find(t => t._id === tenantId);
-      if (tenant) {
-        tenant.isActive = status;
-        tenant.updatedAt = new Date().toISOString();
-      }
-      resolve({ success: true });
-    }, 500);
-  });
+/* ── Shared input style ───────────────────────────────────────────────── */
+const inputSx = {
+  '& .MuiOutlinedInput-root': { borderRadius:'10px', background:'#F8FAFC', fontSize:14 },
+  '& .MuiInputLabel-root': { fontSize:14 },
+  '& .MuiOutlinedInput-notchedOutline': { borderColor: T.border },
 };
 
-const deleteTenant = async (tenantId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const index = DUMMY_TENANTS.findIndex(t => t._id === tenantId);
-      if (index > -1) {
-        DUMMY_TENANTS.splice(index, 1);
-      }
-      resolve({ success: true });
-    }, 500);
-  });
-};
-
-const resendWelcomeEmail = async (tenantId) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const tenant = DUMMY_TENANTS.find(t => t._id === tenantId);
-      resolve({
-        data: {
-          loginLink: `https://app.example.com/login/${tenant?.email}`
-        }
-      });
-    }, 500);
-  });
-};
-
+/* ════════════════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+════════════════════════════════════════════════════════════════════════ */
 const SuperAdminDashboard = () => {
-  const theme = useTheme();
-  const [tenants, setTenants] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [tenantToDelete, setTenantToDelete] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [timeFilter, setTimeFilter] = useState('month');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [refreshing, setRefreshing] = useState(false);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [formErrors, setFormErrors] = useState({});
-  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
-  const [newTenantLink, setNewTenantLink] = useState('');
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [viewTenantDialogOpen, setViewTenantDialogOpen] = useState(false);
-  const [selectedTenant, setSelectedTenant] = useState(null);
-  const [expandedAccordion, setExpandedAccordion] = useState('basic');
   const navigate = useNavigate();
 
-  // Initialize new tenant with all fields
-  const [newTenant, setNewTenant] = useState({
-    // Basic Information
-    companyName: '',
-    tradeName: '',
-    companyType: '',
-    industryType: '',
-    companySize: '',
-    website: '',
-    
-    // Contact Information
-    registeredAddress: '',
-    corporateAddress: '',
-    state: '',
-    city: '',
-    pincode: '',
-    email: '',
-    phone: '',
-    contactPerson: '',
-    
-    // Statutory Information
-    pan: '',
-    gstin: '',
-    cin: '',
-    tan: '',
-    msmeUdyam: '',
-    shopEstablishment: '',
-    pfRegistration: '',
-    esiRegistration: '',
-    
-    // Banking & Billing
-    bankName: '',
-    accountHolderName: '',
-    accountNumber: '',
-    ifscCode: '',
-    billingAddress: '',
-    billingEmail: '',
-    gstBillingState: '',
-    
-    // Admin credentials
-    adminPassword: ''
-  });
+  /* ── State ──────────────────────────────────────────────────────── */
+  const [tenants,        setTenants]        = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [error,          setError]          = useState(null);
+  const [refreshing,     setRefreshing]     = useState(false);
+  const [searchTerm,     setSearchTerm]     = useState('');
+  const [statusFilter,   setStatusFilter]   = useState('all');
+  const [snackbar,       setSnackbar]       = useState({ open:false, message:'', severity:'success' });
 
-  // Handle accordion expansion
-  const handleAccordionChange = (panel) => (event, isExpanded) => {
-    setExpandedAccordion(isExpanded ? panel : false);
-  };
+  const [addOpen,        setAddOpen]        = useState(false);
+  const [successOpen,    setSuccessOpen]    = useState(false);
+  const [viewOpen,       setViewOpen]       = useState(false);
+  const [deleteOpen,     setDeleteOpen]     = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState(null);
+  const [tenantToDelete, setTenantToDelete] = useState(null);
+  const [successData,    setSuccessData]    = useState(null);
 
-  // Generate real-time data from tenants
-  const generateActivityData = () => {
-    const now = new Date();
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    return months.slice(0, 6).map((month, index) => {
-      const monthIndex = (now.getMonth() - 5 + index + 12) % 12;
-      const activeCount = tenants.filter(t => {
-        const created = new Date(t.createdAt);
-        return created.getMonth() === monthIndex && t.isActive;
-      }).length;
-      
-      const inactiveCount = tenants.filter(t => {
-        const created = new Date(t.createdAt);
-        return created.getMonth() === monthIndex && !t.isActive;
-      }).length;
-      
-      return {
-        name: months[monthIndex],
-        active: activeCount,
-        inactive: inactiveCount
-      };
-    });
-  };
+  const emptyForm = { name:'', domain:'', email:'', adminPassword:'' };
+  const [form,       setForm]       = useState(emptyForm);
+  const [formErrors, setFormErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
-  const statusData = [
-    { name: 'Active', value: tenants.filter(t => t.isActive).length },
-    { name: 'Inactive', value: tenants.filter(t => !t.isActive).length },
-  ];
-
-  const COLORS = [theme.palette.success.main, theme.palette.error.main];
-
+  /* ── Fetch ──────────────────────────────────────────────────────── */
   const fetchTenants = async () => {
     try {
       setLoading(true);
-      const response = await getTenants();
-      setTenants(response.data.tenants || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+      const r = await getTenants();
+      setTenants(r.data.tenants || []);
+    } catch(e) { setError(e.message); }
+    finally { setLoading(false); setRefreshing(false); }
   };
+  useEffect(() => { fetchTenants(); }, []);
 
-  useEffect(() => {
-    fetchTenants();
-  }, []);
+  const handleRefresh = () => { setRefreshing(true); fetchTenants(); };
 
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchTenants();
-  };
+  /* ── Derived ────────────────────────────────────────────────────── */
+  const activeCount   = tenants.filter(t => t.isActive).length;
+  const inactiveCount = tenants.filter(t => !t.isActive).length;
+  const total         = tenants.length;
 
-  const filteredTenants = tenants.filter(tenant => {
-    const matchesSearch = tenant.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         tenant.domain.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tenant.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || 
-                        (statusFilter === 'active' && tenant.isActive) || 
-                        (statusFilter === 'inactive' && !tenant.isActive);
-    return matchesSearch && matchesStatus;
+  const filtered = tenants.filter(t => {
+    const s   = searchTerm.toLowerCase();
+    const ms  = t.name?.toLowerCase().includes(s) || t.domain?.toLowerCase().includes(s);
+    const mst = statusFilter === 'all'
+              || (statusFilter === 'active'   && t.isActive)
+              || (statusFilter === 'inactive' && !t.isActive);
+    return ms && mst;
   });
 
-  const totalTenants = tenants.length;
-  const activeTenants = tenants.filter(t => t.isActive).length;
-  const inactiveTenants = tenants.filter(t => !t.isActive).length;
+  const activityData = (() => {
+    const now    = new Date();
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return Array.from({ length:6 }, (_,idx) => {
+      const mIdx = (now.getMonth() - 5 + idx + 12) % 12;
+      return {
+        name:     months[mIdx],
+        active:   tenants.filter(t => new Date(t.createdAt).getMonth()===mIdx &&  t.isActive).length,
+        inactive: tenants.filter(t => new Date(t.createdAt).getMonth()===mIdx && !t.isActive).length,
+      };
+    });
+  })();
 
-  const handleEditTenant = (tenantId) => {
-    navigate(`/superadmin/tenants/edit/${tenantId}`);
+  const pieData  = [{ name:'Active', value:activeCount }, { name:'Inactive', value:inactiveCount }];
+  const PIE_CLR  = [T.emerald, T.rose];
+
+  /* ── Helpers ────────────────────────────────────────────────────── */
+  const toast = (message, severity='success') => setSnackbar({ open:true, message, severity });
+  const copy  = text => navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard!'));
+
+  /* ── Tenant actions ─────────────────────────────────────────────── */
+  const toggleStatus = async (id, cur) => {
+    try {
+      await updateTenantStatus(id, !cur);
+      setTenants(ts => ts.map(t => t._id===id ? { ...t, isActive:!cur } : t));
+      toast(`Tenant ${!cur ? 'activated' : 'deactivated'}`);
+    } catch { toast('Failed to update status', 'error'); }
   };
 
-  const handleViewTenant = (tenant) => {
-    setSelectedTenant(tenant);
-    setViewTenantDialogOpen(true);
-  };
-
-  const confirmDelete = (tenant) => {
-    setTenantToDelete(tenant);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleDeleteTenant = async () => {
+  const handleDelete = async () => {
     try {
       await deleteTenant(tenantToDelete._id);
-      setDeleteDialogOpen(false);
-      setTenants(tenants.filter(t => t._id !== tenantToDelete._id));
-      setSnackbar({ open: true, message: 'Tenant deleted successfully', severity: 'success' });
-    } catch (err) {
-      setError(err.message);
-      setSnackbar({ open: true, message: 'Failed to delete tenant', severity: 'error' });
-    }
+      setTenants(ts => ts.filter(t => t._id !== tenantToDelete._id));
+      setDeleteOpen(false);
+      toast('Tenant deleted successfully');
+    } catch { toast('Failed to delete tenant', 'error'); }
   };
 
-  const toggleStatus = async (tenantId, currentStatus) => {
+  const handleResendEmail = async (tenant) => {
     try {
-      await updateTenantStatus(tenantId, !currentStatus);
-      setTenants(tenants.map(tenant => 
-        tenant._id === tenantId ? { ...tenant, isActive: !currentStatus } : tenant
-      ));
-      setSnackbar({ open: true, message: `Tenant ${!currentStatus ? 'activated' : 'deactivated'} successfully`, severity: 'success' });
-    } catch (err) {
-      setError(err.message);
-      setSnackbar({ open: true, message: 'Failed to update tenant status', severity: 'error' });
-    }
+      await resendWelcomeEmail(tenant._id);
+      toast('Welcome email resent!');
+    } catch { toast('Failed to resend email', 'error'); }
   };
 
-  const handleAddDialogOpen = () => {
-    setAddDialogOpen(true);
-    setExpandedAccordion('basic');
+  /* ── Form ───────────────────────────────────────────────────────── */
+  const handleInput = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+
+  const validate = () => {
+    const e = {};
+    if (!form.name.trim())          e.name          = 'Organisation name is required';
+    if (!form.domain.trim())        e.domain        = 'Domain is required';
+    if (!form.email.trim())         e.email         = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email address';
+    if (!form.adminPassword)        e.adminPassword = 'Password is required';
+    else if (form.adminPassword.length < 8) e.adminPassword = 'Minimum 8 characters';
+    setFormErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleAddDialogClose = () => {
-    setAddDialogOpen(false);
-    setNewTenant({
-      companyName: '',
-      tradeName: '',
-      companyType: '',
-      industryType: '',
-      companySize: '',
-      website: '',
-      registeredAddress: '',
-      corporateAddress: '',
-      state: '',
-      city: '',
-      pincode: '',
-      email: '',
-      phone: '',
-      contactPerson: '',
-      pan: '',
-      gstin: '',
-      cin: '',
-      tan: '',
-      msmeUdyam: '',
-      shopEstablishment: '',
-      pfRegistration: '',
-      esiRegistration: '',
-      bankName: '',
-      accountHolderName: '',
-      accountNumber: '',
-      ifscCode: '',
-      billingAddress: '',
-      billingEmail: '',
-      gstBillingState: '',
-      adminPassword: ''
-    });
-    setFormErrors({});
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewTenant(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const validateForm = () => {
-    const errors = {};
-    
-    // Basic Information validation
-    if (!newTenant.companyName.trim()) errors.companyName = 'Company Name is required';
-    if (!newTenant.companyType) errors.companyType = 'Company Type is required';
-    if (!newTenant.industryType) errors.industryType = 'Industry Type is required';
-    if (!newTenant.companySize) errors.companySize = 'Company Size is required';
-    
-    // Contact Information validation
-    if (!newTenant.email.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newTenant.email)) {
-      errors.email = 'Email is invalid';
-    }
-    if (!newTenant.phone.trim()) errors.phone = 'Phone is required';
-    if (!newTenant.registeredAddress.trim()) errors.registeredAddress = 'Registered Address is required';
-    if (!newTenant.state.trim()) errors.state = 'State is required';
-    if (!newTenant.city.trim()) errors.city = 'City is required';
-    if (!newTenant.pincode.trim()) errors.pincode = 'Pincode is required';
-    
-    // Admin password validation
-    if (!newTenant.adminPassword) {
-      errors.adminPassword = 'Password is required';
-    } else if (newTenant.adminPassword.length < 8) {
-      errors.adminPassword = 'Password must be at least 8 characters';
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (validateForm()) {
-      try {
-        const response = await createTenant(newTenant);
-        
-        if (response.status === 'success') {
-          setSnackbar({ 
-            open: true, 
-            message: 'Tenant created successfully. Welcome email sent!', 
-            severity: 'success' 
-          });
-          
-          // Show welcome dialog with login link
-          setNewTenantLink(response.data.loginLink);
-          setShowWelcomeDialog(true);
-        } else if (response.status === 'partial_success') {
-          setSnackbar({ 
-            open: true, 
-            message: 'Tenant created but welcome email failed to send', 
-            severity: 'warning' 
-          });
-          
-          // Show dialog with manual link
-          setNewTenantLink(response.data.loginLink);
-          setShowWelcomeDialog(true);
-        }
-        
-        handleAddDialogClose();
-        fetchTenants();
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to create tenant');
-        setSnackbar({ open: true, message: 'Failed to create tenant', severity: 'error' });
-      }
-    }
-  };
-
-  const handleResendWelcomeEmail = async (tenant) => {
+  const handleSubmit = async (ev) => {
+    ev.preventDefault();
+    if (!validate()) return;
+    setSubmitting(true);
     try {
-      const response = await resendWelcomeEmail(tenant._id);
-      setSnackbar({ 
-        open: true, 
-        message: 'Welcome email resent successfully', 
-        severity: 'success' 
+      const res = await createTenant(form);
+      setAddOpen(false);
+      setSuccessData({
+        name:      form.name,
+        email:     form.email,
+        domain:    form.domain,
+        loginLink: res?.data?.loginLink || `https://${form.domain}/login`,
       });
-      setNewTenantLink(response.data.loginLink);
-      setShowWelcomeDialog(true);
-      
-      // Open email client with pre-filled email
-      window.location.href = `mailto:${tenant.email}?subject=Welcome to Our Platform&body=Hello, here is your login link: ${response.data.loginLink}`;
-    } catch (err) {
-      console.error('Error resending welcome email:', err);
-      setSnackbar({ 
-        open: true, 
-        message: 'Failed to resend welcome email', 
-        severity: 'error' 
-      });
-    }
+      setForm(emptyForm);
+      setFormErrors({});
+      setSuccessOpen(true);
+      fetchTenants();
+    } catch(err) {
+      toast(err?.response?.data?.message || 'Failed to create organisation', 'error');
+    } finally { setSubmitting(false); }
   };
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setSnackbar({ open: true, message: 'Link copied to clipboard', severity: 'success' });
-    });
-  };
-
-  if (loading && !refreshing) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress size={60} />
+  /* ── Guard states ───────────────────────────────────────────────── */
+  if (loading && !refreshing) return (
+    <Box sx={{ display:'flex', justifyContent:'center', alignItems:'center', minHeight:'80vh', background:T.bg }}>
+      <Box textAlign="center">
+        <CircularProgress size={44} sx={{ color:T.indigo, mb:2 }} />
+        <Typography sx={{ color:T.muted, fontSize:13 }}>Loading dashboard…</Typography>
       </Box>
-    );
-  }
+    </Box>
+  );
+  if (error) return (
+    <Alert severity="error" sx={{ m:3, borderRadius:'14px' }} onClose={() => setError(null)}>{error}</Alert>
+  );
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mb: 3, mx: 3 }} onClose={() => setError(null)}>
-        {error}
-      </Alert>
-    );
-  }
-
+  /* ══════════════════════════════════════════════════════════════════
+     RENDER
+  ════════════════════════════════════════════════════════════════════ */
   return (
-    <Box sx={{ 
-      p: { xs: 1, sm: 2, md: 3 },
-      minHeight: '100vh',
-      backgroundColor: theme.palette.background.default,
-      width: '100%',
-      maxWidth: '100%',
-      overflowX: 'hidden',
-      boxSizing: 'border-box'
-    }}>
-      {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} flexWrap="wrap" gap={2}>
-        <Box>
-          <Typography variant="h4" fontWeight="700" color="text.primary" sx={{ mb: 0.5 }}>
-            Organization Management
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <BusinessIcon fontSize="small" />
-            Manage all admin accounts and configurations
-          </Typography>
+    <Box sx={{ minHeight:'100vh', background:T.bg, p:{ xs:1.5, sm:2.5, md:3 } }}>
+
+      {/* ── Header ─────────────────────────────────────────────────── */}
+      <Box sx={{
+        display:'flex', justifyContent:'space-between', alignItems:'center',
+        mb:3, flexWrap:'wrap', gap:1.5
+      }}>
+        <Box sx={{ display:'flex', alignItems:'center', gap:1.5 }}>
+          <Box sx={{ p:1, borderRadius:'12px', background:T.indigo, display:'flex', flexShrink:0 }}>
+            <BusinessIcon sx={{ color:'#fff', fontSize:22 }} />
+          </Box>
+          <Box>
+            <Typography sx={{
+              fontSize:{ xs:16, sm:20, md:23 }, fontWeight:800,
+              color:T.navy, lineHeight:1.2, letterSpacing:-.4
+            }}>
+              Organization Management
+            </Typography>
+            <Typography sx={{ fontSize:12, color:T.muted }}>
+              Manage tenants, credentials &amp; configurations
+            </Typography>
+          </Box>
         </Box>
-        <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-          <Button
-            variant="contained"
-            startIcon={<RefreshIcon />}
-            onClick={handleRefresh}
-            disabled={refreshing}
+        <Box sx={{ display:'flex', gap:1 }}>
+          <Button onClick={handleRefresh} disabled={refreshing}
+            startIcon={<RefreshIcon sx={{ fontSize:'16px !important' }} />}
             sx={{
-              backgroundColor: theme.palette.grey[200],
-              color: theme.palette.text.primary,
-              '&:hover': { backgroundColor: theme.palette.grey[300] }
-            }}
-          >
-            Refresh
+              borderRadius:'10px', textTransform:'none', fontWeight:600, fontSize:13,
+              color:T.slate, background:T.card, border:`1px solid ${T.border}`,
+              px:{ xs:1.5, sm:2 }, minWidth:0, '&:hover':{ background:T.bg }
+            }}>
+            <Box component="span" sx={{ display:{ xs:'none', sm:'inline' } }}>
+              {refreshing ? 'Refreshing…' : 'Refresh'}
+            </Box>
           </Button>
-          <Button
+          <Button onClick={() => setAddOpen(true)}
+            startIcon={<AddIcon sx={{ fontSize:'16px !important' }} />}
             variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleAddDialogOpen}
             sx={{
-              backgroundColor: theme.palette.primary.main,
-              color: 'white',
-              '&:hover': { backgroundColor: theme.palette.primary.dark },
-              boxShadow: theme.shadows[2]
-            }}
-          >
-            ADD ADMIN 
+              borderRadius:'10px', textTransform:'none', fontWeight:700, fontSize:13,
+              background:T.indigo, px:{ xs:1.5, sm:2.5 },
+              boxShadow:`0 4px 16px ${T.indigo}50`,
+              '&:hover':{ background:T.indigoL }
+            }}>
+            <Box component="span" sx={{ display:{ xs:'none', sm:'inline' } }}>Add Organisation</Box>
+            <Box component="span" sx={{ display:{ xs:'inline', sm:'none' } }}>Add</Box>
           </Button>
         </Box>
       </Box>
 
-      <Grid container spacing={3} width={'100%'} m={0}>
-        {/* Left Column - 70% width */}
-        <Grid item xs={12} lg={8} width={'100%'}>
-          {/* Stats Cards */}
-          <Grid container spacing={3} width={'100%'} sx={{ mb: 3 }}>
-            {[
-              { title: 'Total Tenants', value: totalTenants, color: 'primary', icon: <TrendingUpIcon />, trend: '+12% from last month' },
-              { title: 'Active Tenants', value: activeTenants, color: 'success', icon: <ActiveIcon />, trend: `${Math.round((activeTenants/totalTenants)*100)}% of total` },
-              { title: 'Inactive Tenants', value: inactiveTenants, color: 'error', icon: <InactiveIcon />, trend: `${Math.round((inactiveTenants/totalTenants)*100)}% of total` },
-              { title: 'Growth Rate', value: '+22%', color: 'warning', icon: <BarChartIcon />, trend: 'Quarterly increase' }
-            ].map((stat, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Card sx={{ 
-                  p: 2, height: '100%', borderRadius: 3,
-                  background: `linear-gradient(195deg, ${theme.palette[stat.color].main}, ${theme.palette[stat.color].dark})`,
-                  color: 'white', boxShadow: theme.shadows[4], position: 'relative', overflow: 'hidden',
-                  '&:before': {
-                    content: '""', position: 'absolute', top: '-50px', right: '-50px',
-                    width: '120px', height: '120px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)'
-                  }
-                }}>
-                  <Box position="relative" zIndex={1}>
-                    <Typography variant="body2" sx={{ opacity: 0.8 }}>{stat.title}</Typography>
-                    <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{stat.value}</Typography>
-                    <Box display="flex" alignItems="center">
-                      {stat.icon}
-                      <Typography variant="body2" sx={{ ml: 1 }}>{stat.trend}</Typography>
-                    </Box>
+      {/* ── Stat Cards ─────────────────────────────────────────────── */}
+      <Grid container spacing={{ xs:1.5, sm:2 }} sx={{ mb:2.5 }}>
+        {[
+          { title:'Total Tenants',    value:total,        icon:<PeopleIcon />,   from:'#4F46E5', to:'#7C3AED', sub:'All registered' },
+          { title:'Active Tenants',   value:activeCount,  icon:<ActiveIcon />,   from:'#059669', to:'#10B981', sub:`${Math.round((activeCount/Math.max(total,1))*100)}% of total` },
+          { title:'Inactive',         value:inactiveCount,icon:<InactiveIcon />, from:'#E11D48', to:'#F43F5E', sub:`${Math.round((inactiveCount/Math.max(total,1))*100)}% of total` },
+          { title:'Growth Rate',      value:'+22%',       icon:<BarChartIcon />, from:'#D97706', to:'#F59E0B', sub:'Quarterly increase' },
+        ].map((s,i) => (
+          <Grid key={i} item xs={6} sm={6} md={3}>
+            <StatCard {...s} />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* ── Main two-column grid ────────────────────────────────────── */}
+      <Grid container spacing={{ xs:2, sm:2.5 }}>
+
+        {/* ── Left column ─────────────────────────────────────────── */}
+        <Grid item xs={12} lg={8}>
+
+          {/* Charts */}
+          <Grid container spacing={{ xs:2, sm:2 }} sx={{ mb:2.5 }}>
+            <Grid item xs={12} md={7}>
+              <Card sx={{
+                p:2.5, borderRadius:'20px', border:`1px solid ${T.border}`,
+                boxShadow:'none', height:280
+              }}>
+                <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:1.5 }}>
+                  <Box>
+                    <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Tenant Activity</Typography>
+                    <Typography sx={{ fontSize:11, color:T.muted }}>Monthly active vs inactive</Typography>
                   </Box>
-                </Card>
-              </Grid>
-            ))}
+                  <Chip label="6 months" size="small"
+                    sx={{ fontSize:10, background:'#EEF2FF', color:T.indigo, fontWeight:700 }} />
+                </Box>
+                <ResponsiveContainer width="100%" height="80%">
+                  <AreaChart data={activityData} margin={{ left:-20, right:8 }}>
+                    <defs>
+                      <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor={T.emerald} stopOpacity={.28} />
+                        <stop offset="95%" stopColor={T.emerald} stopOpacity={0}  />
+                      </linearGradient>
+                      <linearGradient id="gI" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor={T.rose} stopOpacity={.28} />
+                        <stop offset="95%" stopColor={T.rose} stopOpacity={0}  />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
+                    <XAxis dataKey="name" tick={{ fill:T.muted, fontSize:10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill:T.muted, fontSize:10 }} axisLine={false} tickLine={false} />
+                    <ChartTooltip content={<CTooltip />} />
+                    <Area type="monotone" dataKey="active"   name="Active"   stroke={T.emerald} strokeWidth={2.5} fill="url(#gA)" />
+                    <Area type="monotone" dataKey="inactive" name="Inactive" stroke={T.rose}    strokeWidth={2.5} fill="url(#gI)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={5}>
+              <Card sx={{
+                p:2.5, borderRadius:'20px', border:`1px solid ${T.border}`,
+                boxShadow:'none', height:280
+              }}>
+                <Box sx={{ mb:1 }}>
+                  <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Status Distribution</Typography>
+                  <Typography sx={{ fontSize:11, color:T.muted }}>Current tenant states</Typography>
+                </Box>
+                {/* Legend manually rendered so colors are always correct */}
+                <Box sx={{ display:'flex', gap:2.5, mb:1 }}>
+                  {pieData.map((d,i) => (
+                    <Box key={d.name} sx={{ display:'flex', alignItems:'center', gap:.6 }}>
+                      <Box sx={{ width:8, height:8, borderRadius:'50%', background:PIE_CLR[i], flexShrink:0 }} />
+                      <Typography sx={{ fontSize:11, color:T.slate, fontWeight:500 }}>{d.name}: <b style={{ color:T.navy }}>{d.value}</b></Typography>
+                    </Box>
+                  ))}
+                </Box>
+                <ResponsiveContainer width="100%" height="75%">
+                  <PieChart margin={{ top:10, right:10, bottom:10, left:10 }}>
+                    <Pie
+                      data={pieData}
+                      cx="50%" cy="50%"
+                      innerRadius={42} outerRadius={60}
+                      paddingAngle={4}
+                      dataKey="value"
+                      isAnimationActive={true}
+                    >
+                      {pieData.map((_,i) => <Cell key={i} fill={PIE_CLR[i % PIE_CLR.length]} />)}
+                    </Pie>
+                    <ChartTooltip content={<CTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Card>
+            </Grid>
           </Grid>
 
-          {/* Search and Filter Row */}
-          <Card sx={{ p: 2, mb: 3, borderRadius: 3, boxShadow: theme.shadows[1], backgroundColor: theme.palette.background.paper }}>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth 
-                  placeholder="Search tenants by name or domain..."
-                  variant="outlined" 
-                  size="small" 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+          {/* Search & filter */}
+          <Card sx={{ p:2, mb:2, borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none' }}>
+            <Grid container spacing={1.5} alignItems="center">
+              <Grid item xs={12} sm={6}>
+                <TextField fullWidth size="small" placeholder="Search by name or domain…"
+                  value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><SearchIcon color="action" /></InputAdornment>,
-                    style: { borderRadius: 8, backgroundColor: theme.palette.background.default }
+                    startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color:T.muted, fontSize:17 }} /></InputAdornment>,
+                    sx: { borderRadius:'10px', background:T.bg, fontSize:13 }
                   }}
-                />
+                  sx={{ '& fieldset':{ borderColor:T.border } }} />
               </Grid>
-              <Grid item xs={6} md={3}>
+              <Grid item xs={6} sm={4}>
                 <FormControl fullWidth size="small">
-                  <InputLabel>Time Filter</InputLabel>
-                  <Select 
-                    value={timeFilter} 
-                    onChange={(e) => setTimeFilter(e.target.value)} 
-                    label="Time Filter" 
-                    sx={{ borderRadius: 8 }}
-                  >
-                    <MenuItem value="24h">Last 24 Hours</MenuItem>
-                    <MenuItem value="week">Last Week</MenuItem>
-                    <MenuItem value="month">Last Month</MenuItem>
-                    <MenuItem value="year">Last Year</MenuItem>
-                    <MenuItem value="all">All Time</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <FormControl fullWidth size="small">
-                  <InputLabel>Status Filter</InputLabel>
-                  <Select 
-                    value={statusFilter} 
-                    onChange={(e) => setStatusFilter(e.target.value)} 
-                    label="Status Filter" 
-                    sx={{ borderRadius: 8 }}
-                  >
+                  <InputLabel sx={{ fontSize:13 }}>Status</InputLabel>
+                  <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+                    label="Status" sx={{ borderRadius:'10px', fontSize:13, background:T.bg }}>
                     <MenuItem value="all">All Status</MenuItem>
-                    <MenuItem value="active">Active Only</MenuItem>
-                    <MenuItem value="inactive">Inactive Only</MenuItem>
+                    <MenuItem value="active">Active</MenuItem>
+                    <MenuItem value="inactive">Inactive</MenuItem>
                   </Select>
                 </FormControl>
+              </Grid>
+              <Grid item xs={6} sm={2} sx={{ textAlign:'right' }}>
+                <Typography sx={{ fontSize:12, color:T.muted }}>
+                  <b style={{ color:T.navy }}>{filtered.length}</b>/{total}
+                </Typography>
               </Grid>
             </Grid>
           </Card>
 
-          {/* Activity Charts */}
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={6}>
-              <Card sx={{ 
-                p: 3, 
-                height: { xs: 'auto', md: 320 }, 
-                minHeight: 320,
-                borderRadius: 3, 
-                boxShadow: theme.shadows[1], 
-                backgroundColor: theme.palette.background.paper 
-              }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6" fontWeight="600">Tenant Activity</Typography>
-                  <Box display="flex" alignItems="center">
-                    <Chip label="Monthly" size="small" sx={{ mr: 1, backgroundColor: theme.palette.action.selected }} />
-                    <IconButton size="small"><MoreIcon /></IconButton>
-                  </Box>
-                </Box>
-                <Box sx={{ width: '100%', height: { xs: 250, md: '85%' } }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={generateActivityData()}>
-                      <defs>
-                        <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={theme.palette.success.main} stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor={theme.palette.success.main} stopOpacity={0.1}/>
-                        </linearGradient>
-                        <linearGradient id="colorInactive" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={theme.palette.error.main} stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor={theme.palette.error.main} stopOpacity={0.1}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                      <XAxis dataKey="name" stroke={theme.palette.text.secondary} tickLine={false} axisLine={false} />
-                      <YAxis stroke={theme.palette.text.secondary} tickLine={false} axisLine={false} />
-                      <ChartTooltip 
-                        contentStyle={{ 
-                          borderRadius: 8, 
-                          backgroundColor: theme.palette.background.paper, 
-                          border: `1px solid ${theme.palette.divider}` 
-                        }} 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="active" 
-                        name="Active" 
-                        stroke={theme.palette.success.main} 
-                        strokeWidth={2} 
-                        fillOpacity={1} 
-                        fill="url(#colorActive)" 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="inactive" 
-                        name="Inactive" 
-                        stroke={theme.palette.error.main} 
-                        strokeWidth={2} 
-                        fillOpacity={1} 
-                        fill="url(#colorInactive)" 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </Box>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card sx={{ 
-                p: 3, 
-                height: { xs: 'auto', md: 320 }, 
-                minHeight: 320,
-                borderRadius: 3, 
-                boxShadow: theme.shadows[1], 
-                backgroundColor: theme.palette.background.paper 
-              }}>
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                  <Typography variant="h6" fontWeight="600">Status Distribution</Typography>
-                  <Box display="flex" alignItems="center">
-                    <Chip label="Current" size="small" sx={{ mr: 1, backgroundColor: theme.palette.action.selected }} />
-                    <IconButton size="small"><MoreIcon /></IconButton>
-                  </Box>
-                </Box>
-                <Box sx={{ width: '100%', height: { xs: 250, md: '85%' } }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie 
-                        data={statusData} 
-                        cx="50%" 
-                        cy="50%" 
-                        labelLine={false} 
-                        outerRadius={80} 
-                        fill="#8884d8" 
-                        dataKey="value" 
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {statusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip 
-                        contentStyle={{ 
-                          borderRadius: 8, 
-                          backgroundColor: theme.palette.background.paper, 
-                          border: `1px solid ${theme.palette.divider}` 
-                        }} 
-                      />
-                      <Legend 
-                        layout="horizontal" 
-                        verticalAlign="bottom" 
-                        align="center" 
-                        wrapperStyle={{ paddingTop: '20px' }} 
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Tenants Table */}
-          <Card sx={{ 
-            p: 0, 
-            borderRadius: 3, 
-            boxShadow: theme.shadows[1], 
-            backgroundColor: theme.palette.background.paper, 
-            overflow: 'hidden',
-            width: '100%'
-          }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" p={3} sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
-              <Typography variant="h6" fontWeight="600">Tenant List</Typography>
-              <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="body2" color="text.secondary">
-                  Showing {filteredTenants.length} of {tenants.length} tenants
-                </Typography>
-                <Chip 
-                  label={`${Math.round((filteredTenants.length/tenants.length)*100)}%`} 
-                  size="small" 
-                  sx={{ backgroundColor: theme.palette.action.selected, fontWeight: 500 }} 
-                />
-              </Box>
+          {/* Table */}
+          <Card sx={{ borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none', overflow:'hidden' }}>
+            <Box sx={{ px:2.5, py:1.8, borderBottom:`1px solid ${T.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Tenant List</Typography>
+              <Chip label={`${filtered.length} results`} size="small"
+                sx={{ fontSize:10, background:'#EEF2FF', color:T.indigo, fontWeight:700 }} />
             </Box>
-            <TableContainer sx={{ maxHeight: 500, overflow: 'auto' }}>
-              <Table stickyHeader>
+            <Box sx={{ overflowX:'auto' }}>
+              <Table sx={{ minWidth:520 }}>
                 <TableHead>
-                  <TableRow sx={{ backgroundColor: theme.palette.background.default }}>
-                    <TableCell sx={{ fontWeight: 600 }}>Tenant</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Domain</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Created</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
+                  <TableRow sx={{ background:T.bg }}>
+                    {['Tenant','Domain','Created','Status','Actions'].map((h,i) => (
+                      <TableCell key={h} align={i===4 ? 'right' : 'left'}
+                        sx={{
+                          fontWeight:700, fontSize:10, color:T.muted, textTransform:'uppercase',
+                          letterSpacing:.6, borderBottom:`1px solid ${T.border}`,
+                          py:1.2, px:i===0 ? 2.5 : 1.5, whiteSpace:'nowrap'
+                        }}>
+                        {h}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredTenants.map((tenant) => (
-                    <TableRow 
-                      key={tenant._id} 
-                      hover 
-                      sx={{ 
-                        '&:last-child td': { borderBottom: 0 }, 
-                        opacity: tenant.isActive ? 1 : 0.9, 
-                        '&:hover': { backgroundColor: theme.palette.action.hover } 
-                      }}
-                    >
-                      <TableCell>
-                        <Box display="flex" alignItems="center">
-                          <Badge 
-                            overlap="circular" 
-                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} 
-                            badgeContent={
-                              tenant.isActive ? (
-                                <ActiveIcon sx={{ 
-                                  color: theme.palette.success.main, 
-                                  fontSize: '1rem', 
-                                  backgroundColor: theme.palette.background.paper, 
-                                  borderRadius: '50%' 
-                                }} />
-                              ) : (
-                                <InactiveIcon sx={{ 
-                                  color: theme.palette.error.main, 
-                                  fontSize: '1rem', 
-                                  backgroundColor: theme.palette.background.paper, 
-                                  borderRadius: '50%' 
-                                }} />
-                              )
-                            }
-                          >
-                            <Avatar sx={{ 
-                              width: 40, 
-                              height: 40, 
-                              mr: 2, 
-                              boxShadow: theme.shadows[1], 
-                              backgroundColor: theme.palette.primary.main 
-                            }}>
-                              {tenant.name.charAt(0)}
-                            </Avatar>
-                          </Badge>
+                  {filtered.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py:6, color:T.muted, fontSize:13 }}>
+                        No tenants match your search
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {filtered.map(t => (
+                    <TableRow key={t._id} sx={{ '&:last-child td':{ border:0 }, '&:hover':{ background:'#F8FAFC' } }}>
+                      <TableCell sx={{ px:2.5, py:1.3 }}>
+                        <Box sx={{ display:'flex', alignItems:'center', gap:1.5 }}>
+                          <Avatar sx={{ width:34, height:34, background:T.indigo, fontSize:13, fontWeight:700 }}>
+                            {t.name?.charAt(0)}
+                          </Avatar>
                           <Box>
-                            <Typography fontWeight="600">{tenant.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">{tenant.email}</Typography>
+                            <Typography sx={{ fontWeight:600, fontSize:13, color:T.navy, lineHeight:1.3 }}>{t.name}</Typography>
+                            <Typography sx={{ fontSize:11, color:T.muted }}>{t.email}</Typography>
                           </Box>
                         </Box>
                       </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={tenant.domain} 
-                          size="small" 
-                          sx={{ 
-                            backgroundColor: theme.palette.grey[200], 
-                            fontWeight: 500, 
-                            '& .MuiChip-label': { px: 1.5 } 
-                          }} 
-                        />
+                      <TableCell sx={{ px:1.5, py:1.3 }}>
+                        <Chip label={t.domain} size="small"
+                          sx={{ fontSize:11, background:T.bg, color:T.slate, fontWeight:500, border:`1px solid ${T.border}` }} />
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {new Date(tenant.createdAt).toLocaleDateString()}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(tenant.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <TableCell sx={{ px:1.5, py:1.3 }}>
+                        <Typography sx={{ fontSize:12, color:T.navy, whiteSpace:'nowrap' }}>
+                          {new Date(t.createdAt).toLocaleDateString()}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Box display="flex" alignItems="center">
-                          <Tooltip title={tenant.isActive ? 'Active' : 'Inactive'}>
-                            <Switch 
-                              checked={tenant.isActive} 
-                              onChange={() => toggleStatus(tenant._id, tenant.isActive)} 
-                              color={tenant.isActive ? 'success' : 'error'} 
-                              sx={{ 
-                                '& .MuiSwitch-thumb': { 
-                                  backgroundColor: tenant.isActive ? theme.palette.success.main : theme.palette.error.main 
-                                } 
-                              }} 
-                            />
-                          </Tooltip>
-                          <Chip 
-                            label={tenant.isActive ? 'Active' : 'Inactive'} 
-                            size="small" 
-                            sx={{ 
-                              ml: 1, 
-                              backgroundColor: tenant.isActive ? theme.palette.success.light : theme.palette.error.light, 
-                              color: tenant.isActive ? theme.palette.success.dark : theme.palette.error.dark, 
-                              fontWeight: 500 
-                            }} 
-                          />
+                      <TableCell sx={{ px:1.5, py:1.3 }}>
+                        <Box sx={{ display:'flex', alignItems:'center', gap:.8 }}>
+                          <Switch checked={t.isActive} size="small" onChange={() => toggleStatus(t._id, t.isActive)}
+                            sx={{
+                              '& .MuiSwitch-thumb': { background: t.isActive ? T.emerald : T.rose },
+                              '& .MuiSwitch-track': { background: t.isActive ? `${T.emerald}40` : `${T.rose}40` }
+                            }} />
+                          <Chip label={t.isActive ? 'Active' : 'Inactive'} size="small"
+                            sx={{
+                              fontSize:10, fontWeight:700, px:.3,
+                              background: t.isActive ? '#D1FAE5' : '#FFE4E6',
+                              color:      t.isActive ? '#065F46' : '#9F1239'
+                            }} />
                         </Box>
                       </TableCell>
-                      <TableCell align="right">
-                        <Box display="flex" justifyContent="flex-end" gap={1} flexWrap="wrap">
-                          <Tooltip title="Resend Welcome Email">
-                            <IconButton 
-                              onClick={() => handleResendWelcomeEmail(tenant)} 
-                              size="small" 
-                              sx={{ 
-                                backgroundColor: theme.palette.action.hover, 
-                                color: theme.palette.info.main, 
-                                '&:hover': { backgroundColor: theme.palette.info.main, color: 'white' } 
-                              }}
-                            >
-                              <EmailIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="View Details">
-                            <IconButton 
-                              onClick={() => handleViewTenant(tenant)} 
-                              size="small" 
-                              sx={{ 
-                                backgroundColor: theme.palette.action.hover, 
-                                color: theme.palette.primary.main, 
-                                '&:hover': { backgroundColor: theme.palette.primary.main, color: 'white' } 
-                              }}
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Edit Tenant">
-                            <IconButton 
-                              onClick={() => handleEditTenant(tenant._id)} 
-                              size="small" 
-                              sx={{ 
-                                backgroundColor: theme.palette.action.hover, 
-                                color: theme.palette.secondary.main, 
-                                '&:hover': { backgroundColor: theme.palette.secondary.main, color: 'white' } 
-                              }}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete Tenant">
-                            <IconButton 
-                              onClick={() => confirmDelete(tenant)} 
-                              size="small" 
-                              sx={{ 
-                                backgroundColor: theme.palette.action.hover, 
-                                color: theme.palette.error.main, 
-                                '&:hover': { backgroundColor: theme.palette.error.main, color: 'white' } 
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                      <TableCell align="right" sx={{ px:1.5, py:1.3 }}>
+                        <Box sx={{ display:'flex', justifyContent:'flex-end', gap:.5 }}>
+                          {[
+                            { tip:'Resend Email', icon:<EmailIcon />,      color:T.sky,    fn:() => handleResendEmail(t)                          },
+                            { tip:'View Details', icon:<VisibilityIcon />, color:T.indigo, fn:() => { setSelectedTenant(t); setViewOpen(true); }   },
+                            { tip:'Edit',         icon:<EditIcon />,       color:T.amber,  fn:() => navigate(`/superadmin/tenants/edit/${t._id}`)  },
+                            { tip:'Delete',       icon:<DeleteIcon />,     color:T.rose,   fn:() => { setTenantToDelete(t); setDeleteOpen(true); } },
+                          ].map(a => (
+                            <Tooltip key={a.tip} title={a.tip} arrow>
+                              <IconButton onClick={a.fn} size="small"
+                                sx={{
+                                  borderRadius:'8px', p:.55, color:a.color, background:`${a.color}14`,
+                                  '&:hover':{ background:a.color, color:'#fff' }, transition:'all .15s'
+                                }}>
+                                {React.cloneElement(a.icon, { sx:{ fontSize:15 } })}
+                              </IconButton>
+                            </Tooltip>
+                          ))}
                         </Box>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </Box>
           </Card>
         </Grid>
 
-        {/* Right Column - 30% width */}
-        <Grid item xs={12} lg={4} width={'100%'}>
-          {/* Recent Activity */}
-          <Card sx={{ 
-            p: 0, 
-            mb: 3, 
-            borderRadius: 3, 
-            boxShadow: theme.shadows[1], 
-            backgroundColor: theme.palette.background.paper 
-          }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" p={3} sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
-              <Typography variant="h6" fontWeight="600">Recent Activity</Typography>
-              <IconButton size="small"><MoreIcon /></IconButton>
-            </Box>
-            <Box sx={{ maxHeight: 300, overflowY: 'auto', p: 2 }}>
-              {[
-                { time: '1h ago', action: 'Created new tenant "Acme Corp"', user: 'Admin' },
-                { time: '2h ago', action: 'Updated settings for "Tech Solutions"', user: 'Super Admin' },
-                { time: '3h ago', action: 'Deactivated tenant "Global Enterprises"', user: 'Admin' },
-                { time: '4h ago', action: 'Logged in to dashboard', user: 'System' },
-                { time: '5h ago', action: 'Generated monthly report', user: 'Admin' },
-                { time: '6h ago', action: 'Added new admin user', user: 'Super Admin' },
-                { time: '7h ago', action: 'Changed password', user: 'User' },
-                { time: '8h ago', action: 'Viewed tenant details', user: 'Admin' }
-              ].map((item, index) => (
-                <Box 
-                  key={index} 
-                  sx={{ 
-                    mb: 2, 
-                    p: 2, 
-                    borderRadius: 2, 
-                    backgroundColor: theme.palette.background.default, 
-                    transition: 'all 0.2s', 
-                    '&:hover': { transform: 'translateY(-2px)', boxShadow: theme.shadows[1] } 
-                  }}
-                >
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <Avatar sx={{ 
-                      width: 32, 
-                      height: 32, 
-                      mr: 1.5, 
-                      backgroundColor: theme.palette.primary.main, 
-                      color: 'white' 
-                    }}>
-                      {item.user.charAt(0)}
-                    </Avatar>
-                    <Typography variant="body2" fontWeight="500">{item.user}</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
-                      {item.time}
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    {item.action}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          </Card>
+        {/* ── Right sidebar ───────────────────────────────────────── */}
+        <Grid item xs={12} lg={4}>
+          <Box sx={{ display:'flex', flexDirection:{ xs:'column', sm:'row', lg:'column' }, gap:2 }}>
 
-          {/* Latest Tenants */}
-          <Card sx={{ 
-            p: 0, 
-            mb: 3, 
-            borderRadius: 3, 
-            boxShadow: theme.shadows[1], 
-            backgroundColor: theme.palette.background.paper 
-          }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" p={3} sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
-              <Typography variant="h6" fontWeight="600">Latest Tenants</Typography>
-              <IconButton size="small"><MoreIcon /></IconButton>
-            </Box>
-            <Box sx={{ maxHeight: 300, overflowY: 'auto', p: 2 }}>
-              {tenants.slice(0, 5).map((tenant) => (
-                <Box 
-                  key={tenant._id} 
-                  sx={{ 
-                    mb: 2, 
-                    p: 2, 
-                    borderRadius: 2, 
-                    backgroundColor: theme.palette.background.default, 
-                    transition: 'all 0.2s', 
-                    '&:hover': { transform: 'translateY(-2px)', boxShadow: theme.shadows[1] } 
-                  }}
-                >
-                  <Box display="flex" alignItems="center" mb={1}>
-                    <Badge 
-                      overlap="circular" 
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} 
-                      badgeContent={
-                        tenant.isActive ? (
-                          <ActiveIcon sx={{ 
-                            color: theme.palette.success.main, 
-                            fontSize: '0.8rem', 
-                            backgroundColor: theme.palette.background.paper, 
-                            borderRadius: '50%' 
-                          }} />
-                        ) : (
-                          <InactiveIcon sx={{ 
-                            color: theme.palette.error.main, 
-                            fontSize: '0.8rem', 
-                            backgroundColor: theme.palette.background.paper, 
-                            borderRadius: '50%' 
-                          }} />
-                        )
-                      }
-                    >
-                      <Avatar sx={{ 
-                        width: 40, 
-                        height: 40, 
-                        mr: 2, 
-                        boxShadow: theme.shadows[1], 
-                        backgroundColor: theme.palette.primary.main, 
-                        color: 'white' 
-                      }}>
-                        {tenant.name.charAt(0)}
-                      </Avatar>
-                    </Badge>
-                    <Box flexGrow={1}>
-                      <Typography fontWeight="600">{tenant.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">{tenant.domain}</Typography>
+            {/* Recent Activity */}
+            <Card sx={{ flex:1, borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none', overflow:'hidden' }}>
+              <Box sx={{ px:2.5, py:1.8, borderBottom:`1px solid ${T.border}` }}>
+                <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Recent Activity</Typography>
+              </Box>
+              <Box sx={{ maxHeight:{ xs:200, lg:290 }, overflowY:'auto', p:1.5, display:'flex', flexDirection:'column', gap:.8 }}>
+                {[
+                  "Created new tenant 'Acme Corp'",
+                  "Updated 'Tech Solutions' settings",
+                  "Deactivated 'Global Enterprises'",
+                  "Admin logged in to dashboard",
+                  "Generated monthly report",
+                  "Added new admin user",
+                  "Password changed successfully",
+                  "Viewed tenant details",
+                ].map((msg,i) => (
+                  <Box key={i} sx={{ display:'flex', gap:1.2, p:1.2, borderRadius:'10px', background:T.bg }}>
+                    <Avatar sx={{ width:28, height:28, background:T.indigo, fontSize:11, flexShrink:0 }}>U</Avatar>
+                    <Box sx={{ flex:1, minWidth:0 }}>
+                      <Box sx={{ display:'flex', justifyContent:'space-between' }}>
+                        <Typography sx={{ fontSize:11, fontWeight:600, color:T.navy }}>System</Typography>
+                        <Typography sx={{ fontSize:10, color:T.muted }}>{i+1}h ago</Typography>
+                      </Box>
+                      <Typography sx={{ fontSize:11, color:T.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        {msg}
+                      </Typography>
                     </Box>
-                    <Chip 
-                      label={tenant.isActive ? 'Active' : 'Inactive'} 
-                      size="small" 
-                      sx={{
-                        backgroundColor: tenant.isActive ? theme.palette.success.light : theme.palette.error.light,
-                        color: tenant.isActive ? theme.palette.success.dark : theme.palette.error.dark, 
-                        fontWeight: 500
-                      }} 
-                    />
                   </Box>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="caption" color="text.secondary">
-                      Created: {new Date(tenant.createdAt).toLocaleDateString()}
-                    </Typography>
-                    <Button 
-                      size="small" 
-                      onClick={() => handleViewTenant(tenant)} 
-                      sx={{ 
-                        textTransform: 'none', 
-                        color: theme.palette.primary.main, 
-                        fontWeight: 500 
-                      }}
-                    >
-                      View Details
-                    </Button>
-                  </Box>
-                </Box>
-              ))}
-            </Box>
-          </Card>
+                ))}
+              </Box>
+            </Card>
 
-          {/* Quick Actions */}
-          <Card sx={{ 
-            p: 0, 
-            borderRadius: 3, 
-            boxShadow: theme.shadows[1], 
-            backgroundColor: theme.palette.background.paper 
-          }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" p={3} sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
-              <Typography variant="h6" fontWeight="600">Quick Actions</Typography>
-              <IconButton size="small"><MoreIcon /></IconButton>
-            </Box>
-            <Grid container spacing={1} sx={{ p: 2 }}>
-              <Grid item xs={6}>
-                <Button 
-                  fullWidth 
-                  variant="contained" 
-                  startIcon={<AddIcon />} 
-                  onClick={handleAddDialogOpen} 
-                  sx={{ 
-                    mb: 1, 
-                    py: 1.5, 
-                    borderRadius: 2, 
-                    backgroundColor: theme.palette.primary.main, 
-                    '&:hover': { backgroundColor: theme.palette.primary.dark }, 
-                    boxShadow: theme.shadows[1] 
-                  }}
-                >
-                  Add Tenant
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <Button 
-                  fullWidth 
-                  variant="outlined" 
-                  startIcon={<FilterIcon />} 
-                  sx={{ 
-                    mb: 1, 
-                    py: 1.5, 
-                    borderRadius: 2, 
-                    borderColor: theme.palette.divider, 
-                    '&:hover': { backgroundColor: theme.palette.action.hover, borderColor: theme.palette.primary.main } 
-                  }}
-                >
-                  Filter
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <Button 
-                  fullWidth 
-                  variant="outlined" 
-                  startIcon={<SettingsIcon />} 
-                  sx={{ 
-                    py: 1.5, 
-                    borderRadius: 2, 
-                    borderColor: theme.palette.divider, 
-                    '&:hover': { backgroundColor: theme.palette.action.hover, borderColor: theme.palette.primary.main } 
-                  }}
-                >
-                  Settings
-                </Button>
-              </Grid>
-              <Grid item xs={6}>
-                <Button 
-                  fullWidth 
-                  variant="outlined" 
-                  startIcon={<PeopleIcon />} 
-                  sx={{ 
-                    py: 1.5, 
-                    borderRadius: 2, 
-                    borderColor: theme.palette.divider, 
-                    '&:hover': { backgroundColor: theme.palette.action.hover, borderColor: theme.palette.primary.main } 
-                  }}
-                >
-                  Users
-                </Button>
-              </Grid>
-            </Grid>
-          </Card>
+            {/* Latest Tenants */}
+            <Card sx={{ flex:1, borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none', overflow:'hidden' }}>
+              <Box sx={{ px:2.5, py:1.8, borderBottom:`1px solid ${T.border}` }}>
+                <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Latest Tenants</Typography>
+              </Box>
+              <Box sx={{ maxHeight:{ xs:200, lg:290 }, overflowY:'auto', p:1.5, display:'flex', flexDirection:'column', gap:.8 }}>
+                {tenants.slice(0,6).map(t => (
+                  <Box key={t._id} sx={{ display:'flex', alignItems:'center', gap:1.2, p:1.2, borderRadius:'10px', background:T.bg }}>
+                    <Avatar sx={{ width:32, height:32, background:T.indigo, fontSize:12, fontWeight:700, flexShrink:0 }}>
+                      {t.name?.charAt(0)}
+                    </Avatar>
+                    <Box sx={{ flex:1, minWidth:0 }}>
+                      <Typography sx={{ fontSize:12, fontWeight:600, color:T.navy, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
+                        {t.name}
+                      </Typography>
+                      <Typography sx={{ fontSize:10, color:T.muted }}>{t.domain}</Typography>
+                    </Box>
+                    <Box sx={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:.4, flexShrink:0 }}>
+                      <Chip label={t.isActive ? 'Active' : 'Inactive'} size="small"
+                        sx={{
+                          fontSize:9, fontWeight:700, height:16, px:.2,
+                          background: t.isActive ? '#D1FAE5' : '#FFE4E6',
+                          color:      t.isActive ? '#065F46' : '#9F1239'
+                        }} />
+                      <Button size="small" onClick={() => { setSelectedTenant(t); setViewOpen(true); }}
+                        sx={{ fontSize:10, textTransform:'none', color:T.indigo, p:0, minWidth:'auto', fontWeight:600, lineHeight:1 }}>
+                        View
+                      </Button>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card sx={{ borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none', overflow:'hidden' }}>
+              <Box sx={{ px:2.5, py:1.8, borderBottom:`1px solid ${T.border}` }}>
+                <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Quick Actions</Typography>
+              </Box>
+              <Box sx={{ p:1.5, display:'grid', gridTemplateColumns:'1fr 1fr', gap:1 }}>
+                {[
+                  { label:'Add Tenant', icon:<AddIcon />,      variant:'filled',  fn:() => setAddOpen(true) },
+                  { label:'Settings',   icon:<SettingsIcon />, variant:'outline', fn:()=>{} },
+                  { label:'Users',      icon:<PeopleIcon />,   variant:'outline', fn:()=>{} },
+                  { label:'Reports',    icon:<BarChartIcon />, variant:'outline', fn:()=>{} },
+                ].map(a => (
+                  <Button key={a.label} onClick={a.fn}
+                    startIcon={React.cloneElement(a.icon, { sx:{ fontSize:'15px !important' } })} fullWidth
+                    sx={{
+                      borderRadius:'10px', textTransform:'none', fontWeight:600, fontSize:12, py:1.1,
+                      ...(a.variant === 'filled'
+                        ? { background:T.indigo, color:'#fff', boxShadow:`0 3px 10px ${T.indigo}40`, '&:hover':{ background:T.indigoL } }
+                        : { background:T.bg, color:T.slate, border:`1px solid ${T.border}`, '&:hover':{ background:T.border } })
+                    }}>
+                    {a.label}
+                  </Button>
+                ))}
+              </Box>
+            </Card>
+
+          </Box>
         </Grid>
       </Grid>
 
-      {/* Add Tenant Dialog */}
-      <Dialog 
-        open={addDialogOpen} 
-        onClose={handleAddDialogClose} 
-        maxWidth="md" 
-        fullWidth 
-        PaperProps={{ sx: { borderRadius: 3, p: 3, maxHeight: '90vh' } }}
-      >
-        <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 3 }}>Register New Company</DialogTitle>
-        
+      {/* ════════════════════════════════════════════════════════════════
+          ADD ORGANISATION DIALOG  (4 fields: name, domain, email, pwd)
+      ════════════════════════════════════════════════════════════════ */}
+      <Dialog
+        open={addOpen}
+        onClose={() => { setAddOpen(false); setForm(emptyForm); setFormErrors({}); }}
+        maxWidth="xs" fullWidth
+        PaperProps={{ sx:{ borderRadius:'24px', overflow:'hidden', p:0 } }}>
+
+        {/* Gradient header */}
+        <Box sx={{
+          background:`linear-gradient(135deg, ${T.indigo} 0%, #7C3AED 100%)`,
+          px:3, pt:3, pb:2.5
+        }}>
+          <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+            <Box sx={{ display:'flex', alignItems:'center', gap:1.5 }}>
+              <Box sx={{ p:.9, borderRadius:'12px', background:'rgba(255,255,255,0.18)', display:'flex' }}>
+                <BusinessIcon sx={{ color:'#fff', fontSize:22 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontWeight:800, fontSize:18, color:'#fff', lineHeight:1.2 }}>
+                  New Organisation
+                </Typography>
+                <Typography sx={{ fontSize:12, color:'rgba(255,255,255,0.72)', mt:.2 }}>
+                  Register a new tenant account
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton
+              onClick={() => { setAddOpen(false); setForm(emptyForm); setFormErrors({}); }}
+              sx={{ color:'rgba(255,255,255,0.7)', p:.5, '&:hover':{ color:'#fff', background:'rgba(255,255,255,0.12)' } }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        </Box>
+
+        {/* Form */}
         <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ p: 0, maxHeight: '60vh', overflowY: 'auto' }}>
-            {/* Basic Information Accordion */}
-            <Accordion expanded={expandedAccordion === 'basic'} onChange={handleAccordionChange('basic')} sx={{ mb: 2, borderRadius: 2, boxShadow: theme.shadows[1] }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6" fontWeight="600">1. Basic Information</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Company Name (Legal Name)*" 
-                      name="companyName" 
-                      value={newTenant.companyName} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.companyName} 
-                      helperText={formErrors.companyName} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Trade Name / Brand Name" 
-                      name="tradeName" 
-                      value={newTenant.tradeName} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth error={!!formErrors.companyType}>
-                      <InputLabel>Company Type*</InputLabel>
-                      <Select 
-                        name="companyType" 
-                        value={newTenant.companyType} 
-                        onChange={handleInputChange} 
-                        label="Company Type*" 
-                        sx={{ borderRadius: 2 }}
-                      >
-                        <MenuItem value="Private Limited">Private Limited</MenuItem>
-                        <MenuItem value="LLP">LLP (Limited Liability Partnership)</MenuItem>
-                        <MenuItem value="Proprietorship">Proprietorship</MenuItem>
-                        <MenuItem value="Partnership">Partnership</MenuItem>
-                        <MenuItem value="Public Limited">Public Limited</MenuItem>
-                        <MenuItem value="NGO">NGO (Non-Governmental Organization)</MenuItem>
-                        <MenuItem value="Trust">Trust</MenuItem>
-                        <MenuItem value="Other">Other</MenuItem>
-                      </Select>
-                      {formErrors.companyType && <Typography variant="caption" color="error">{formErrors.companyType}</Typography>}
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth error={!!formErrors.industryType}>
-                      <InputLabel>Industry Type*</InputLabel>
-                      <Select 
-                        name="industryType" 
-                        value={newTenant.industryType} 
-                        onChange={handleInputChange} 
-                        label="Industry Type*" 
-                        sx={{ borderRadius: 2 }}
-                      >
-                        <MenuItem value="IT">Information Technology</MenuItem>
-                        <MenuItem value="Manufacturing">Manufacturing</MenuItem>
-                        <MenuItem value="Services">Services</MenuItem>
-                        <MenuItem value="Healthcare">Healthcare</MenuItem>
-                        <MenuItem value="Education">Education</MenuItem>
-                        <MenuItem value="Finance">Finance & Banking</MenuItem>
-                        <MenuItem value="Retail">Retail</MenuItem>
-                        <MenuItem value="Hospitality">Hospitality</MenuItem>
-                        <MenuItem value="Real Estate">Real Estate</MenuItem>
-                        <MenuItem value="Other">Other</MenuItem>
-                      </Select>
-                      {formErrors.industryType && <Typography variant="caption" color="error">{formErrors.industryType}</Typography>}
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth error={!!formErrors.companySize}>
-                      <InputLabel>Company Size (No. of employees)*</InputLabel>
-                      <Select 
-                        name="companySize" 
-                        value={newTenant.companySize} 
-                        onChange={handleInputChange} 
-                        label="Company Size (No. of employees)*" 
-                        sx={{ borderRadius: 2 }}
-                      >
-                        <MenuItem value="1-10">1-10</MenuItem>
-                        <MenuItem value="11-50">11-50</MenuItem>
-                        <MenuItem value="51-200">51-200</MenuItem>
-                        <MenuItem value="201-500">201-500</MenuItem>
-                        <MenuItem value="501-1000">501-1000</MenuItem>
-                        <MenuItem value="1000+">1000+</MenuItem>
-                      </Select>
-                      {formErrors.companySize && <Typography variant="caption" color="error">{formErrors.companySize}</Typography>}
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Website" 
-                      name="website" 
-                      value={newTenant.website} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ 
-                        sx: { borderRadius: 2 }, 
-                        startAdornment: <InputAdornment position="start">https://</InputAdornment> 
-                      }} 
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-            
-            {/* Contact Information Accordion */}
-            <Accordion expanded={expandedAccordion === 'contact'} onChange={handleAccordionChange('contact')} sx={{ mb: 2, borderRadius: 2, boxShadow: theme.shadows[1] }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6" fontWeight="600">2. Contact Information</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <TextField 
-                      fullWidth 
-                      label="Registered Office Address*" 
-                      name="registeredAddress" 
-                      value={newTenant.registeredAddress} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.registeredAddress} 
-                      helperText={formErrors.registeredAddress} 
-                      variant="outlined" 
-                      multiline 
-                      rows={3} 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField 
-                      fullWidth 
-                      label="Corporate Office Address (if different)" 
-                      name="corporateAddress" 
-                      value={newTenant.corporateAddress} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      multiline 
-                      rows={3} 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="State*" 
-                      name="state" 
-                      value={newTenant.state} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.state} 
-                      helperText={formErrors.state} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="City*" 
-                      name="city" 
-                      value={newTenant.city} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.city} 
-                      helperText={formErrors.city} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Pincode*" 
-                      name="pincode" 
-                      value={newTenant.pincode} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.pincode} 
-                      helperText={formErrors.pincode} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Phone / Mobile Number*" 
-                      name="phone" 
-                      value={newTenant.phone} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.phone} 
-                      helperText={formErrors.phone} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Company Email*" 
-                      name="email" 
-                      type="email" 
-                      value={newTenant.email} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.email} 
-                      helperText={formErrors.email} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Primary Contact Person*" 
-                      name="contactPerson" 
-                      value={newTenant.contactPerson} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.contactPerson} 
-                      helperText={formErrors.contactPerson} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-            
-            {/* Statutory Information Accordion */}
-            <Accordion expanded={expandedAccordion === 'statutory'} onChange={handleAccordionChange('statutory')} sx={{ mb: 2, borderRadius: 2, boxShadow: theme.shadows[1] }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6" fontWeight="600">3. Statutory Information</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="PAN (Permanent Account Number)" 
-                      name="pan" 
-                      value={newTenant.pan} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="GSTIN" 
-                      name="gstin" 
-                      value={newTenant.gstin} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="CIN (Corporate Identification Number)" 
-                      name="cin" 
-                      value={newTenant.cin} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="TAN (Tax Deduction Account Number)" 
-                      name="tan" 
-                      value={newTenant.tan} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="MSME / Udyam Registration Number" 
-                      name="msmeUdyam" 
-                      value={newTenant.msmeUdyam} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Shop & Establishment Number" 
-                      name="shopEstablishment" 
-                      value={newTenant.shopEstablishment} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="PF Registration Number" 
-                      name="pfRegistration" 
-                      value={newTenant.pfRegistration} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="ESI Registration Number" 
-                      name="esiRegistration" 
-                      value={newTenant.esiRegistration} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-            
-            {/* Banking & Billing Accordion */}
-            <Accordion expanded={expandedAccordion === 'banking'} onChange={handleAccordionChange('banking')} sx={{ mb: 2, borderRadius: 2, boxShadow: theme.shadows[1] }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6" fontWeight="600">4. Banking & Billing</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Bank Name" 
-                      name="bankName" 
-                      value={newTenant.bankName} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Account Holder Name" 
-                      name="accountHolderName" 
-                      value={newTenant.accountHolderName} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Account Number" 
-                      name="accountNumber" 
-                      value={newTenant.accountNumber} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="IFSC Code" 
-                      name="ifscCode" 
-                      value={newTenant.ifscCode} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField 
-                      fullWidth 
-                      label="Billing Address" 
-                      name="billingAddress" 
-                      value={newTenant.billingAddress} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      multiline 
-                      rows={3} 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="Billing Contact Email" 
-                      name="billingEmail" 
-                      type="email" 
-                      value={newTenant.billingEmail} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <TextField 
-                      fullWidth 
-                      label="GST Billing State" 
-                      name="gstBillingState" 
-                      value={newTenant.gstBillingState} 
-                      onChange={handleInputChange} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-            
-            {/* Admin Access Accordion */}
-            <Accordion expanded={expandedAccordion === 'admin'} onChange={handleAccordionChange('admin')} sx={{ mb: 2, borderRadius: 2, boxShadow: theme.shadows[1] }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6" fontWeight="600">5. Admin Access</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      Set up the administrator account for this company. This user will have full access to manage their company's account.
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField 
-                      fullWidth 
-                      label="Admin Password*" 
-                      name="adminPassword" 
-                      type="password" 
-                      value={newTenant.adminPassword} 
-                      onChange={handleInputChange} 
-                      error={!!formErrors.adminPassword} 
-                      helperText={formErrors.adminPassword} 
-                      variant="outlined" 
-                      InputProps={{ sx: { borderRadius: 2 } }} 
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="caption" color="text.secondary">
-                      Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters.
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </DialogContent>
-          
-          <DialogActions sx={{ p: 0, mt: 3, justifyContent: 'flex-end' }}>
-            <Button 
-              onClick={handleAddDialogClose} 
-              variant="outlined" 
-              sx={{ 
-                borderRadius: 2, 
-                textTransform: 'none', 
-                px: 3, 
-                py: 1, 
-                mr: 2, 
-                borderColor: theme.palette.divider 
-              }}
-            >
+          <Box sx={{ px:3, py:2.5, display:'flex', flexDirection:'column', gap:2 }}>
+
+            {/* Organisation Name */}
+            <TextField
+              fullWidth label="Organisation Name" name="name"
+              value={form.name} onChange={handleInput}
+              error={!!formErrors.name} helperText={formErrors.name}
+              size="small" placeholder="e.g. Acme Corporation"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <BusinessIcon sx={{ fontSize:16, color:T.muted }} />
+                  </InputAdornment>
+                )
+              }} />
+
+            {/* Domain */}
+            <TextField
+              fullWidth label="Domain" name="domain"
+              value={form.domain} onChange={handleInput}
+              error={!!formErrors.domain} helperText={formErrors.domain}
+              size="small" placeholder="e.g. acme.com"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Typography sx={{ fontSize:13, color:T.muted, lineHeight:1, userSelect:'none' }}>🌐</Typography>
+                  </InputAdornment>
+                )
+              }} />
+
+            {/* Admin Email */}
+            <TextField
+              fullWidth label="Admin Email" name="email" type="email"
+              value={form.email} onChange={handleInput}
+              error={!!formErrors.email} helperText={formErrors.email}
+              size="small" placeholder="e.g. admin@acme.com"
+              sx={inputSx}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <EmailIcon sx={{ fontSize:16, color:T.muted }} />
+                  </InputAdornment>
+                )
+              }} />
+
+            {/* Admin Password */}
+            <TextField
+              fullWidth label="Admin Password" name="adminPassword" type="password"
+              value={form.adminPassword} onChange={handleInput}
+              error={!!formErrors.adminPassword}
+              helperText={formErrors.adminPassword || 'Minimum 8 characters'}
+              size="small" sx={inputSx} />
+
+          </Box>
+
+          {/* Footer buttons */}
+          <Box sx={{ px:3, pb:3, display:'flex', gap:1.5 }}>
+            <Button
+              onClick={() => { setAddOpen(false); setForm(emptyForm); setFormErrors({}); }}
+              fullWidth
+              sx={{
+                borderRadius:'10px', textTransform:'none', fontWeight:600, py:1.1,
+                color:T.slate, border:`1px solid ${T.border}`, '&:hover':{ background:T.bg }
+              }}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              variant="contained" 
-              sx={{ 
-                borderRadius: 2, 
-                textTransform: 'none', 
-                px: 3, 
-                py: 1, 
-                backgroundColor: theme.palette.primary.main 
-              }}
-            >
-              Register Company
+            <Button type="submit" variant="contained" fullWidth disabled={submitting}
+              sx={{
+                borderRadius:'10px', textTransform:'none', fontWeight:700, py:1.1,
+                background:T.indigo, boxShadow:`0 4px 16px ${T.indigo}45`,
+                '&:hover':{ background:T.indigoL },
+                '&:disabled':{ background:`${T.indigo}60`, color:'rgba(255,255,255,0.6)' }
+              }}>
+              {submitting ? 'Creating…' : 'Register Organisation'}
             </Button>
-          </DialogActions>
+          </Box>
         </form>
       </Dialog>
 
-      {/* Tenant Details Dialog */}
-      <Dialog 
-        open={viewTenantDialogOpen} 
-        onClose={() => setViewTenantDialogOpen(false)} 
-        maxWidth="md" 
-        fullWidth 
-        PaperProps={{ sx: { borderRadius: 3, p: 3 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <BusinessIcon color="primary" />
-          {selectedTenant?.name} Details
-        </DialogTitle>
-        <DialogContent sx={{ p: 0, mb: 3 }}>
-          {selectedTenant && (
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Company Name</Typography>
-                <Typography variant="body1" gutterBottom>{selectedTenant.name}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Domain</Typography>
-                <Typography variant="body1" gutterBottom>{selectedTenant.domain}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Email</Typography>
-                <Typography variant="body1" gutterBottom>{selectedTenant.email}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Status</Typography>
-                <Chip 
-                  label={selectedTenant.isActive ? 'Active' : 'Inactive'} 
-                  size="small" 
-                  sx={{
-                    backgroundColor: selectedTenant.isActive ? theme.palette.success.light : theme.palette.error.light,
-                    color: selectedTenant.isActive ? theme.palette.success.dark : theme.palette.error.dark, 
-                    fontWeight: 500 
-                  }} 
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Created Date</Typography>
-                <Typography variant="body1" gutterBottom>{new Date(selectedTenant.createdAt).toLocaleDateString()}</Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Last Updated</Typography>
-                <Typography variant="body1" gutterBottom>{new Date(selectedTenant.updatedAt).toLocaleDateString()}</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>Additional Information</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  This tenant has been active since {new Date(selectedTenant.createdAt).toLocaleDateString()}. 
-                  {selectedTenant.isActive ? ' Currently active and receiving services.' : ' Currently inactive and not receiving services.'}
-                </Typography>
-              </Grid>
-            </Grid>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ p: 0 }}>
-          <Button 
-            onClick={() => setViewTenantDialogOpen(false)} 
-            variant="outlined" 
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              px: 3, 
-              py: 1, 
-              borderColor: theme.palette.divider, 
-              '&:hover': { borderColor: theme.palette.primary.main } 
-            }}
-          >
-            Close
-          </Button>
-          <Button 
-            onClick={() => handleEditTenant(selectedTenant?._id)} 
-            variant="contained" 
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              px: 3, 
-              py: 1 
-            }}
-          >
-            Edit Tenant
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* ════════════════════════════════════════════════════════════════
+          SUCCESS DIALOG
+      ════════════════════════════════════════════════════════════════ */}
+      <Dialog
+        open={successOpen}
+        onClose={() => setSuccessOpen(false)}
+        maxWidth="xs" fullWidth
+        PaperProps={{ sx:{ borderRadius:'24px', overflow:'hidden', p:0 } }}>
 
-      {/* Welcome Dialog with Login Link */}
-      <Dialog 
-        open={showWelcomeDialog} 
-        onClose={() => setShowWelcomeDialog(false)} 
-        maxWidth="sm" 
-        fullWidth 
-        PaperProps={{ sx: { borderRadius: 3, p: 3 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 3, display: 'flex', alignItems: 'center', gap: 1, color: theme.palette.success.main }}>
-          <CheckCircleIcon color="success" />
-          Tenant Created Successfully!
-        </DialogTitle>
-        <DialogContent sx={{ p: 0, mb: 3 }}>
-          <Typography variant="body1" gutterBottom>A welcome email with login instructions has been sent to the admin's email address.</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>You can also share this direct login link if needed:</Typography>
-          <Box sx={{ 
-            p: 2, 
-            mt: 2, 
-            backgroundColor: theme.palette.grey[100], 
-            borderRadius: 2, 
-            border: `1px solid ${theme.palette.divider}`, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between' 
-          }}>
-            <Typography variant="body2" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mr: 1 }}>
-              {newTenantLink}
+        {/* Green gradient header */}
+        <Box sx={{
+          background:`linear-gradient(135deg, #059669 0%, ${T.emerald} 60%, #34D399 100%)`,
+          px:3, pt:3.5, pb:3, textAlign:'center', position:'relative', overflow:'hidden'
+        }}>
+          <Box sx={{ position:'absolute', top:-30, left:-30, width:110, height:110, borderRadius:'50%', background:'rgba(255,255,255,0.08)' }} />
+          <Box sx={{ position:'absolute', bottom:-20, right:-20, width:80,  height:80,  borderRadius:'50%', background:'rgba(255,255,255,0.06)' }} />
+          <Box sx={{ position:'relative', zIndex:1 }}>
+            {/* Pulsing check icon */}
+            <Box sx={{
+              width:64, height:64, borderRadius:'50%',
+              background:'rgba(255,255,255,0.22)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              mx:'auto', mb:1.5,
+              boxShadow:'0 0 0 12px rgba(255,255,255,0.08)',
+            }}>
+              <ActiveIcon sx={{ color:'#fff', fontSize:34 }} />
+            </Box>
+            <Typography sx={{ fontWeight:800, fontSize:21, color:'#fff', mb:.5 }}>
+              Organisation Added! 🎉
             </Typography>
-            <Tooltip title="Copy link">
-              <IconButton 
-                size="small" 
-                onClick={() => copyToClipboard(newTenantLink)} 
-                sx={{ color: theme.palette.primary.main }}
-              >
-                <LinkIcon />
-              </IconButton>
-            </Tooltip>
+            <Typography sx={{ fontSize:13, color:'rgba(255,255,255,0.80)' }}>
+              Successfully registered and notified
+            </Typography>
           </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 0 }}>
-          <Button 
-            onClick={() => setShowWelcomeDialog(false)} 
-            variant="contained" 
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              px: 3, 
-              py: 1 
-            }}
-          >
-            Close
+        </Box>
+
+        {/* Body */}
+        <Box sx={{ px:3, py:2.5 }}>
+
+          {/* Org summary card */}
+          <Box sx={{
+            display:'flex', alignItems:'center', gap:1.5,
+            p:1.8, background:'#F0FDF4', borderRadius:'14px',
+            border:'1px solid #BBF7D0', mb:2
+          }}>
+            <Avatar sx={{
+              width:42, height:42, fontWeight:800, fontSize:16, flexShrink:0,
+              background:`linear-gradient(135deg, #059669, ${T.emerald})`
+            }}>
+              {successData?.name?.charAt(0)}
+            </Avatar>
+            <Box sx={{ flex:1, minWidth:0 }}>
+              <Typography sx={{ fontWeight:700, fontSize:15, color:'#065F46', lineHeight:1.3 }}>
+                {successData?.name}
+              </Typography>
+              <Typography sx={{ fontSize:12, color:'#047857' }}>{successData?.domain}</Typography>
+            </Box>
+            <Chip label="Active" size="small"
+              sx={{ background:'#D1FAE5', color:'#065F46', fontWeight:700, fontSize:10, flexShrink:0 }} />
+          </Box>
+
+          {/* Email sent banner */}
+          <Box sx={{
+            display:'flex', alignItems:'flex-start', gap:1.3,
+            p:1.8, background:'#EFF6FF', borderRadius:'14px',
+            border:'1px solid #BFDBFE', mb:2
+          }}>
+            <MailSentIcon sx={{ color:'#2563EB', fontSize:22, mt:.1, flexShrink:0 }} />
+            <Box>
+              <Typography sx={{ fontWeight:700, fontSize:13, color:'#1E40AF' }}>
+                Credentials Sent!
+              </Typography>
+              <Typography sx={{ fontSize:12, color:'#3B82F6', mt:.3, lineHeight:1.5 }}>
+                Login credentials have been sent to<br />
+                <b>{successData?.email}</b>
+              </Typography>
+            </Box>
+          </Box>
+
+        </Box>
+
+        <Box sx={{ px:3, pb:3 }}>
+          <Button fullWidth onClick={() => setSuccessOpen(false)} variant="contained"
+            sx={{
+              borderRadius:'10px', textTransform:'none', fontWeight:700, py:1.2,
+              background:`linear-gradient(135deg, #059669, ${T.emerald})`,
+              boxShadow:'0 4px 16px rgba(16,185,129,0.4)',
+              '&:hover':{ opacity:.9 }
+            }}>
+            Done
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog 
-        open={deleteDialogOpen} 
-        onClose={() => setDeleteDialogOpen(false)} 
-        PaperProps={{ sx: { borderRadius: 3, padding: 3, minWidth: 500 } }}
-      >
-        <DialogTitle sx={{ fontWeight: 700, p: 0, mb: 2 }}>Confirm Tenant Deletion</DialogTitle>
-        <DialogContent sx={{ p: 0, mb: 3 }}>
-          <Typography>
-            Are you sure you want to permanently delete <strong>{tenantToDelete?.name}</strong>?
+      {/* ── View Tenant Dialog ──────────────────────────────────────── */}
+      <Dialog open={viewOpen} onClose={() => setViewOpen(false)} maxWidth="xs" fullWidth
+        PaperProps={{ sx:{ borderRadius:'20px', overflow:'hidden', p:0 } }}>
+        <Box sx={{ px:3, pt:2.5, pb:2, borderBottom:`1px solid ${T.border}`, display:'flex', alignItems:'center', gap:1.5 }}>
+          <Avatar sx={{ background:T.indigo, width:38, height:38, fontWeight:700 }}>
+            {selectedTenant?.name?.charAt(0)}
+          </Avatar>
+          <Box>
+            <Typography sx={{ fontWeight:800, fontSize:15, color:T.navy }}>{selectedTenant?.name}</Typography>
+            <Typography sx={{ fontSize:11, color:T.muted }}>Tenant Details</Typography>
+          </Box>
+          <IconButton onClick={() => setViewOpen(false)} size="small" sx={{ ml:'auto', color:T.muted }}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <Box sx={{ px:3, py:2 }}>
+          {selectedTenant && [
+            ['Domain',       selectedTenant.domain],
+            ['Email',        selectedTenant.email],
+            ['Created',      new Date(selectedTenant.createdAt).toLocaleDateString()],
+            ['Last Updated', new Date(selectedTenant.updatedAt).toLocaleDateString()],
+          ].map(([k,v]) => (
+            <Box key={k} sx={{ display:'flex', justifyContent:'space-between', py:1, borderBottom:`1px solid ${T.border}` }}>
+              <Typography sx={{ fontSize:12, color:T.muted, fontWeight:600 }}>{k}</Typography>
+              <Typography sx={{ fontSize:12, color:T.navy, fontWeight:500 }}>{v}</Typography>
+            </Box>
+          ))}
+          <Box sx={{ display:'flex', justifyContent:'space-between', py:1 }}>
+            <Typography sx={{ fontSize:12, color:T.muted, fontWeight:600 }}>Status</Typography>
+            <Chip label={selectedTenant?.isActive ? 'Active' : 'Inactive'} size="small"
+              sx={{
+                fontSize:10, fontWeight:700,
+                background: selectedTenant?.isActive ? '#D1FAE5' : '#FFE4E6',
+                color:      selectedTenant?.isActive ? '#065F46' : '#9F1239'
+              }} />
+          </Box>
+        </Box>
+        <Box sx={{ px:3, pb:3, display:'flex', gap:1 }}>
+          <Button fullWidth onClick={() => setViewOpen(false)}
+            sx={{ borderRadius:'10px', textTransform:'none', fontWeight:600, color:T.slate, border:`1px solid ${T.border}` }}>
+            Close
+          </Button>
+          <Button fullWidth variant="contained"
+            onClick={() => navigate(`/superadmin/tenants/edit/${selectedTenant?._id}`)}
+            sx={{ borderRadius:'10px', textTransform:'none', fontWeight:700, background:T.indigo, '&:hover':{ background:T.indigoL } }}>
+            Edit
+          </Button>
+        </Box>
+      </Dialog>
+
+      {/* ── Delete Confirmation Dialog ──────────────────────────────── */}
+      <Dialog open={deleteOpen} onClose={() => setDeleteOpen(false)} maxWidth="xs" fullWidth
+        PaperProps={{ sx:{ borderRadius:'20px', overflow:'hidden', p:0 } }}>
+        <Box sx={{ px:3, pt:2.5, pb:2, borderBottom:`1px solid ${T.border}`, display:'flex', alignItems:'center', gap:1.2 }}>
+          <Box sx={{ p:.8, borderRadius:'10px', background:'#FFE4E6', display:'flex', flexShrink:0 }}>
+            <DeleteIcon sx={{ color:T.rose, fontSize:20 }} />
+          </Box>
+          <Typography sx={{ fontWeight:800, fontSize:16, color:T.navy }}>Delete Organisation</Typography>
+        </Box>
+        <Box sx={{ px:3, py:2.5 }}>
+          <Typography sx={{ fontSize:14, color:T.slate }}>
+            Are you sure you want to permanently delete{' '}
+            <b style={{ color:T.navy }}>{tenantToDelete?.name}</b>?
           </Typography>
-          <Typography variant="body2" color="error" mt={2}>
-            <strong>Warning:</strong> This action cannot be undone and will remove all associated data.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 0 }}>
-          <Button 
-            onClick={() => setDeleteDialogOpen(false)} 
-            variant="outlined" 
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              px: 3, 
-              py: 1, 
-              borderColor: theme.palette.divider, 
-              '&:hover': { borderColor: theme.palette.primary.main } 
-            }}
-          >
+          <Box sx={{ mt:1.5, p:1.5, borderRadius:'10px', background:'#FFF1F2', border:'1px solid #FECDD3' }}>
+            <Typography sx={{ fontSize:12, color:T.rose }}>
+              ⚠ This cannot be undone and removes all associated data.
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ px:3, pb:3, display:'flex', gap:1 }}>
+          <Button fullWidth onClick={() => setDeleteOpen(false)}
+            sx={{ borderRadius:'10px', textTransform:'none', fontWeight:600, color:T.slate, border:`1px solid ${T.border}` }}>
             Cancel
           </Button>
-          <Button 
-            onClick={handleDeleteTenant} 
-            variant="contained" 
-            color="error" 
-            sx={{ 
-              borderRadius: 2, 
-              textTransform: 'none', 
-              px: 3, 
-              py: 1 
-            }}
-          >
-            Delete Permanently
+          <Button fullWidth onClick={handleDelete} variant="contained"
+            sx={{ borderRadius:'10px', textTransform:'none', fontWeight:700, background:T.rose, '&:hover':{ background:'#E11D48' } }}>
+            Delete
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
-      {/* Snackbar for feedback */}
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
-        onClose={() => setSnackbar({ ...snackbar, open: false })} 
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
-          severity={snackbar.severity} 
-          sx={{ width: '100%', borderRadius: 2 }}
-        >
+      {/* ── Snackbar ───────────────────────────────────────────────── */}
+      <Snackbar
+        open={snackbar.open} autoHideDuration={4000}
+        onClose={() => setSnackbar(s => ({ ...s, open:false }))}
+        anchorOrigin={{ vertical:'bottom', horizontal:'center' }}>
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar(s => ({ ...s, open:false }))}
+          sx={{ borderRadius:'12px', fontWeight:600, boxShadow:'0 8px 24px rgba(0,0,0,.14)' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
+
     </Box>
   );
 };
