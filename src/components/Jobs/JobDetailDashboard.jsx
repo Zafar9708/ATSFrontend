@@ -321,9 +321,10 @@ const Dashboard = () => {
   return (
     <Box sx={{ 
       p: 3, 
-      maxWidth: '100%',
+      maxWidth: '1300',
       overflowX: 'hidden',
-      marginLeft:10
+      marginLeft:10,
+      
     }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
@@ -414,567 +415,754 @@ const Dashboard = () => {
         </Box>
         
         {/* Stats Cards */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard>
-              <CardContent sx={{ p: 2.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Total Candidates
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-                      {stats.totalCandidates}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {dummyCandidates.filter(c => c.status === 'active').length} active
-                    </Typography>
-                  </Box>
-                  <Avatar sx={{ 
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
-                    color: theme.palette.primary.main,
-                    width: 48,
-                    height: 48
-                  }}>
-                    <PeopleIcon />
-                  </Avatar>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={75} 
-                  sx={{ 
-                    mt: 2,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1)
-                  }}
-                />
-              </CardContent>
-            </StatCard>
-          </Grid>
+       <Grid container spacing={2} sx={{ mb: 3 }}>
+
+  {/* Total Candidates */}
+  <Grid item xs={12} sm={6} md={3} sx={{ display: "flex", flex:1 }}>
+    <StatCard sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+      <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard>
-              <CardContent sx={{ p: 2.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Interviews Today
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-                      {stats.interviewsToday}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {interviews.length} total scheduled
-                    </Typography>
-                  </Box>
-                  <Avatar sx={{ 
-                    bgcolor: alpha(theme.palette.info.main, 0.1),
-                    color: theme.palette.info.main,
-                    width: 48,
-                    height: 48
-                  }}>
-                    <ScheduleIcon />
-                  </Avatar>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                  <Typography variant="caption" color="text.secondary">
-                    2 completed
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    1 pending
-                  </Typography>
-                </Box>
-              </CardContent>
-            </StatCard>
-          </Grid>
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              Total Candidates
+            </Typography>
+
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+              {stats.totalCandidates}
+            </Typography>
+
+            <Typography variant="caption" color="text.secondary">
+              {dummyCandidates.filter(c => c.status === "active").length} active
+            </Typography>
+          </Box>
+
+          <Avatar
+            sx={{
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              color: theme.palette.primary.main,
+              width: 48,
+              height: 48,
+            }}
+          >
+            <PeopleIcon />
+          </Avatar>
+
+        </Box>
+
+        <LinearProgress
+          variant="determinate"
+          value={75}
+          sx={{
+            mt: 2,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: alpha(theme.palette.primary.main, 0.1),
+          }}
+        />
+      </CardContent>
+    </StatCard>
+  </Grid>
+
+  {/* Interviews Today */}
+  <Grid item xs={12} sm={6} md={3} sx={{ display: "flex", flex:1 }}>
+    <StatCard sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+      <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+        
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard>
-              <CardContent sx={{ p: 2.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Positions Filled
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-                      {stats.positionsFilled}/{job?.openings}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {job?.openings - stats.positionsFilled} remaining
-                    </Typography>
-                  </Box>
-                  <Avatar sx={{ 
-                    bgcolor: alpha(theme.palette.success.main, 0.1),
-                    color: theme.palette.success.main,
-                    width: 48,
-                    height: 48
-                  }}>
-                    <HowToRegIcon />
-                  </Avatar>
-                </Box>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={(stats.positionsFilled / (job?.openings || 1)) * 100} 
-                  sx={{ 
-                    mt: 2,
-                    height: 4,
-                    borderRadius: 2,
-                    backgroundColor: alpha(theme.palette.success.main, 0.1)
-                  }}
-                />
-              </CardContent>
-            </StatCard>
-          </Grid>
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              Interviews Today
+            </Typography>
+
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+              {stats.interviewsToday}
+            </Typography>
+
+            <Typography variant="caption" color="text.secondary">
+              {interviews.length} total scheduled
+            </Typography>
+          </Box>
+
+          <Avatar
+            sx={{
+              bgcolor: alpha(theme.palette.info.main, 0.1),
+              color: theme.palette.info.main,
+              width: 48,
+              height: 48,
+            }}
+          >
+            <ScheduleIcon />
+          </Avatar>
+
+        </Box>
+
+        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+          <Typography variant="caption" color="text.secondary">
+            2 completed
+          </Typography>
+
+          <Typography variant="caption" color="text.secondary">
+            1 pending
+          </Typography>
+        </Box>
+
+      </CardContent>
+    </StatCard>
+  </Grid>
+
+  {/* Positions Filled */}
+  <Grid item xs={12} sm={6} md={3} sx={{ display: "flex" , flex:1}}>
+    <StatCard sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+      <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+        
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard>
-              <CardContent sx={{ p: 2.5 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                      Acceptance Rate
-                    </Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-                      {stats.acceptanceRate}%
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Above average
-                    </Typography>
-                  </Box>
-                  <Avatar sx={{ 
-                    bgcolor: alpha(theme.palette.warning.main, 0.1),
-                    color: theme.palette.warning.main,
-                    width: 48,
-                    height: 48
-                  }}>
-                    <TrendingUpIcon />
-                  </Avatar>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                  <TrendingUpIcon sx={{ fontSize: 16, color: 'success.main', mr: 0.5 }} />
-                  <Typography variant="caption" color="success.main">
-                    +5.2% from last month
-                  </Typography>
-                </Box>
-              </CardContent>
-            </StatCard>
-          </Grid>
-        </Grid>
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              Positions Filled
+            </Typography>
+
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+              {stats.positionsFilled}/{job?.openings}
+            </Typography>
+
+            <Typography variant="caption" color="text.secondary">
+              {job?.openings - stats.positionsFilled} remaining
+            </Typography>
+          </Box>
+
+          <Avatar
+            sx={{
+              bgcolor: alpha(theme.palette.success.main, 0.1),
+              color: theme.palette.success.main,
+              width: 48,
+              height: 48,
+            }}
+          >
+            <HowToRegIcon />
+          </Avatar>
+
+        </Box>
+
+        <LinearProgress
+          variant="determinate"
+          value={(stats.positionsFilled / (job?.openings || 1)) * 100}
+          sx={{
+            mt: 2,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: alpha(theme.palette.success.main, 0.1),
+          }}
+        />
+
+      </CardContent>
+    </StatCard>
+  </Grid>
+
+  {/* Acceptance Rate */}
+  <Grid item xs={12} sm={6} md={3} sx={{ display: "flex", flex:1 }}>
+    <StatCard sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
+      <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
+        
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              Acceptance Rate
+            </Typography>
+
+            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+              {stats.acceptanceRate}%
+            </Typography>
+
+            <Typography variant="caption" color="text.secondary">
+              Above average
+            </Typography>
+          </Box>
+
+          <Avatar
+            sx={{
+              bgcolor: alpha(theme.palette.warning.main, 0.1),
+              color: theme.palette.warning.main,
+              width: 48,
+              height: 48,
+            }}
+          >
+            <TrendingUpIcon />
+          </Avatar>
+
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+          <TrendingUpIcon sx={{ fontSize: 16, color: "success.main", mr: 0.5 }} />
+
+          <Typography variant="caption" color="success.main">
+            +5.2% from last month
+          </Typography>
+        </Box>
+
+      </CardContent>
+    </StatCard>
+  </Grid>
+
+       </Grid>
       </Box>
       
-      {/* Main Dashboard Content */}
-      <Grid container spacing={2}>
-        {/* Left Column - Charts */}
-        <Grid item xs={12} lg={8}>
-          <Grid container spacing={2}>
-            {/* Pipeline Chart */}
-            <Grid item xs={12}>
-              <DashboardCard>
-                <CardContent sx={{ p: 2.5 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    mb: 2 
-                  }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Candidate Pipeline
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1 }}>
-                      <SecondaryButton size="small">
-                        This Week
-                      </SecondaryButton>
-                      <SecondaryButton size="small">
-                        All Time
-                      </SecondaryButton>
-                    </Box>
-                  </Box>
-                  <Box sx={{ height: 280 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={pipelineData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <RechartsTooltip 
-                          contentStyle={{ 
-                            borderRadius: '8px',
-                            border: `1px solid ${alpha(theme.palette.divider, 0.2)}`
-                          }}
-                        />
-                        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                          {pipelineData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </CardContent>
-              </DashboardCard>
-            </Grid>
-            
-            {/* Weekly Activity */}
-            <Grid item xs={12}>
-              <DashboardCard>
-                <CardContent sx={{ p: 2.5 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    mb: 2 
-                  }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Weekly Activity
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Last 7 days
-                    </Typography>
-                  </Box>
-                  <Box sx={{ height: 240 }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={weeklyData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
-                        <XAxis dataKey="day" />
-                        <YAxis />
-                        <RechartsTooltip 
-                          contentStyle={{ 
-                            borderRadius: '8px',
-                            border: `1px solid ${alpha(theme.palette.divider, 0.2)}`
-                          }}
-                        />
-                        <Legend />
-                        <Line 
-                          type="monotone" 
-                          dataKey="applications" 
-                          stroke={theme.palette.primary.main} 
-                          strokeWidth={2}
-                          dot={{ r: 4 }}
-                          activeDot={{ r: 6 }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="interviews" 
-                          stroke={theme.palette.secondary.main} 
-                          strokeWidth={2}
-                          dot={{ r: 4 }}
-                          activeDot={{ r: 6 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </CardContent>
-              </DashboardCard>
-            </Grid>
-          </Grid>
-        </Grid>
-        
-        {/* Right Column - Sidebar */}
-        <Grid item xs={12} lg={4}>
-          <Grid container spacing={2}>
-            {/* Upcoming Interviews */}
-            <Grid item xs={12}>
-              <DashboardCard>
-                <CardContent sx={{ p: 2.5 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    mb: 2 
-                  }}>
-                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                      Upcoming Interviews
-                    </Typography>
-                    <PrimaryButton size="small" endIcon={<ChevronRightIcon />}>
-                      View All
-                    </PrimaryButton>
-                  </Box>
-                  <Stack spacing={2}>
-                    {interviews.map((interview) => (
-                      <Paper 
-                        key={interview.id}
-                        variant="outlined"
-                        sx={{ 
-                          p: 2,
-                          borderRadius: '8px',
-                          borderColor: alpha(theme.palette.divider, 0.2),
-                          '&:hover': {
-                            borderColor: theme.palette.primary.main,
-                            backgroundColor: alpha(theme.palette.primary.main, 0.02)
-                          }
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                            {interview.candidateName}
-                          </Typography>
-                          <Chip 
-                            label={interview.type}
-                            size="small"
-                            sx={{
-                              fontWeight: 500,
-                              bgcolor: alpha(theme.palette.primary.main, 0.1),
-                              color: theme.palette.primary.main
-                            }}
-                          />
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
-                            <Typography variant="caption">
-                              {interview.date}, {interview.time}
-                            </Typography>
-                          </Box>
-                          <Chip 
-                            label={interview.platform}
-                            size="small"
-                            variant="outlined"
-                          />
-                        </Box>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <AvatarGroup max={2} sx={{ mr: 1 }}>
-                              {interview.interviewers.map((interviewer, idx) => (
-                                <Avatar 
-                                  key={idx}
-                                  sx={{ 
-                                    width: 24, 
-                                    height: 24,
-                                    fontSize: '0.75rem'
-                                  }}
-                                >
-                                  {interviewer.charAt(0)}
-                                </Avatar>
-                              ))}
-                            </AvatarGroup>
-                            <Typography variant="caption" color="text.secondary">
-                              {interview.interviewers.length} interviewers
-                            </Typography>
-                          </Box>
-                          <IconButton size="small">
-                            <VisibilityIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </Paper>
-                    ))}
-                  </Stack>
-                </CardContent>
-              </DashboardCard>
-            </Grid>
-            
-            {/* Quick Actions */}
-            <Grid item xs={12}>
-              <DashboardCard>
-                <CardContent sx={{ p: 2.5 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                    Quick Actions
+{/* Main Dashboard Content */}
+<Grid container spacing={2} >
+
+  {/* Candidate Pipeline */}
+  <Grid item xs={12} lg={2}>
+    <DashboardCard>
+      <CardContent sx={{ p: 2.5}}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+            width:700
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Candidate Pipeline
+          </Typography>
+
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <SecondaryButton size="small">This Week</SecondaryButton>
+            <SecondaryButton size="small">All Time</SecondaryButton>
+          </Box>
+        </Box>
+
+        <Box sx={{ height: 400 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={pipelineData}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={alpha(theme.palette.divider, 0.3)}
+              />
+              <XAxis dataKey="name" />
+              <YAxis />
+
+              <RechartsTooltip
+                contentStyle={{
+                  borderRadius: "8px",
+                  border: `1px solid ${alpha(
+                    theme.palette.divider,
+                    0.2
+                  )}`,
+                }}
+              />
+
+              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                {pipelineData.map((entry, index) => (
+                  <Cell key={index} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
+      </CardContent>
+    </DashboardCard>
+  </Grid>
+
+  {/* Upcoming Interviews */}
+  <Grid item xs={12} lg={2}>
+    <DashboardCard>
+      <CardContent sx={{ p: 1.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+            width:430
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Upcoming Interviews
+          </Typography>
+
+          <PrimaryButton size="small" endIcon={<ChevronRightIcon />}>
+            View All
+          </PrimaryButton>
+        </Box>
+
+        <Stack spacing={2}>
+          {interviews.map((interview) => (
+            <Paper
+              key={interview.id}
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: "8px",
+                borderColor: alpha(theme.palette.divider, 0.2),
+                "&:hover": {
+                  borderColor: theme.palette.primary.main,
+                  backgroundColor: alpha(
+                    theme.palette.primary.main,
+                    0.02
+                  ),
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1.5,
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{ fontWeight: 600 }}
+                >
+                  {interview.candidateName}
+                </Typography>
+
+                <Chip
+                  label={interview.type}
+                  size="small"
+                  sx={{
+                    fontWeight: 500,
+                    bgcolor: alpha(
+                      theme.palette.primary.main,
+                      0.1
+                    ),
+                    color: theme.palette.primary.main,
+                  }}
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  mb: 1.5,
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <CalendarIcon
+                    sx={{
+                      fontSize: 14,
+                      mr: 0.5,
+                      color: "text.secondary",
+                    }}
+                  />
+                  <Typography variant="caption">
+                    {interview.date}, {interview.time}
                   </Typography>
-                  <Stack spacing={1.5}>
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      startIcon={<CalendarIcon />}
-                      onClick={() => navigate('/interviews/schedule')}
-                      sx={{
-                        justifyContent: 'flex-start',
-                        textTransform: 'none',
-                        py: 1.5,
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Schedule Interview
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      startIcon={<MailIcon />}
-                      sx={{
-                        justifyContent: 'flex-start',
-                        textTransform: 'none',
-                        py: 1.5,
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Send Bulk Email
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      startIcon={<EditIcon />}
-                      onClick={() => navigate(`/jobs/update/${jobId}`)}
-                      sx={{
-                        justifyContent: 'flex-start',
-                        textTransform: 'none',
-                        py: 1.5,
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Update Job Posting
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      startIcon={<AddIcon />}
-                      onClick={() => navigate('/jobs/create')}
-                      sx={{
-                        justifyContent: 'flex-start',
-                        textTransform: 'none',
-                        py: 1.5,
-                        borderRadius: '8px'
-                      }}
-                    >
-                      Create New Job
-                    </Button>
-                  </Stack>
-                </CardContent>
-              </DashboardCard>
-            </Grid>
-          </Grid>
-        </Grid>
+                </Box>
+
+                <Chip
+                  label={interview.platform}
+                  size="small"
+                  variant="outlined"
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <AvatarGroup max={2} sx={{ mr: 1 }}>
+                    {interview.interviewers.map(
+                      (interviewer, idx) => (
+                        <Avatar
+                          key={idx}
+                          sx={{
+                            width: 24,
+                            height: 24,
+                            fontSize: "0.75rem",
+                          }}
+                        >
+                          {interviewer.charAt(0)}
+                        </Avatar>
+                      )
+                    )}
+                  </AvatarGroup>
+
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                  >
+                    {interview.interviewers.length} interviewers
+                  </Typography>
+                </Box>
+
+                <IconButton size="small">
+                  <VisibilityIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Paper>
+          ))}
+        </Stack>
+      </CardContent>
+    </DashboardCard>
+  </Grid>
+
+  {/* Weekly Activity */}
+  <Grid item xs={12} lg={6}>
+    <DashboardCard>
+      <CardContent sx={{ p: 2.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 2,
+            width:850
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Weekly Activity
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary">
+            Last 7 days
+          </Typography>
+        </Box>
+
+        <Box sx={{ height: 240 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={weeklyData}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={alpha(theme.palette.divider, 0.3)}
+              />
+
+              <XAxis dataKey="day" />
+              <YAxis />
+
+              <RechartsTooltip
+                contentStyle={{
+                  borderRadius: "8px",
+                  border: `1px solid ${alpha(
+                    theme.palette.divider,
+                    0.2
+                  )}`,
+                }}
+              />
+
+              <Legend />
+
+              <Line
+                type="monotone"
+                dataKey="applications"
+                stroke={theme.palette.primary.main}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+
+              <Line
+                type="monotone"
+                dataKey="interviews"
+                stroke={theme.palette.secondary.main}
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
+      </CardContent>
+    </DashboardCard>
+  </Grid>
+
+  {/* Quick Actions */}
+  <Grid item xs={12} lg={2}>
+    <DashboardCard>
+      <CardContent sx={{ p: 1.5 }}>
+        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2,width:280 }}>
+          Quick Actions
+        </Typography>
+
+        <Stack spacing={1.5}>
+          <Button
+            fullWidth
+            variant="contained"
+            startIcon={<CalendarIcon />}
+            onClick={() => navigate("/interviews/schedule")}
+            sx={{
+              justifyContent: "flex-start",
+              textTransform: "none",
+              py: 1.5,
+              borderRadius: "8px",
+            }}
+          >
+            Schedule Interview
+          </Button>
+
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<MailIcon />}
+            sx={{
+              justifyContent: "flex-start",
+              textTransform: "none",
+              py: 1.5,
+              borderRadius: "8px",
+            }}
+          >
+            Send Bulk Email
+          </Button>
+
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<EditIcon />}
+            onClick={() => navigate(`/jobs/update/${jobId}`)}
+            sx={{
+              justifyContent: "flex-start",
+              textTransform: "none",
+              py: 1.5,
+              borderRadius: "8px",
+            }}
+          >
+            Update Job Posting
+          </Button>
+
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={() => navigate("/jobs/create")}
+            sx={{
+              justifyContent: "flex-start",
+              textTransform: "none",
+              py: 1.5,
+              borderRadius: "8px",
+            }}
+          >
+            Create New Job
+          </Button>
+        </Stack>
+      </CardContent>
+    </DashboardCard>
+  </Grid>
+
+
         
         {/* Candidates Table */}
-        <Grid item xs={12}>
-          <DashboardCard>
-            <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                mb: 2 
-              }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Recent Candidates
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <SecondaryButton startIcon={<DownloadIcon />}>
-                    Export
-                  </SecondaryButton>
-                  <PrimaryButton startIcon={<AddIcon />}>
-                    Add Candidate
-                  </PrimaryButton>
-                </Box>
-              </Box>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Candidate</TableCell>
-                      <TableCell>Stage</TableCell>
-                      <TableCell>Applied Date</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Rating</TableCell>
-                      <TableCell>Last Activity</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {candidates.map((candidate) => (
-                      <TableRow 
-                        key={candidate.id}
-                        hover
-                        sx={{ 
-                          '&:hover': {
-                            backgroundColor: alpha(theme.palette.primary.main, 0.02)
-                          }
-                        }}
+     <Grid item xs={12} sx={{ width: "100%", display: "flex" }}>
+  <DashboardCard sx={{ width: "100%" }}>
+    <CardContent sx={{ p: 2.5 }}>
+
+      {/* Header */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 2,
+          flexWrap: "wrap",
+          gap: 1
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Recent Candidates
+        </Typography>
+
+        <Box sx={{ display: "flex", gap: 1 }}>
+          <SecondaryButton startIcon={<DownloadIcon />}>
+            Export
+          </SecondaryButton>
+
+          <PrimaryButton startIcon={<AddIcon />}>
+            Add Candidate
+          </PrimaryButton>
+        </Box>
+      </Box>
+
+      {/* Table */}
+      <TableContainer
+        sx={{
+          width: "100%",
+          overflowX: "auto"
+        }}
+      >
+        <Table sx={{ minWidth: 900 }}>
+
+          <TableHead>
+            <TableRow>
+              <TableCell>Candidate</TableCell>
+              <TableCell>Stage</TableCell>
+              <TableCell>Applied Date</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Rating</TableCell>
+              <TableCell>Last Activity</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+
+          <TableBody>
+            {candidates.map((candidate) => (
+              <TableRow
+                key={candidate.id}
+                hover
+                sx={{
+                  "&:hover": {
+                    backgroundColor: alpha(
+                      theme.palette.primary.main,
+                      0.02
+                    )
+                  }
+                }}
+              >
+                {/* Candidate */}
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Avatar
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        mr: 2,
+                        bgcolor: candidate.avatarColor,
+                        color: theme.palette.common.white
+                      }}
+                    >
+                      {candidate.name.charAt(0)}
+                    </Avatar>
+
+                    <Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ fontWeight: 600 }}
                       >
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Avatar 
-                              sx={{ 
-                                width: 36, 
-                                height: 36, 
-                                mr: 2,
-                                bgcolor: candidate.avatarColor,
-                                color: theme.palette.common.white
-                              }}
-                            >
-                              {candidate.name.charAt(0)}
-                            </Avatar>
-                            <Box>
-                              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                {candidate.name}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {candidate.email}
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={candidate.stage}
-                            size="small"
-                            sx={{
-                              bgcolor: alpha(getStageColor(candidate.stage), 0.1),
-                              color: getStageColor(candidate.stage),
-                              fontWeight: 500
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          {candidate.appliedDate}
-                        </TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={candidate.status}
-                            size="small"
-                            color={getStatusColor(candidate.status)}
-                            variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Typography variant="body2" sx={{ mr: 0.5, fontWeight: 500 }}>
-                              {candidate.rating}
-                            </Typography>
-                            <Box sx={{ 
-                              width: 60,
-                              height: 4,
-                              bgcolor: alpha(theme.palette.primary.main, 0.2),
-                              borderRadius: 2,
-                              overflow: 'hidden'
-                            }}>
-                              <Box sx={{ 
-                                width: `${(candidate.rating / 5) * 100}%`,
-                                height: '100%',
-                                bgcolor: theme.palette.primary.main
-                              }} />
-                            </Box>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {candidate.lastActivity}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-                            <Tooltip title="Send Email">
-                              <IconButton size="small">
-                                <MailIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Schedule Interview">
-                              <IconButton size="small">
-                                <CalendarIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                            <Tooltip title="View Profile">
-                              <IconButton size="small">
-                                <VisibilityIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </DashboardCard>
-        </Grid>
+                        {candidate.name}
+                      </Typography>
+
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                      >
+                        {candidate.email}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </TableCell>
+
+                {/* Stage */}
+                <TableCell>
+                  <Chip
+                    label={candidate.stage}
+                    size="small"
+                    sx={{
+                      bgcolor: alpha(
+                        getStageColor(candidate.stage),
+                        0.1
+                      ),
+                      color: getStageColor(candidate.stage),
+                      fontWeight: 500
+                    }}
+                  />
+                </TableCell>
+
+                {/* Applied Date */}
+                <TableCell>
+                  {candidate.appliedDate}
+                </TableCell>
+
+                {/* Status */}
+                <TableCell>
+                  <Chip
+                    label={candidate.status}
+                    size="small"
+                    color={getStatusColor(candidate.status)}
+                    variant="outlined"
+                  />
+                </TableCell>
+
+                {/* Rating */}
+                <TableCell>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <Typography
+                      variant="body2"
+                      sx={{ mr: 0.5, fontWeight: 500 }}
+                    >
+                      {candidate.rating}
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        width: 60,
+                        height: 4,
+                        bgcolor: alpha(
+                          theme.palette.primary.main,
+                          0.2
+                        ),
+                        borderRadius: 2,
+                        overflow: "hidden"
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          width: `${(candidate.rating / 5) * 100}%`,
+                          height: "100%",
+                          bgcolor: theme.palette.primary.main
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                </TableCell>
+
+                {/* Last Activity */}
+                <TableCell>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                  >
+                    {candidate.lastActivity}
+                  </Typography>
+                </TableCell>
+
+                {/* Actions */}
+                <TableCell align="right">
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "flex-end",
+                      gap: 0.5
+                    }}
+                  >
+                    <Tooltip title="Send Email">
+                      <IconButton size="small">
+                        <MailIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="Schedule Interview">
+                      <IconButton size="small">
+                        <CalendarIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="View Profile">
+                      <IconButton size="small">
+                        <VisibilityIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </TableCell>
+
+              </TableRow>
+            ))}
+          </TableBody>
+
+        </Table>
+      </TableContainer>
+
+    </CardContent>
+  </DashboardCard>
+      </Grid>
       </Grid>
     </Box>
   );

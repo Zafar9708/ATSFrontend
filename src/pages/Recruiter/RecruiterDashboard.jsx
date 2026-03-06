@@ -190,7 +190,7 @@
 
     return (
       <Box sx={{
-        ml: { xs: 0, sm: '10px' },
+        ml: { xs: 0, sm: '15px' },
         minHeight: '100vh',
         background: C.bg,
         p: { xs: 2, sm: 3 },
@@ -220,7 +220,7 @@
               onClick={() => navigate('/dashboard/jobs/createJob')}
               sx={{
                 background: C.primary, color:'#fff', borderRadius:2, px:2.5, py:1,
-                fontSize:13, fontWeight:700, textTransform:'none', letterSpacing:0,
+                fontSize:13,marginRight:2, fontWeight:700, textTransform:'none', letterSpacing:0,
                 boxShadow: '0 2px 8px rgba(29,78,216,0.25)',
                 '&:hover': { background:'#1e40af', boxShadow:'0 4px 14px rgba(29,78,216,0.35)' },
                 transition:'all 0.18s',
@@ -627,7 +627,7 @@
 
           {/* Jobs Table */}
           <Grid item xs={12} xl={8}>
-            <Card sx={{cardSx, width: "65vw" }}>
+            <Card sx={cardSx}>
               {/* Table Header */}
               <Box sx={{ p:{ xs:2, sm:2.5 }, borderBottom:`1px solid ${C.border}`, display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:2 }}>
                 <Typography sx={{ fontSize:14, fontWeight:800, color:C.text }}>Job Postings</Typography>

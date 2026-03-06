@@ -553,7 +553,7 @@ const VendorCandidatesPage = () => {
   }
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1100, mx: 'auto',marginLeft:7 }}>
+    <Box sx={{ p: 3, maxWidth: 1300, mx: 'auto',marginLeft:10, marginTop:8 }}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>
@@ -592,43 +592,46 @@ const VendorCandidatesPage = () => {
       </Box>
 
       {/* Stats Cards */}
-      <Grid container spacing={2} mb={3}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Total Submissions"
-            value={stats.total}
-            icon={<PersonIcon sx={{ color: theme.palette.primary.main }} />}
-            color={theme.palette.primary.main}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Pending Review"
-            value={stats.pending}
-            icon={<PendingIcon sx={{ color: theme.palette.warning.main }} />}
-            color={theme.palette.warning.main}
-            subtext={`${Math.round((stats.pending / stats.total) * 100)}% of total`}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Approved"
-            value={stats.approved}
-            icon={<CheckCircleIcon sx={{ color: theme.palette.success.main }} />}
-            color={theme.palette.success.main}
-            subtext={`${Math.round((stats.approved / stats.total) * 100)}% of total`}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Avg Match Score"
-            value={`${stats.avgMatchScore}%`}
-            icon={<TrendingUpIcon sx={{ color: theme.palette.info.main }} />}
-            color={theme.palette.info.main}
-            subtext="Across all submissions"
-          />
-        </Grid>
-      </Grid>
+     <Grid container spacing={2} mb={3}>
+  <Grid item xs={12} sm={6} md={3} sx={{ flex: 1 }}>
+    <StatCard
+      title="Total Submissions"
+      value={stats.total}
+      icon={<PersonIcon sx={{ color: theme.palette.primary.main }} />}
+      color={theme.palette.primary.main}
+    />
+  </Grid>
+
+  <Grid item xs={12} sm={6} md={3} sx={{ flex: 1 }}>
+    <StatCard
+      title="Pending Review"
+      value={stats.pending}
+      icon={<PendingIcon sx={{ color: theme.palette.warning.main }} />}
+      color={theme.palette.warning.main}
+      subtext={`${Math.round((stats.pending / stats.total) * 100)}% of total`}
+    />
+  </Grid>
+
+  <Grid item xs={12} sm={6} md={3} sx={{ flex: 1 }}>
+    <StatCard
+      title="Approved"
+      value={stats.approved}
+      icon={<CheckCircleIcon sx={{ color: theme.palette.success.main }} />}
+      color={theme.palette.success.main}
+      subtext={`${Math.round((stats.approved / stats.total) * 100)}% of total`}
+    />
+  </Grid>
+
+  <Grid item xs={12} sm={6} md={3} sx={{ flex: 1 }}>
+    <StatCard
+      title="Avg Match Score"
+      value={`${stats.avgMatchScore}%`}
+      icon={<TrendingUpIcon sx={{ color: theme.palette.info.main }} />}
+      color={theme.palette.info.main}
+      subtext="Across all submissions"
+    />
+  </Grid>
+</Grid>
 
       {/* Filters and Search */}
       <Card sx={{ mb: 3 }}>

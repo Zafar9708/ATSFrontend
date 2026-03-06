@@ -709,7 +709,7 @@ const JobsPage = () => {
 
   return (
     <MainLayout>
-      <Container maxWidth="lg" sx={{ py: 3, marginLeft: 5 }}>
+      <Container maxWidth="lg" sx={{ py: 3, marginLeft:10, marginTop:3 }}>
         {/* Archive Dialog */}
         <Dialog open={showArchiveDialog} onClose={handleArchiveDialogClose}>
           <DialogTitle>Archive Job</DialogTitle>
