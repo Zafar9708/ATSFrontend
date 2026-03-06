@@ -931,7 +931,7 @@ const CandidateDetailsPage = () => {
         </Box>
       )}
 
-      <Breadcrumbs sx={{ mb: 2 }}>
+      <Breadcrumbs sx={{ mb: 2,mt:4 }}>
         <Link color="inherit" onClick={() => navigate('/')} sx={{ cursor: 'pointer' }}>Dashboard</Link>
         <Link color="inherit" onClick={() => navigate('/candidates')} sx={{ cursor: 'pointer' }}>Candidates</Link>
         <Typography color="text.primary">{candidate.firstName} {candidate.lastName}</Typography>

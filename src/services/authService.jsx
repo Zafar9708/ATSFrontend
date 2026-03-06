@@ -1,6 +1,6 @@
 
 import axios from "axios";
-const API_BASE_URL = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1";
+const API_BASE_URL = "http://localhost:5000/api/v1";
 // const API_BASE_URL = "/api/v1";
 
 

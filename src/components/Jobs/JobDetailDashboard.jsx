@@ -5,8 +5,8 @@ import {
   TextField, Avatar, Stack, IconButton, Paper,
   Chip, useTheme, styled, alpha, LinearProgress,
   Grid, Table, TableBody, TableCell, TableContainer, 
-  TableHead, TableRow, Tooltip, Menu, MenuItem,
-  InputAdornment, Badge, Divider
+  TableHead, TableRow, Tooltip, Menu, MenuItem,Select,
+  InputAdornment, Badge, Divider, Alert, CircularProgress
 } from "@mui/material";
 import {
   People as PeopleIcon,
@@ -42,6 +42,63 @@ import {
   Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
   LineChart, Line, PieChart, Pie, Cell
 } from 'recharts';
+import axios from 'axios';
+
+// API Configuration
+const API_BASE_URL = 'http://localhost:5000/api/v1';
+const getAuthToken = () => localStorage.getItem('token'); // Adjust based on your token storage
+
+// API Service
+const apiService = {
+  getJobDetails: async (jobId) => {
+    const token = getAuthToken();
+    const response = await axios.get(`${API_BASE_URL}/job/${jobId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+
+  getJobCandidates: async (jobId) => {
+    const token = getAuthToken();
+    const response = await axios.get(`${API_BASE_URL}/candidates/job/${jobId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  },
+
+  getUpcomingInterviews: async () => {
+    const token = getAuthToken();
+    try {
+      const response = await axios.get(`${API_BASE_URL}/interviews/upcoming`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return response.data;
+    } catch (error) {
+      // Try offline endpoint if main fails
+      const offlineResponse = await axios.get(`${API_BASE_URL}/offline/interviews/upcoming`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return offlineResponse.data;
+    }
+  },
+
+  updateCandidateStage: async (candidateId, stage) => {
+    const token = getAuthToken();
+    const response = await axios.patch(`${API_BASE_URL}/candidates/${candidateId}/stage`, 
+      { stage },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
+
+  deleteCandidate: async (candidateId) => {
+    const token = getAuthToken();
+    const response = await axios.delete(`${API_BASE_URL}/candidates/${candidateId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  }
+};
 
 // Styled Components
 const StatCard = styled(Card)(({ theme }) => ({
@@ -100,6 +157,8 @@ const Dashboard = () => {
   const theme = useTheme();
   
   // State
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [job, setJob] = useState(null);
   const [stats, setStats] = useState({
     totalCandidates: 0,
@@ -114,179 +173,165 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterAnchor, setFilterAnchor] = useState(null);
-  
-  // Dummy Data
-  const dummyJob = {
-    id: jobId || "JOB-001",
-    title: "Senior Frontend Developer",
-    department: "Engineering",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$120,000 - $150,000",
-    experience: "5+ years",
-    openings: 3,
-    postedDate: "Jan 10, 2024",
-    status: "active",
-    description: "We are looking for a Senior Frontend Developer with expertise in React.js and modern web technologies to join our growing team."
-  };
-  
-  const dummyCandidates = [
-    {
-      id: "C001",
-      name: "John Smith",
-      email: "john.smith@email.com",
-      stage: "Interview",
-      status: "active",
-      appliedDate: "Jan 15, 2024",
-      experience: "5 years",
-      location: "New York, NY",
-      avatarColor: "#2196F3",
-      rating: 4.5,
-      lastActivity: "2 hours ago"
-    },
-    {
-      id: "C002",
-      name: "Sarah Johnson",
-      email: "sarah.j@email.com",
-      stage: "Screening",
-      status: "active",
-      appliedDate: "Jan 18, 2024",
-      experience: "3 years",
-      location: "San Francisco, CA",
-      avatarColor: "#FF9800",
-      rating: 4.2,
-      lastActivity: "1 day ago"
-    },
-    {
-      id: "C003",
-      name: "Michael Chen",
-      email: "michael.c@email.com",
-      stage: "Offer",
-      status: "active",
-      appliedDate: "Jan 20, 2024",
-      experience: "7 years",
-      location: "Austin, TX",
-      avatarColor: "#4CAF50",
-      rating: 4.8,
-      lastActivity: "3 hours ago"
-    },
-    {
-      id: "C004",
-      name: "Emma Davis",
-      email: "emma.d@email.com",
-      stage: "Hired",
-      status: "hired",
-      appliedDate: "Jan 10, 2024",
-      experience: "4 years",
-      location: "Chicago, IL",
-      avatarColor: "#9C27B0",
-      rating: 4.6,
-      lastActivity: "1 week ago"
-    },
-    {
-      id: "C005",
-      name: "Robert Wilson",
-      email: "robert.w@email.com",
-      stage: "Rejected",
-      status: "rejected",
-      appliedDate: "Jan 5, 2024",
-      experience: "6 years",
-      location: "Boston, MA",
-      avatarColor: "#F44336",
-      rating: 3.8,
-      lastActivity: "2 days ago"
-    },
-    {
-      id: "C006",
-      name: "Lisa Brown",
-      email: "lisa.b@email.com",
-      stage: "Interview",
-      status: "active",
-      appliedDate: "Dec 28, 2023",
-      experience: "8 years",
-      location: "Seattle, WA",
-      avatarColor: "#009688",
-      rating: 4.7,
-      lastActivity: "5 hours ago"
-    }
-  ];
-  
-  const dummyInterviews = [
-    {
-      id: "I001",
-      candidateName: "John Smith",
-      candidateId: "C001",
-      type: "Technical",
-      time: "10:00 AM - 11:00 AM",
-      date: "Today",
-      interviewers: ["Alex Johnson", "Sarah Lee"],
-      status: "scheduled",
-      platform: "Zoom"
-    },
-    {
-      id: "I002",
-      candidateName: "Michael Chen",
-      candidateId: "C003",
-      type: "Final",
-      time: "2:00 PM - 3:00 PM",
-      date: "Today",
-      interviewers: ["David Kim"],
-      status: "scheduled",
-      platform: "Google Meet"
-    },
-    {
-      id: "I003",
-      candidateName: "Lisa Brown",
-      candidateId: "C006",
-      type: "HR",
-      time: "11:00 AM - 12:00 PM",
-      date: "Tomorrow",
-      interviewers: ["Maria Garcia"],
-      status: "scheduled",
-      platform: "In-person"
-    }
-  ];
-  
-  const dummyPipelineData = [
-    { name: 'Sourced', value: 24, color: '#2196F3' },
-    { name: 'Screening', value: 18, color: '#FF9800' },
-    { name: 'Interview', value: 12, color: '#9C27B0' },
-    { name: 'Offer', value: 6, color: '#4CAF50' },
-    { name: 'Hired', value: 3, color: '#00C853' },
-    { name: 'Rejected', value: 9, color: '#F44336' }
-  ];
-  
-  const dummyWeeklyData = [
-    { day: 'Mon', applications: 8, interviews: 3 },
-    { day: 'Tue', applications: 12, interviews: 5 },
-    { day: 'Wed', applications: 10, interviews: 4 },
-    { day: 'Thu', applications: 15, interviews: 6 },
-    { day: 'Fri', applications: 7, interviews: 2 },
-    { day: 'Sat', applications: 2, interviews: 1 },
-    { day: 'Sun', applications: 1, interviews: 0 }
-  ];
+  const [stageFilter, setStageFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  // Initialize data
+  // Fetch data on mount
   useEffect(() => {
-    setJob(dummyJob);
-    setCandidates(dummyCandidates);
-    setInterviews(dummyInterviews);
-    setPipelineData(dummyPipelineData);
-    setWeeklyData(dummyWeeklyData);
-    
-    // Calculate stats
-    const totalCandidates = dummyCandidates.length;
-    const interviewsToday = dummyInterviews.filter(i => i.date === 'Today').length;
-    const positionsFilled = dummyCandidates.filter(c => c.stage === 'Hired').length;
-    const acceptanceRate = ((positionsFilled / totalCandidates) * 100).toFixed(1);
-    
-    setStats({
-      totalCandidates,
-      interviewsToday,
-      positionsFilled,
-      acceptanceRate: parseFloat(acceptanceRate)
-    });
+    if (jobId) {
+      fetchAllData();
+    }
   }, [jobId]);
+
+  const fetchAllData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch all data in parallel
+      const [jobResponse, candidatesResponse, interviewsResponse] = await Promise.all([
+        apiService.getJobDetails(jobId),
+        apiService.getJobCandidates(jobId),
+        apiService.getUpcomingInterviews()
+      ]);
+
+      // Set job data
+      setJob(jobResponse.job);
+
+      // Transform candidates data
+      const transformedCandidates = transformCandidates(candidatesResponse.candidates);
+      setCandidates(transformedCandidates);
+
+      // Transform interviews data
+      setInterviews(interviewsResponse.data || []);
+
+      // Calculate pipeline data from candidates
+      const pipeline = calculatePipelineData(transformedCandidates);
+      setPipelineData(pipeline);
+
+      // Generate weekly activity data from candidates
+      const weekly = generateWeeklyData(transformedCandidates);
+      setWeeklyData(weekly);
+
+      // Calculate stats
+      const totalCandidates = transformedCandidates.length;
+      const interviewsToday = interviewsResponse.data?.filter(i => {
+        const today = new Date().toDateString();
+        const interviewDate = new Date(i.date).toDateString();
+        return interviewDate === today;
+      }).length || 0;
+      
+      const positionsFilled = transformedCandidates.filter(c => 
+        c.stage === 'Hired' || c.status === 'hired'
+      ).length;
+      
+      const acceptanceRate = totalCandidates > 0 
+        ? ((positionsFilled / totalCandidates) * 100).toFixed(1)
+        : 0;
+
+      setStats({
+        totalCandidates,
+        interviewsToday,
+        positionsFilled,
+        acceptanceRate: parseFloat(acceptanceRate)
+      });
+
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError(err.response?.data?.message || 'Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const transformCandidates = (apiCandidates) => {
+    return apiCandidates.map(c => ({
+      id: c._id,
+      name: c.fullName || `${c.firstName} ${c.lastName}`,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      email: c.email,
+      phone: c.mobile,
+      stage: c.stage?.name || 'Sourced',
+      status: c.resume?.status || 'active',
+      appliedDate: new Date(c.createdAt).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric' 
+      }),
+      experience: c.experience || 'Not specified',
+      currentLocation: c.currentLocation?.name || 'Not specified',
+      preferredLocation: c.preferredLocation?.name || 'Not specified',
+      avatarColor: getRandomColor(c._id),
+      rating: (c.resume?.matchingScore || 75) / 20, // Convert to 5-point scale
+      lastActivity: getRelativeTime(new Date(c.updatedAt)),
+      currentCTC: c.currentCTC ? `${c.currency || 'INR'} ${c.currentCTC}` : 'Not specified',
+      expectedCTC: c.expectedCTC ? `${c.currency || 'INR'} ${c.expectedCTC}` : 'Not specified',
+      skills: c.skills || [],
+      matchingScore: c.resume?.matchingScore || 0,
+      source: c.source?.name || 'Direct'
+    }));
+  };
+
+  const calculatePipelineData = (candidates) => {
+    const stages = ['Sourced', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
+    const colors = ['#2196F3', '#FF9800', '#9C27B0', '#4CAF50', '#00C853', '#F44336'];
+    
+    return stages.map((stage, index) => ({
+      name: stage,
+      value: candidates.filter(c => c.stage === stage).length,
+      color: colors[index]
+    })).filter(item => item.value > 0);
+  };
+
+  const generateWeeklyData = (candidates) => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const today = new Date();
+    const weekData = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      
+      const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
+      
+      const applications = candidates.filter(c => {
+        const appliedDate = new Date(c.createdAt);
+        return appliedDate.toDateString() === date.toDateString();
+      }).length;
+
+      weekData.push({
+        day: dayName,
+        applications: applications,
+        interviews: Math.floor(applications * 0.3) // Rough estimate
+      });
+    }
+
+    return weekData;
+  };
+
+  const getRandomColor = (seed) => {
+    const colors = ['#2196F3', '#FF9800', '#4CAF50', '#9C27B0', '#F44336', '#009688', '#673AB7'];
+    const index = seed?.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+    return colors[index || 0];
+  };
+
+  const getRelativeTime = (date) => {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return `${diffDays}d ago`;
+  };
+
+  const handleRefresh = () => {
+    fetchAllData();
+  };
 
   const handleFilterClick = (event) => {
     setFilterAnchor(event.currentTarget);
@@ -294,6 +339,28 @@ const Dashboard = () => {
 
   const handleFilterClose = () => {
     setFilterAnchor(null);
+  };
+
+  const handleStageChange = async (candidateId, newStage) => {
+    try {
+      await apiService.updateCandidateStage(candidateId, newStage);
+      fetchAllData(); // Refresh data
+    } catch (err) {
+      console.error('Error updating candidate stage:', err);
+      setError('Failed to update candidate stage');
+    }
+  };
+
+  const handleDeleteCandidate = async (candidateId) => {
+    if (window.confirm('Are you sure you want to delete this candidate?')) {
+      try {
+        await apiService.deleteCandidate(candidateId);
+        fetchAllData(); // Refresh data
+      } catch (err) {
+        console.error('Error deleting candidate:', err);
+        setError('Failed to delete candidate');
+      }
+    }
   };
 
   const getStageColor = (stage) => {
@@ -309,22 +376,69 @@ const Dashboard = () => {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
-      case 'active': return 'primary';
-      case 'hired': return 'success';
+    switch(status?.toLowerCase()) {
+      case 'shortlisted': return 'success';
+      case 'under review': return 'info';
       case 'rejected': return 'error';
-      case 'scheduled': return 'info';
+      case 'on hold': return 'warning';
       default: return 'default';
     }
   };
+
+  // Filter candidates based on search and filters
+  const filteredCandidates = candidates.filter(c => {
+    const matchesSearch = searchQuery === '' || 
+      c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.skills?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesStage = stageFilter === 'all' || c.stage === stageFilter;
+    const matchesStatus = statusFilter === 'all' || c.status?.toLowerCase() === statusFilter;
+    
+    return matchesSearch && matchesStage && matchesStatus;
+  });
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 2
+      }}>
+        <CircularProgress size={60} thickness={4} />
+        <Typography variant="body1" color="text.secondary">
+          Loading dashboard data...
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert 
+          severity="error" 
+          action={
+            <Button color="inherit" size="small" onClick={handleRefresh}>
+              Retry
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 
       p: 3, 
       maxWidth: '1300',
       overflowX: 'hidden',
-      marginLeft:10,
-      
+      marginLeft: 10,
     }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
@@ -340,9 +454,9 @@ const Dashboard = () => {
               mb: 0.5,
               color: theme.palette.text.primary
             }}>
-              {job?.title}
+              {job?.jobTitle}
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
               <Chip 
                 size="small" 
                 icon={<BusinessIcon sx={{ fontSize: 14 }} />}
@@ -352,22 +466,34 @@ const Dashboard = () => {
               <Chip 
                 size="small" 
                 icon={<LocationIcon sx={{ fontSize: 14 }} />}
-                label={job?.location} 
+                label={job?.jobFormId?.locations?.[0]?.name || 'Remote'} 
                 sx={{ fontWeight: 500 }}
               />
               <Chip 
                 size="small" 
                 icon={<MoneyIcon sx={{ fontSize: 14 }} />}
-                label={job?.salary} 
+                label={`${job?.jobFormId?.currency || 'INR'} ${job?.jobFormId?.amount || 'N/A'}`} 
+                sx={{ fontWeight: 500 }}
+              />
+              <Chip 
+                size="small" 
+                icon={<WorkIcon sx={{ fontSize: 14 }} />}
+                label={job?.jobFormId?.jobType || 'Full-time'} 
+                sx={{ fontWeight: 500 }}
+              />
+              <Chip 
+                size="small" 
+                label={`ID: ${job?.jobName || job?._id?.slice(-6)}`}
+                variant="outlined"
                 sx={{ fontWeight: 500 }}
               />
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5 }}>
-            <SecondaryButton startIcon={<EditIcon />}>
+            <SecondaryButton startIcon={<EditIcon />} onClick={() => navigate(`/jobs/update/${jobId}`)}>
               Edit Job
             </SecondaryButton>
-            <PrimaryButton startIcon={<AddIcon />}>
+            <PrimaryButton startIcon={<AddIcon />} onClick={() => navigate(`/candidates/add/${jobId}`)}>
               Add Candidate
             </PrimaryButton>
           </Box>
@@ -377,14 +503,15 @@ const Dashboard = () => {
         <Box sx={{ 
           display: 'flex', 
           gap: 2,
-          mb: 3 
+          mb: 3,
+          flexWrap: 'wrap'
         }}>
           <TextField
-            placeholder="Search candidates, interviews..."
+            placeholder="Search candidates by name, email, or skills..."
             size="small"
             sx={{
               flex: 1,
-              maxWidth: 400,
+              minWidth: 300,
               '& .MuiOutlinedInput-root': {
                 borderRadius: '8px',
                 backgroundColor: theme.palette.background.paper
@@ -409,800 +536,593 @@ const Dashboard = () => {
           <SecondaryButton startIcon={<DownloadIcon />}>
             Export
           </SecondaryButton>
-          <SecondaryButton startIcon={<RefreshIcon />}>
+          <SecondaryButton startIcon={<RefreshIcon />} onClick={handleRefresh}>
             Refresh
           </SecondaryButton>
         </Box>
         
+        {/* Filter Menu */}
+        <Menu
+          anchorEl={filterAnchor}
+          open={Boolean(filterAnchor)}
+          onClose={handleFilterClose}
+          PaperProps={{
+            sx: { width: 240, p: 2, borderRadius: 2 }
+          }}
+        >
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+            Filter by Stage
+          </Typography>
+          <Select
+            fullWidth
+            size="small"
+            value={stageFilter}
+            onChange={(e) => setStageFilter(e.target.value)}
+            sx={{ mb: 2 }}
+          >
+            <MenuItem value="all">All Stages</MenuItem>
+            <MenuItem value="Sourced">Sourced</MenuItem>
+            <MenuItem value="Screening">Screening</MenuItem>
+            <MenuItem value="Interview">Interview</MenuItem>
+            <MenuItem value="Offer">Offer</MenuItem>
+            <MenuItem value="Hired">Hired</MenuItem>
+            <MenuItem value="Rejected">Rejected</MenuItem>
+          </Select>
+
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+            Filter by Status
+          </Typography>
+          <Select
+            fullWidth
+            size="small"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <MenuItem value="all">All Status</MenuItem>
+            <MenuItem value="shortlisted">Shortlisted</MenuItem>
+            <MenuItem value="under review">Under Review</MenuItem>
+            <MenuItem value="rejected">Rejected</MenuItem>
+            <MenuItem value="on hold">On Hold</MenuItem>
+          </Select>
+        </Menu>
+        
         {/* Stats Cards */}
-       <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+          {/* Total Candidates */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Total Candidates
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {stats.totalCandidates}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {candidates.filter(c => c.status === 'shortlisted').length} shortlisted
+                    </Typography>
+                  </Box>
+                  <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main, width: 48, height: 48 }}>
+                    <PeopleIcon />
+                  </Avatar>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={(candidates.filter(c => c.status === 'shortlisted').length / stats.totalCandidates) * 100 || 0}
+                  sx={{ mt: 2, height: 4, borderRadius: 2, backgroundColor: alpha(theme.palette.primary.main, 0.1) }}
+                />
+              </CardContent>
+            </StatCard>
+          </Grid>
 
-  {/* Total Candidates */}
-  <Grid item xs={12} sm={6} md={3} sx={{ display: "flex", flex:1 }}>
-    <StatCard sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-      <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Total Candidates
-            </Typography>
+          {/* Interviews Today */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Interviews Today
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {stats.interviewsToday}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {interviews.length} total scheduled
+                    </Typography>
+                  </Box>
+                  <Avatar sx={{ bgcolor: alpha(theme.palette.info.main, 0.1), color: theme.palette.info.main, width: 48, height: 48 }}>
+                    <ScheduleIcon />
+                  </Avatar>
+                </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    2 completed
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {stats.interviewsToday - 2} pending
+                  </Typography>
+                </Box>
+              </CardContent>
+            </StatCard>
+          </Grid>
 
-            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-              {stats.totalCandidates}
-            </Typography>
+          {/* Positions Filled */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Positions Filled
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {stats.positionsFilled}/{job?.jobFormId?.openings || 1}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {(job?.jobFormId?.openings || 1) - stats.positionsFilled} remaining
+                    </Typography>
+                  </Box>
+                  <Avatar sx={{ bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.main, width: 48, height: 48 }}>
+                    <HowToRegIcon />
+                  </Avatar>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={(stats.positionsFilled / (job?.jobFormId?.openings || 1)) * 100}
+                  sx={{ mt: 2, height: 4, borderRadius: 2, backgroundColor: alpha(theme.palette.success.main, 0.1) }}
+                />
+              </CardContent>
+            </StatCard>
+          </Grid>
 
-            <Typography variant="caption" color="text.secondary">
-              {dummyCandidates.filter(c => c.status === "active").length} active
-            </Typography>
-          </Box>
-
-          <Avatar
-            sx={{
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              color: theme.palette.primary.main,
-              width: 48,
-              height: 48,
-            }}
-          >
-            <PeopleIcon />
-          </Avatar>
-
-        </Box>
-
-        <LinearProgress
-          variant="determinate"
-          value={75}
-          sx={{
-            mt: 2,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-          }}
-        />
-      </CardContent>
-    </StatCard>
-  </Grid>
-
-  {/* Interviews Today */}
-  <Grid item xs={12} sm={6} md={3} sx={{ display: "flex", flex:1 }}>
-    <StatCard sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-      <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
-        
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Interviews Today
-            </Typography>
-
-            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-              {stats.interviewsToday}
-            </Typography>
-
-            <Typography variant="caption" color="text.secondary">
-              {interviews.length} total scheduled
-            </Typography>
-          </Box>
-
-          <Avatar
-            sx={{
-              bgcolor: alpha(theme.palette.info.main, 0.1),
-              color: theme.palette.info.main,
-              width: 48,
-              height: 48,
-            }}
-          >
-            <ScheduleIcon />
-          </Avatar>
-
-        </Box>
-
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-          <Typography variant="caption" color="text.secondary">
-            2 completed
-          </Typography>
-
-          <Typography variant="caption" color="text.secondary">
-            1 pending
-          </Typography>
-        </Box>
-
-      </CardContent>
-    </StatCard>
-  </Grid>
-
-  {/* Positions Filled */}
-  <Grid item xs={12} sm={6} md={3} sx={{ display: "flex" , flex:1}}>
-    <StatCard sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-      <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
-        
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Positions Filled
-            </Typography>
-
-            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-              {stats.positionsFilled}/{job?.openings}
-            </Typography>
-
-            <Typography variant="caption" color="text.secondary">
-              {job?.openings - stats.positionsFilled} remaining
-            </Typography>
-          </Box>
-
-          <Avatar
-            sx={{
-              bgcolor: alpha(theme.palette.success.main, 0.1),
-              color: theme.palette.success.main,
-              width: 48,
-              height: 48,
-            }}
-          >
-            <HowToRegIcon />
-          </Avatar>
-
-        </Box>
-
-        <LinearProgress
-          variant="determinate"
-          value={(stats.positionsFilled / (job?.openings || 1)) * 100}
-          sx={{
-            mt: 2,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: alpha(theme.palette.success.main, 0.1),
-          }}
-        />
-
-      </CardContent>
-    </StatCard>
-  </Grid>
-
-  {/* Acceptance Rate */}
-  <Grid item xs={12} sm={6} md={3} sx={{ display: "flex", flex:1 }}>
-    <StatCard sx={{ width: "100%", display: "flex", flexDirection: "column" }}>
-      <CardContent sx={{ p: 2.5, flexGrow: 1 }}>
-        
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              Acceptance Rate
-            </Typography>
-
-            <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-              {stats.acceptanceRate}%
-            </Typography>
-
-            <Typography variant="caption" color="text.secondary">
-              Above average
-            </Typography>
-          </Box>
-
-          <Avatar
-            sx={{
-              bgcolor: alpha(theme.palette.warning.main, 0.1),
-              color: theme.palette.warning.main,
-              width: 48,
-              height: 48,
-            }}
-          >
-            <TrendingUpIcon />
-          </Avatar>
-
-        </Box>
-
-        <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-          <TrendingUpIcon sx={{ fontSize: 16, color: "success.main", mr: 0.5 }} />
-
-          <Typography variant="caption" color="success.main">
-            +5.2% from last month
-          </Typography>
-        </Box>
-
-      </CardContent>
-    </StatCard>
-  </Grid>
-
-       </Grid>
+          {/* Acceptance Rate */}
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard>
+              <CardContent sx={{ p: 2.5 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                      Acceptance Rate
+                    </Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+                      {stats.acceptanceRate}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Above average
+                    </Typography>
+                  </Box>
+                  <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.1), color: theme.palette.warning.main, width: 48, height: 48 }}>
+                    <TrendingUpIcon />
+                  </Avatar>
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+                  <TrendingUpIcon sx={{ fontSize: 16, color: "success.main", mr: 0.5 }} />
+                  <Typography variant="caption" color="success.main">
+                    +5.2% from last month
+                  </Typography>
+                </Box>
+              </CardContent>
+            </StatCard>
+          </Grid>
+        </Grid>
       </Box>
       
-{/* Main Dashboard Content */}
-<Grid container spacing={2} >
-
-  {/* Candidate Pipeline */}
-  <Grid item xs={12} lg={2}>
-    <DashboardCard>
-      <CardContent sx={{ p: 2.5}}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-            width:700
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Candidate Pipeline
-          </Typography>
-
-          <Box sx={{ display: "flex", gap: 2 }}>
-            <SecondaryButton size="small">This Week</SecondaryButton>
-            <SecondaryButton size="small">All Time</SecondaryButton>
-          </Box>
-        </Box>
-
-        <Box sx={{ height: 400 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={pipelineData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke={alpha(theme.palette.divider, 0.3)}
-              />
-              <XAxis dataKey="name" />
-              <YAxis />
-
-              <RechartsTooltip
-                contentStyle={{
-                  borderRadius: "8px",
-                  border: `1px solid ${alpha(
-                    theme.palette.divider,
-                    0.2
-                  )}`,
-                }}
-              />
-
-              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                {pipelineData.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Box>
-      </CardContent>
-    </DashboardCard>
-  </Grid>
-
-  {/* Upcoming Interviews */}
-  <Grid item xs={12} lg={2}>
-    <DashboardCard>
-      <CardContent sx={{ p: 1.5 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-            width:430
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Upcoming Interviews
-          </Typography>
-
-          <PrimaryButton size="small" endIcon={<ChevronRightIcon />}>
-            View All
-          </PrimaryButton>
-        </Box>
-
-        <Stack spacing={2}>
-          {interviews.map((interview) => (
-            <Paper
-              key={interview.id}
-              variant="outlined"
-              sx={{
-                p: 2,
-                borderRadius: "8px",
-                borderColor: alpha(theme.palette.divider, 0.2),
-                "&:hover": {
-                  borderColor: theme.palette.primary.main,
-                  backgroundColor: alpha(
-                    theme.palette.primary.main,
-                    0.02
-                  ),
-                },
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 1.5,
-                }}
-              >
-                <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 600 }}
-                >
-                  {interview.candidateName}
+      {/* Main Dashboard Content */}
+      <Grid container spacing={2}>
+        {/* Candidate Pipeline */}
+        <Grid item xs={12} lg={3}>
+          <DashboardCard>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Candidate Pipeline
                 </Typography>
-
-                <Chip
-                  label={interview.type}
-                  size="small"
-                  sx={{
-                    fontWeight: 500,
-                    bgcolor: alpha(
-                      theme.palette.primary.main,
-                      0.1
-                    ),
-                    color: theme.palette.primary.main,
-                  }}
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  mb: 1.5,
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <CalendarIcon
-                    sx={{
-                      fontSize: 14,
-                      mr: 0.5,
-                      color: "text.secondary",
-                    }}
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Chip 
+                    label={`${candidates.length} total`} 
+                    size="small" 
+                    sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1) }}
                   />
-                  <Typography variant="caption">
-                    {interview.date}, {interview.time}
-                  </Typography>
                 </Box>
+              </Box>
+              <Box sx={{ height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={pipelineData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={80} />
+                    <RechartsTooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+                      }}
+                    />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      {pipelineData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </DashboardCard>
+        </Grid>
 
-                <Chip
-                  label={interview.platform}
-                  size="small"
-                  variant="outlined"
-                />
+        {/* Upcoming Interviews */}
+        <Grid item xs={12} lg={4}>
+          <DashboardCard>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Upcoming Interviews
+                </Typography>
+                <PrimaryButton size="small" endIcon={<ChevronRightIcon />}>
+                  Schedule
+                </PrimaryButton>
               </Box>
 
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <AvatarGroup max={2} sx={{ mr: 1 }}>
-                    {interview.interviewers.map(
-                      (interviewer, idx) => (
-                        <Avatar
-                          key={idx}
-                          sx={{
-                            width: 24,
-                            height: 24,
-                            fontSize: "0.75rem",
-                          }}
-                        >
-                          {interviewer.charAt(0)}
-                        </Avatar>
-                      )
-                    )}
-                  </AvatarGroup>
-
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                  >
-                    {interview.interviewers.length} interviewers
-                  </Typography>
-                </Box>
-
-                <IconButton size="small">
-                  <VisibilityIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            </Paper>
-          ))}
-        </Stack>
-      </CardContent>
-    </DashboardCard>
-  </Grid>
-
-  {/* Weekly Activity */}
-  <Grid item xs={12} lg={6}>
-    <DashboardCard>
-      <CardContent sx={{ p: 2.5 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-            width:850
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Weekly Activity
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary">
-            Last 7 days
-          </Typography>
-        </Box>
-
-        <Box sx={{ height: 240 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={weeklyData}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke={alpha(theme.palette.divider, 0.3)}
-              />
-
-              <XAxis dataKey="day" />
-              <YAxis />
-
-              <RechartsTooltip
-                contentStyle={{
-                  borderRadius: "8px",
-                  border: `1px solid ${alpha(
-                    theme.palette.divider,
-                    0.2
-                  )}`,
-                }}
-              />
-
-              <Legend />
-
-              <Line
-                type="monotone"
-                dataKey="applications"
-                stroke={theme.palette.primary.main}
-                strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-
-              <Line
-                type="monotone"
-                dataKey="interviews"
-                stroke={theme.palette.secondary.main}
-                strokeWidth={2}
-                dot={{ r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Box>
-      </CardContent>
-    </DashboardCard>
-  </Grid>
-
-  {/* Quick Actions */}
-  <Grid item xs={12} lg={2}>
-    <DashboardCard>
-      <CardContent sx={{ p: 1.5 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 2,width:280 }}>
-          Quick Actions
-        </Typography>
-
-        <Stack spacing={1.5}>
-          <Button
-            fullWidth
-            variant="contained"
-            startIcon={<CalendarIcon />}
-            onClick={() => navigate("/interviews/schedule")}
-            sx={{
-              justifyContent: "flex-start",
-              textTransform: "none",
-              py: 1.5,
-              borderRadius: "8px",
-            }}
-          >
-            Schedule Interview
-          </Button>
-
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<MailIcon />}
-            sx={{
-              justifyContent: "flex-start",
-              textTransform: "none",
-              py: 1.5,
-              borderRadius: "8px",
-            }}
-          >
-            Send Bulk Email
-          </Button>
-
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={() => navigate(`/jobs/update/${jobId}`)}
-            sx={{
-              justifyContent: "flex-start",
-              textTransform: "none",
-              py: 1.5,
-              borderRadius: "8px",
-            }}
-          >
-            Update Job Posting
-          </Button>
-
-          <Button
-            fullWidth
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={() => navigate("/jobs/create")}
-            sx={{
-              justifyContent: "flex-start",
-              textTransform: "none",
-              py: 1.5,
-              borderRadius: "8px",
-            }}
-          >
-            Create New Job
-          </Button>
-        </Stack>
-      </CardContent>
-    </DashboardCard>
-  </Grid>
-
-
-        
-        {/* Candidates Table */}
-     <Grid item xs={12} sx={{ width: "100%", display: "flex" }}>
-  <DashboardCard sx={{ width: "100%" }}>
-    <CardContent sx={{ p: 2.5 }}>
-
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-          flexWrap: "wrap",
-          gap: 1
-        }}
-      >
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Recent Candidates
-        </Typography>
-
-        <Box sx={{ display: "flex", gap: 1 }}>
-          <SecondaryButton startIcon={<DownloadIcon />}>
-            Export
-          </SecondaryButton>
-
-          <PrimaryButton startIcon={<AddIcon />}>
-            Add Candidate
-          </PrimaryButton>
-        </Box>
-      </Box>
-
-      {/* Table */}
-      <TableContainer
-        sx={{
-          width: "100%",
-          overflowX: "auto"
-        }}
-      >
-        <Table sx={{ minWidth: 900 }}>
-
-          <TableHead>
-            <TableRow>
-              <TableCell>Candidate</TableCell>
-              <TableCell>Stage</TableCell>
-              <TableCell>Applied Date</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Rating</TableCell>
-              <TableCell>Last Activity</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {candidates.map((candidate) => (
-              <TableRow
-                key={candidate.id}
-                hover
-                sx={{
-                  "&:hover": {
-                    backgroundColor: alpha(
-                      theme.palette.primary.main,
-                      0.02
-                    )
-                  }
-                }}
-              >
-                {/* Candidate */}
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Avatar
+              {interviews.length > 0 ? (
+                <Stack spacing={2}>
+                  {interviews.slice(0, 3).map((interview) => (
+                    <Paper
+                      key={interview._id}
+                      variant="outlined"
                       sx={{
-                        width: 36,
-                        height: 36,
-                        mr: 2,
-                        bgcolor: candidate.avatarColor,
-                        color: theme.palette.common.white
+                        p: 2,
+                        borderRadius: "8px",
+                        borderColor: alpha(theme.palette.divider, 0.2),
+                        '&:hover': {
+                          borderColor: theme.palette.primary.main,
+                          backgroundColor: alpha(theme.palette.primary.main, 0.02),
+                        },
                       }}
                     >
-                      {candidate.name.charAt(0)}
-                    </Avatar>
+                      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          {interview.candidateName}
+                        </Typography>
+                        <Chip
+                          label={interview.type}
+                          size="small"
+                          sx={{ fontWeight: 500, bgcolor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main }}
+                        />
+                      </Box>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                          <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: "text.secondary" }} />
+                          <Typography variant="caption">
+                            {new Date(interview.date).toLocaleDateString()}, {interview.time}
+                          </Typography>
+                        </Box>
+                        <Chip label={interview.platform} size="small" variant="outlined" />
+                      </Box>
+                    </Paper>
+                  ))}
+                </Stack>
+              ) : (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <ScheduleIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                  <Typography variant="body2" color="text.secondary">
+                    No upcoming interviews scheduled
+                  </Typography>
+                  <Button 
+                    variant="outlined" 
+                    size="small" 
+                    sx={{ mt: 2 }}
+                    onClick={() => navigate('/interviews/schedule')}
+                  >
+                    Schedule Interview
+                  </Button>
+                </Box>
+              )}
+            </CardContent>
+          </DashboardCard>
+        </Grid>
 
-                    <Box>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ fontWeight: 600 }}
-                      >
-                        {candidate.name}
-                      </Typography>
+        {/* Weekly Activity */}
+        <Grid item xs={12} lg={5}>
+          <DashboardCard>
+            <CardContent sx={{ p: 2.5 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Weekly Activity
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Last 7 days
+                </Typography>
+              </Box>
+              <Box sx={{ height: 250 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={weeklyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={alpha(theme.palette.divider, 0.3)} />
+                    <XAxis dataKey="day" />
+                    <YAxis />
+                    <RechartsTooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+                      }}
+                    />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="applications"
+                      stroke={theme.palette.primary.main}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="interviews"
+                      stroke={theme.palette.secondary.main}
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </Box>
+            </CardContent>
+          </DashboardCard>
+        </Grid>
 
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                      >
-                        {candidate.email}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </TableCell>
-
-                {/* Stage */}
-                <TableCell>
-                  <Chip
-                    label={candidate.stage}
-                    size="small"
-                    sx={{
-                      bgcolor: alpha(
-                        getStageColor(candidate.stage),
-                        0.1
-                      ),
-                      color: getStageColor(candidate.stage),
-                      fontWeight: 500
-                    }}
-                  />
-                </TableCell>
-
-                {/* Applied Date */}
-                <TableCell>
-                  {candidate.appliedDate}
-                </TableCell>
-
-                {/* Status */}
-                <TableCell>
-                  <Chip
-                    label={candidate.status}
-                    size="small"
-                    color={getStatusColor(candidate.status)}
+        {/* Quick Actions */}
+        <Grid item xs={12}>
+          <DashboardCard>
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+                Quick Actions
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<CalendarIcon />}
+                    onClick={() => navigate("/interviews/schedule")}
+                    sx={{ justifyContent: "flex-start", textTransform: "none", py: 1.5, borderRadius: "8px" }}
+                  >
+                    Schedule Interview
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button
+                    fullWidth
                     variant="outlined"
-                  />
-                </TableCell>
-
-                {/* Rating */}
-                <TableCell>
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <Typography
-                      variant="body2"
-                      sx={{ mr: 0.5, fontWeight: 500 }}
-                    >
-                      {candidate.rating}
-                    </Typography>
-
-                    <Box
-                      sx={{
-                        width: 60,
-                        height: 4,
-                        bgcolor: alpha(
-                          theme.palette.primary.main,
-                          0.2
-                        ),
-                        borderRadius: 2,
-                        overflow: "hidden"
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: `${(candidate.rating / 5) * 100}%`,
-                          height: "100%",
-                          bgcolor: theme.palette.primary.main
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                </TableCell>
-
-                {/* Last Activity */}
-                <TableCell>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
+                    startIcon={<MailIcon />}
+                    sx={{ justifyContent: "flex-start", textTransform: "none", py: 1.5, borderRadius: "8px" }}
                   >
-                    {candidate.lastActivity}
-                  </Typography>
-                </TableCell>
-
-                {/* Actions */}
-                <TableCell align="right">
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      gap: 0.5
-                    }}
+                    Send Bulk Email
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<EditIcon />}
+                    onClick={() => navigate(`/jobs/update/${jobId}`)}
+                    sx={{ justifyContent: "flex-start", textTransform: "none", py: 1.5, borderRadius: "8px" }}
                   >
-                    <Tooltip title="Send Email">
-                      <IconButton size="small">
-                        <MailIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    Update Job Posting
+                  </Button>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<AddIcon />}
+                    onClick={() => navigate("/jobs/create")}
+                    sx={{ justifyContent: "flex-start", textTransform: "none", py: 1.5, borderRadius: "8px" }}
+                  >
+                    Create New Job
+                  </Button>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </DashboardCard>
+        </Grid>
 
-                    <Tooltip title="Schedule Interview">
-                      <IconButton size="small">
-                        <CalendarIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+        {/* Candidates Table */}
+        <Grid item xs={12}>
+          <DashboardCard>
+            <CardContent sx={{ p: 2.5 }}>
+              {/* Header */}
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Candidates ({filteredCandidates.length})
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <SecondaryButton startIcon={<DownloadIcon />}>
+                    Export
+                  </SecondaryButton>
+                  <PrimaryButton startIcon={<AddIcon />} onClick={() => navigate(`/candidates/add/${jobId}`)}>
+                    Add Candidate
+                  </PrimaryButton>
+                </Box>
+              </Box>
 
-                    <Tooltip title="View Profile">
-                      <IconButton size="small">
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </TableCell>
+              {/* Table */}
+              <TableContainer sx={{ width: "100%", overflowX: "auto" }}>
+                <Table sx={{ minWidth: 1200 }}>
+                  <TableHead>
+                    <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
+                      <TableCell>Candidate</TableCell>
+                      <TableCell>Contact</TableCell>
+                      <TableCell>Stage</TableCell>
+                      <TableCell>Applied Date</TableCell>
+                      <TableCell>Matching Score</TableCell>
+                      <TableCell>CTC (Current/Expected)</TableCell>
+                      <TableCell>Status</TableCell>
+                      <TableCell>Last Activity</TableCell>
+                      <TableCell align="right">Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredCandidates.map((candidate) => (
+                      <TableRow
+                        key={candidate.id}
+                        hover
+                        sx={{ '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.02) } }}
+                      >
+                        {/* Candidate */}
+                        <TableCell>
+                          <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <Avatar sx={{ width: 40, height: 40, mr: 2, bgcolor: candidate.avatarColor }}>
+                              {candidate.name?.charAt(0)}
+                            </Avatar>
+                            <Box>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                                {candidate.name}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {candidate.experience} exp
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
 
-              </TableRow>
-            ))}
-          </TableBody>
+                        {/* Contact */}
+                        <TableCell>
+                          <Box>
+                            <Typography variant="body2">{candidate.email}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {candidate.phone}
+                            </Typography>
+                          </Box>
+                        </TableCell>
 
-        </Table>
-      </TableContainer>
+                        {/* Stage */}
+                        <TableCell>
+                          <Chip
+                            label={candidate.stage}
+                            size="small"
+                            sx={{
+                              bgcolor: alpha(getStageColor(candidate.stage), 0.1),
+                              color: getStageColor(candidate.stage),
+                              fontWeight: 500
+                            }}
+                          />
+                        </TableCell>
 
-    </CardContent>
-  </DashboardCard>
+                        {/* Applied Date */}
+                        <TableCell>
+                          <Typography variant="body2">{candidate.appliedDate}</Typography>
+                        </TableCell>
+
+                        {/* Matching Score */}
+                        <TableCell>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Box sx={{ width: 60 }}>
+                              <LinearProgress
+                                variant="determinate"
+                                value={candidate.matchingScore}
+                                sx={{
+                                  height: 6,
+                                  borderRadius: 3,
+                                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                  '& .MuiLinearProgress-bar': {
+                                    bgcolor: candidate.matchingScore >= 80 ? 'success.main' : 
+                                            candidate.matchingScore >= 60 ? 'warning.main' : 'error.main'
+                                  }
+                                }}
+                              />
+                            </Box>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                              {candidate.matchingScore}%
+                            </Typography>
+                          </Box>
+                        </TableCell>
+
+                        {/* CTC */}
+                        <TableCell>
+                          <Box>
+                            <Typography variant="caption" display="block">
+                              Current: {candidate.currentCTC}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Expected: {candidate.expectedCTC}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+
+                        {/* Status */}
+                        <TableCell>
+                          <Chip
+                            label={candidate.status}
+                            size="small"
+                            color={getStatusColor(candidate.status)}
+                            variant="outlined"
+                          />
+                        </TableCell>
+
+                        {/* Last Activity */}
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {candidate.lastActivity}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Actions */}
+                        <TableCell align="right">
+                          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+                            <Tooltip title="Send Email">
+                              <IconButton size="small" onClick={() => window.location.href = `mailto:${candidate.email}`}>
+                                <MailIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Schedule Interview">
+                              <IconButton size="small" onClick={() => navigate(`/interviews/schedule?candidate=${candidate.id}`)}>
+                                <CalendarIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="View Profile">
+                              <IconButton size="small" onClick={() => navigate(`/candidates/${candidate.id}`)}>
+                                <VisibilityIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Change Stage">
+                              <IconButton size="small" onClick={(e) => {
+                                const anchor = e.currentTarget;
+                                // You can implement a stage change menu here
+                              }}>
+                                <ChevronRightIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    
+                    {filteredCandidates.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                          <PeopleIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
+                          <Typography variant="body1" color="text.secondary">
+                            No candidates found
+                          </Typography>
+                          <Button 
+                            variant="outlined" 
+                            size="small" 
+                            sx={{ mt: 2 }}
+                            onClick={() => navigate(`/candidates/add/${jobId}`)}
+                          >
+                            Add your first candidate
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </DashboardCard>
+        </Grid>
       </Grid>
-      </Grid>
-    </Box>
-  );
-};
-
-// AvatarGroup component
-const AvatarGroup = ({ children, max = 3, sx }) => {
-  const avatars = React.Children.toArray(children);
-  const total = avatars.length;
-  const displayAvatars = avatars.slice(0, max);
-  const excess = total - max;
-  
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center', ...sx }}>
-      {displayAvatars.map((avatar, index) => (
-        <Box 
-          key={index}
-          sx={{ 
-            ml: index > 0 ? -1 : 0,
-            zIndex: total - index
-          }}
-        >
-          {avatar}
-        </Box>
-      ))}
-      {excess > 0 && (
-        <Avatar 
-          sx={{ 
-            width: 24, 
-            height: 24,
-            fontSize: '0.75rem',
-            ml: -1,
-            zIndex: 0,
-            bgcolor: 'grey.300',
-            color: 'grey.700'
-          }}
-        >
-          +{excess}
-        </Avatar>
-      )}
     </Box>
   );
 };

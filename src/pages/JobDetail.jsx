@@ -50,12 +50,12 @@ const JobDetail = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen   ">
+    <div className="flex flex-col h-screen    ">
     
       {/* Content Area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto bg-gray-100 p-4  ">
+        <div className="flex-1 overflow-y-auto bg-gray-100">
           {/* Tabs */}
           <Tabs
             value={activeTab}
@@ -63,7 +63,11 @@ const JobDetail = () => {
             variant="scrollable"
             scrollButtons="auto"
             allowScrollButtonsMobile
+<<<<<<< HEAD
             sx={{marginLeft:15, marginTop:4}}
+=======
+            sx={{marginLeft:15,marginTop:5}}
+>>>>>>> 94769af (added dashboard admin)
 
           >
             {tabNames.map((tab, index) => (
