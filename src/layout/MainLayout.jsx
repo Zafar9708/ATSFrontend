@@ -89,9 +89,9 @@ const LayoutContent = ({ children, width }) => {
             display: "flex",
             flexDirection: "column",
             width: "100%",
-            ml: { xs: 0, sm: `${drawerWidth}px` },
+            ml: { xs: 0, sm: `${drawerWidth-30}px` },
             minHeight: "100vh",
-            overflowX: "hidden",
+            
           }}
         >
 

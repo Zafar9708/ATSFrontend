@@ -63,7 +63,7 @@ const JobDetail = () => {
             variant="scrollable"
             scrollButtons="auto"
             allowScrollButtonsMobile
-            sx={{marginLeft:15}}
+            sx={{marginLeft:15, marginTop:4}}
 
           >
             {tabNames.map((tab, index) => (

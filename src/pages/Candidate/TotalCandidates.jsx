@@ -671,7 +671,7 @@ export const CandidatesTab = () => {
     }
 
     return (
-        <Box sx={{ p: 1,ml:10, mt:5 }}>
+        <Box sx={{ p: 1,ml:15, mt:5 }}>
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={6000}

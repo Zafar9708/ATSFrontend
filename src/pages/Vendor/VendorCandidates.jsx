@@ -553,7 +553,7 @@ const VendorCandidatesPage = () => {
   }
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1300, mx: 'auto',marginLeft:10, marginTop:8 }}>
+    <Box sx={{ p: 3, maxWidth: 1300, mx: 'auto',marginLeft:15, marginTop:8 }}>
       {/* Header */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Box>
