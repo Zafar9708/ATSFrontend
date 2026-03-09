@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.comapi/admin';
+const API_BASE_URL = '/api/admin';
 
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const C = {
