@@ -1123,7 +1123,7 @@ import {
 import axios from 'axios';
 
 // API Configuration - Use relative paths for Vercel deployment
-const API_BASE_URL = ''; // Empty string means relative paths
+const API_BASE_URL = '/api'; // Empty string means relative paths
 
 // Create axios instance with default config
 const api = axios.create({
