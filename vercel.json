@@ -2,11 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com//api/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/"
+      "destination": "http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/:path*"
     }
   ]
 }
