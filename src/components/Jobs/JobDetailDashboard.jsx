@@ -1159,18 +1159,18 @@ api.interceptors.response.use(
 // API Service
 const apiService = {
   getJobDetails: async (jobId) => {
-    const response = await api.get(`/api/job/${jobId}`);
+    const response = await api.get(`/job/${jobId}`);
     return response.data;
   },
 
   getJobCandidates: async (jobId) => {
-    const response = await api.get(`/api/candidates/job/${jobId}`);
+    const response = await api.get(`/candidates/job/${jobId}`);
     return response.data;
   },
 
   getUpcomingInterviews: async () => {
     try {
-      const response = await api.get(`/api/interviews/upcoming`);
+      const response = await api.get(`/interviews/upcoming`);
       return response.data;
     } catch (error) {
       console.error('Error fetching interviews:', error);
@@ -1180,12 +1180,12 @@ const apiService = {
   },
 
   updateCandidateStage: async (candidateId, stage) => {
-    const response = await api.patch(`/api/candidates/${candidateId}/stage`, { stage });
+    const response = await api.patch(`/candidates/${candidateId}/stage`, { stage });
     return response.data;
   },
 
   deleteCandidate: async (candidateId) => {
-    const response = await api.delete(`/api/candidates/${candidateId}`);
+    const response = await api.delete(`/candidates/${candidateId}`);
     return response.data;
   }
 };
