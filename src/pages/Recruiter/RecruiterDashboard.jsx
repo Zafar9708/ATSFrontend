@@ -28,7 +28,7 @@ import {
 import axios from 'axios';
 
 // API Configuration
-const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1';
+const API_BASE_URL = '/api/v1';
 const getAuthToken = () => localStorage.getItem('token'); // Adjust based on your token storage
 
 // API Service

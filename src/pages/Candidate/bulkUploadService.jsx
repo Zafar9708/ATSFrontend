@@ -1,7 +1,7 @@
 // src/services/Candidates/bulkUploadService.js
 import axios from 'axios';
 
-const API_URL = "http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com"
+const API_URL = ""
 ;
 
 // Download Excel template
