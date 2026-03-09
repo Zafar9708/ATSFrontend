@@ -28,7 +28,7 @@ import {
 import axios from 'axios';
 
 // API Configuration
-const API_BASE_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1';
+const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1';
 const getAuthToken = () => localStorage.getItem('token'); // Adjust based on your token storage
 
 // API Service
@@ -132,8 +132,7 @@ const RecruiterDashboard = () => {
   const [jobs, setJobs] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  const [error, setError] = useState(null)
   // UI State
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -420,224 +419,12 @@ const RecruiterDashboard = () => {
       fontFamily: "'DM Sans', 'Outfit', sans-serif",
     }}>
 
-<<<<<<< HEAD
-    const [jobs, setJobs] = useState(staticJobsData);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [priorityFilter, setPriorityFilter] = useState('all');
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [selectedJob, setSelectedJob] = useState(null);
-    const [editModalOpen, setEditModalOpen] = useState(false);
-    const [jobToEdit, setJobToEdit] = useState(null);
-    const [actionMenu, setActionMenu] = useState({ anchor: null, job: null });
-    const [editForm, setEditForm] = useState({ title:'', company:'', department:'', experience:'', location:'', salary:'', status:'active', priority:'medium', openings:1 });
-
-    const stats = {
-      total: jobs.length,
-      active: jobs.filter(j => j.status === 'active').length,
-      candidates: jobs.reduce((s, j) => s + j.candidates, 0),
-      openings: jobs.reduce((s, j) => s + j.openings, 0),
-    };
-
-    const filtered = jobs.filter(j => {
-      const q = searchTerm.toLowerCase();
-      return (j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q) || j.department.toLowerCase().includes(q))
-        && (statusFilter === 'all' || j.status === statusFilter)
-        && (priorityFilter === 'all' || j.priority === priorityFilter);
-    });
-
-    const openEdit = (job) => {
-      setJobToEdit(job);
-      setEditForm({ title:job.title, company:job.company, department:job.department, experience:job.experience, location:job.location, salary:job.salary, status:job.status, priority:job.priority, openings:job.openings });
-      setEditModalOpen(true);
-      setActionMenu({ anchor:null, job:null });
-    };
-
-    const saveEdit = () => {
-      setJobs(jobs.map(j => j.id === jobToEdit.id ? { ...j, ...editForm } : j));
-      setEditModalOpen(false);
-    };
-
-    const openDelete = (job) => {
-      setSelectedJob(job);
-      setDeleteDialogOpen(true);
-      setActionMenu({ anchor:null, job:null });
-    };
-
-    const confirmDelete = () => {
-      setJobs(jobs.filter(j => j.id !== selectedJob.id));
-      setDeleteDialogOpen(false);
-    };
-
-    // Shared card style
-    const cardSx = {
-      borderRadius: 3,
-      border: `1px solid ${C.border}`,
-      boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-      background: C.surface,
-      overflow: 'hidden',
-    };
-
-    return (
-      <Box sx={{
-        ml: { xs: 0, sm: '15px' },
-        minHeight: '100vh',
-        background: C.bg,
-        p: { xs: 2, sm: 3 },
-        boxSizing: 'border-box',
-        width: { xs: '100%', sm: 'calc(100vw - 180px)' },
-        maxWidth: '100%',
-        overflowX: 'hidden',
-        fontFamily: "'DM Sans', 'Outfit', sans-serif",
-        
-      }}>
-
-        {/* ── TOP HEADER ── */}
-        <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:3, gap:2, flexWrap:'wrap' }}>
-          <Box>
-            <Typography sx={{ fontSize:{ xs:20, sm:24 }, fontWeight:800, color:C.text, letterSpacing:'-0.5px', lineHeight:1.2 }}>
-              Recruiter Dashboard
-            </Typography>
-            <Typography sx={{ fontSize:13, color:C.textSub, mt:0.5, fontWeight:500 }}>
-              Thursday, March 2026 · {stats.active} active openings
-            </Typography>
-          </Box>
-          <Box sx={{ display:'flex', gap:1.5, alignItems:'center' }}>
-            <IconButton size="small" sx={{ background:C.surface, border:`1px solid ${C.border}`, borderRadius:2 }}>
-              <NotifIcon sx={{ fontSize:18, color:C.textSub }}/>
-            </IconButton>
-            <Button
-              startIcon={<AddIcon sx={{ fontSize:16 }}/>}
-              onClick={() => navigate('/dashboard/jobs/createJob')}
-              sx={{
-                background: C.primary, color:'#fff', borderRadius:2, px:2.5, py:1,
-                fontSize:13,marginRight:2, fontWeight:700, textTransform:'none', letterSpacing:0,
-                boxShadow: '0 2px 8px rgba(29,78,216,0.25)',
-                '&:hover': { background:'#1e40af', boxShadow:'0 4px 14px rgba(29,78,216,0.35)' },
-                transition:'all 0.18s',
-              }}
-            >
-              {isMobile ? 'New Job' : 'Create Job'}
-            </Button>
-          </Box>
-        </Box>
-
-        {/* ── STAT CARDS ── */}
-     <Grid container spacing={{ xs: 2, sm: 2.5 }} sx={{ mb: 3 }}>
-  {[
-    {
-      label: "Total Jobs",
-      value: stats.total,
-      sub: "All postings",
-      icon: <WorkIcon sx={{ fontSize: 20 }} />,
-      color: C.primary,
-      bg: C.primaryLight,
-      up: true,
-      trend: "+12%",
-    },
-    {
-      label: "Active Jobs",
-      value: stats.active,
-      sub: "Currently open",
-      icon: <CheckIcon sx={{ fontSize: 20 }} />,
-      color: C.success,
-      bg: "#f0fdf4",
-      up: true,
-      trend: `${Math.round((stats.active / stats.total) * 100)}%`,
-    },
-    {
-      label: "Total Candidates",
-      value: stats.candidates,
-      sub: "Across all jobs",
-      icon: <PeopleIcon sx={{ fontSize: 20 }} />,
-      color: C.accent,
-      bg: "#faf5ff",
-      up: true,
-      trend: "+24%",
-    },
-    {
-      label: "Open Positions",
-      value: stats.openings,
-      sub: "Seats to fill",
-      icon: <CalendarIcon sx={{ fontSize: 20 }} />,
-      color: C.warning,
-      bg: "#fffbeb",
-      up: false,
-      trend: "-2 this week",
-    },
-  ].map((s, i) => (
-    <Grid item xs={6} sm={6} md={3} key={i}>
-      <Card
-        sx={{
-          ...cardSx,
-          width: "20vw",
-          p: 0,
-          transition: "transform 0.18s, box-shadow 0.18s",
-          "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.09)",
-          },
-        }}
-      >
-        <CardContent
-          sx={{
-            p: { xs: 2, sm: 2.5 },
-            "&:last-child": { pb: { xs: 2, sm: 2.5 } },
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              mb: 1.5,
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: C.textSub,
-                textTransform: "uppercase",
-                letterSpacing: 0.8,
-              }}
-            >
-              {s.label}
-            </Typography>
-
-            <Box
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: 2,
-                background: s.bg,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: s.color,
-              }}
-            >
-              {s.icon}
-            </Box>
-          </Box>
-
-          <Typography
-            sx={{
-              fontSize: { xs: 26, sm: 30 },
-              fontWeight: 900,
-              color: C.text,
-              lineHeight: 1,
-              mb: 1,
-            }}
-          >
-            {s.value}
-=======
       {/* ── TOP HEADER ── */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3, gap: 2, flexWrap: 'wrap' }}>
         <Box>
           <Typography sx={{ fontSize: { xs: 20, sm: 24 }, fontWeight: 800, color: C.text, letterSpacing: '-0.5px', lineHeight: 1.2 }}>
             Recruiter Dashboard
->>>>>>> 94769af (added dashboard admin)
+
           </Typography>
           <Typography sx={{ fontSize: 13, color: C.textSub, mt: 0.5, fontWeight: 500 }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} · {stats.active} active openings

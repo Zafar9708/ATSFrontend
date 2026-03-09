@@ -86,10 +86,10 @@ const Sidebar = () => {
           { icon: <BusinessIcon />, text: 'Vendors', path: '/total-vendors' },
 
           // { icon: <NotificationsIcon />, text: 'Notifications', path: '/notifications' },
-          { icon: <BarChartIcon />, text: 'Reports', path: '/dashboard/reports' },
+          { icon: <BarChartIcon />, text: 'Reports', path: '/reports' },
           // { icon: <TaskIcon />, text: 'Tasks', path: '/tasks' },
           // { icon: <SettingsIcon />, text: 'Settings', path: '/dashboard/settings' },
-          { icon: <HelpIcon />, text: 'Help', path: '/dashboard/help' },
+          { icon: <HelpIcon />, text: 'Help', path: '/help' },
           // { icon: <FeedbackIcon />, text: 'Feedback', path: '/dashboard/feedback' },
         ].map((item, index) => {
           const roleBasedPath = getRoleBasedPath(item.path);

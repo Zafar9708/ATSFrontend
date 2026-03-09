@@ -1,7 +1,7 @@
 // services/Jobs/jobStatusService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1';
+const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1';
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');

@@ -1,6 +1,6 @@
 // import axios from "axios";
 
-// const API_BASE_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/location';
+// const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.comapi/v1/location';
 
 // const getAuthHeaders = () => {
 //   const token = localStorage.getItem('token');
@@ -34,7 +34,7 @@
 // services/Jobs/locationService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/location';
+const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/location';
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {

@@ -15,7 +15,7 @@ const LayoutContent = ({ children, width }) => {
   const { currentThemeName } = useAppTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const drawerWidth = width ? width : 45;
+  const drawerWidth = width ? width : 65;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

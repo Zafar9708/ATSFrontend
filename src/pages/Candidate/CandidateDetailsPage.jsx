@@ -466,7 +466,7 @@ const previewCandidateResume = async (id) => {
   try {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-      `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`,
+      `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -729,7 +729,7 @@ const CandidateDetailsPage = () => {
       return;
     }
 
-    const resumeUrl = `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`;
+    const resumeUrl = `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`;
 
     try {
       if (method === 'native' && navigator.share) {
@@ -932,9 +932,9 @@ const CandidateDetailsPage = () => {
       )}
 
       <Breadcrumbs sx={{ mb: 2,mt:4 }}>
-        <Link color="inherit" onClick={() => navigate('/')} sx={{ cursor: 'pointer' }}>Dashboard</Link>
-        <Link color="inherit" onClick={() => navigate('/candidates')} sx={{ cursor: 'pointer' }}>Candidates</Link>
-        <Typography color="text.primary">{candidate.firstName} {candidate.lastName}</Typography>
+        {/* <Link color="inherit" onClick={() => navigate('/')} sx={{ cursor: 'pointer' }}>Dashboard</Link>
+        <Link color="inherit" onClick={() => navigate('/candidates')} sx={{ cursor: 'pointer' }}>Candidates</Link> */}
+        {/* <Typography color="text.primary">{candidate.firstName} {candidate.lastName}</Typography> */}
       </Breadcrumbs>
 
       <Grid container spacing={3}>
@@ -1862,7 +1862,7 @@ const CandidateDetailsPage = () => {
       </Snackbar>
 
       {/* Development Mode Fab */}
-      <Fab 
+      {/* <Fab 
         color="secondary" 
         sx={{ position: 'fixed', bottom: 16, right: 16 }}
         onClick={handleToggleDummyData}
@@ -1870,7 +1870,7 @@ const CandidateDetailsPage = () => {
         <Tooltip title={useDummyData ? "Switch to Real Data" : "Switch to Dummy Data"}>
           {useDummyData ? <CheckCircleIcon /> : <EditIcon />}
         </Tooltip>
-      </Fab>
+      </Fab> */}
     </Container>
   );
 };

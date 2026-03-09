@@ -32,10 +32,10 @@
 //     useEffect(() => {
 //         const fetchData = async () => {
 //             try {
-//                 const stagesResponse = await axios.get('http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/stages/all');
+//                 const stagesResponse = await axios.get('http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com//api/v1/stages/all');
 //                 setStageOptions(stagesResponse.data);
 
-//                 const rejectionResponse = await axios.get('http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/stages/rejection-types');
+//                 const rejectionResponse = await axios.get('http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com//api/v1/stages/rejection-types');
 //                 setRejectionTypes(rejectionResponse.data);
 //             } catch (err) {
 //                 console.error("Error fetching data:", err);
@@ -283,7 +283,7 @@ import {
 import axios from 'axios';
 
 // Use a consistent base URL
-const API_BASE_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1';
+const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1';
 
 const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
     const [newStage, setNewStage] = useState("");

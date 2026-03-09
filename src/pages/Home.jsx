@@ -245,21 +245,21 @@ const Home = () => {
             </Box>
 
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button 
+              {/* <Button 
                 variant="outlined" 
                 component={RouterLink}
                 to="/login/vendor"
                 sx={{ borderColor: 'grey.200', color: 'text.primary' }}
               >
                 Vendor
-              </Button>
+              </Button> */}
               <Button 
                 variant="contained" 
                 component={RouterLink}
                 to="/login"
                 sx={{ bgcolor: 'primary.main' }}
               >
-                Employer
+                Login
               </Button>
             </Box>
           </Toolbar>

@@ -63,11 +63,8 @@ const JobDetail = () => {
             variant="scrollable"
             scrollButtons="auto"
             allowScrollButtonsMobile
-<<<<<<< HEAD
-            sx={{marginLeft:15, marginTop:4}}
-=======
             sx={{marginLeft:15,marginTop:5}}
->>>>>>> 94769af (added dashboard admin)
+
 
           >
             {tabNames.map((tab, index) => (

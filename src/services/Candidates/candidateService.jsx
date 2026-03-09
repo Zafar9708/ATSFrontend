@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const CANDIDATE_API_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates';
+const CANDIDATE_API_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/candidates';
 
 const candidateApi = axios.create({
   baseURL: CANDIDATE_API_URL,

@@ -23,6 +23,7 @@ import NotificationCenter from '../pages/NotificationCenter';
 import VendorUploadPage from '../services/Vendor/VendorUploadPage';
 import VendorCandidatesPage from '../pages/Vendor/VendorCandidates';
 import ReportsPage from '../pages/Reports';
+import HelpPage from '../pages/Help';
 
 // Layout wrapper component
 const LayoutWrapper = ({ children }) => {
@@ -172,6 +173,25 @@ const AppRoutes = () => {
               <CandidatesTab />
             </LayoutWrapper>
           </ProtectedRoute>
+        }
+      />
+
+      
+      <Route
+        path="/reports"
+        element={
+            <LayoutWrapper>
+              <ReportsPage />
+            </LayoutWrapper>
+        }
+      />
+
+       <Route
+        path="/help"
+        element={
+            <LayoutWrapper>
+              <HelpPage />
+            </LayoutWrapper>
         }
       />
 

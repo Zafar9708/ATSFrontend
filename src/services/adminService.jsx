@@ -1,6 +1,6 @@
 // import axios from 'axios';
 
-// const API_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1';
+// const API_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1';
 
 // const getToken = () => localStorage.getItem('token');
 
@@ -57,7 +57,7 @@
 
 import axios from 'axios';
 
-const API_URL = 'http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1';
+const API_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1';
 
 const getToken = () => localStorage.getItem('token');
 

@@ -45,7 +45,7 @@ import {
 import axios from 'axios';
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1';
 const getAuthToken = () => localStorage.getItem('token'); // Adjust based on your token storage
 
 // API Service
@@ -490,12 +490,7 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5 }}>
-            <SecondaryButton startIcon={<EditIcon />} onClick={() => navigate(`/jobs/update/${jobId}`)}>
-              Edit Job
-            </SecondaryButton>
-            <PrimaryButton startIcon={<AddIcon />} onClick={() => navigate(`/candidates/add/${jobId}`)}>
-              Add Candidate
-            </PrimaryButton>
+          
           </Box>
         </Box>
         
@@ -533,9 +528,9 @@ const Dashboard = () => {
           >
             Filter
           </SecondaryButton>
-          <SecondaryButton startIcon={<DownloadIcon />}>
+          {/* <SecondaryButton startIcon={<DownloadIcon />}>
             Export
-          </SecondaryButton>
+          </SecondaryButton> */}
           <SecondaryButton startIcon={<RefreshIcon />} onClick={handleRefresh}>
             Refresh
           </SecondaryButton>
@@ -874,56 +869,7 @@ const Dashboard = () => {
         {/* Quick Actions */}
         <Grid item xs={12}>
           <DashboardCard>
-            <CardContent sx={{ p: 2.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                Quick Actions
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<CalendarIcon />}
-                    onClick={() => navigate("/interviews/schedule")}
-                    sx={{ justifyContent: "flex-start", textTransform: "none", py: 1.5, borderRadius: "8px" }}
-                  >
-                    Schedule Interview
-                  </Button>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<MailIcon />}
-                    sx={{ justifyContent: "flex-start", textTransform: "none", py: 1.5, borderRadius: "8px" }}
-                  >
-                    Send Bulk Email
-                  </Button>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<EditIcon />}
-                    onClick={() => navigate(`/jobs/update/${jobId}`)}
-                    sx={{ justifyContent: "flex-start", textTransform: "none", py: 1.5, borderRadius: "8px" }}
-                  >
-                    Update Job Posting
-                  </Button>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<AddIcon />}
-                    onClick={() => navigate("/jobs/create")}
-                    sx={{ justifyContent: "flex-start", textTransform: "none", py: 1.5, borderRadius: "8px" }}
-                  >
-                    Create New Job
-                  </Button>
-                </Grid>
-              </Grid>
-            </CardContent>
+            {/*  */}
           </DashboardCard>
         </Grid>
 
@@ -937,12 +883,12 @@ const Dashboard = () => {
                   Candidates ({filteredCandidates.length})
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1 }}>
-                  <SecondaryButton startIcon={<DownloadIcon />}>
+                  {/* <SecondaryButton startIcon={<DownloadIcon />}>
                     Export
                   </SecondaryButton>
                   <PrimaryButton startIcon={<AddIcon />} onClick={() => navigate(`/candidates/add/${jobId}`)}>
                     Add Candidate
-                  </PrimaryButton>
+                  </PrimaryButton> */}
                 </Box>
               </Box>
 
@@ -1070,29 +1016,29 @@ const Dashboard = () => {
                         {/* Actions */}
                         <TableCell align="right">
                           <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
-                            <Tooltip title="Send Email">
+                            {/* <Tooltip title="Send Email">
                               <IconButton size="small" onClick={() => window.location.href = `mailto:${candidate.email}`}>
                                 <MailIcon fontSize="small" />
                               </IconButton>
-                            </Tooltip>
-                            <Tooltip title="Schedule Interview">
+                            </Tooltip> */}
+                            {/* <Tooltip title="Schedule Interview">
                               <IconButton size="small" onClick={() => navigate(`/interviews/schedule?candidate=${candidate.id}`)}>
                                 <CalendarIcon fontSize="small" />
                               </IconButton>
-                            </Tooltip>
+                            </Tooltip> */}
                             <Tooltip title="View Profile">
                               <IconButton size="small" onClick={() => navigate(`/candidates/${candidate.id}`)}>
                                 <VisibilityIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Change Stage">
+                            {/* <Tooltip title="Change Stage">
                               <IconButton size="small" onClick={(e) => {
                                 const anchor = e.currentTarget;
                                 // You can implement a stage change menu here
                               }}>
                                 <ChevronRightIcon fontSize="small" />
                               </IconButton>
-                            </Tooltip>
+                            </Tooltip> */}
                           </Box>
                         </TableCell>
                       </TableRow>

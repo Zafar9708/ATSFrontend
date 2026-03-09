@@ -1395,7 +1395,7 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
     setIsSharingJob(true);
     
     try {
-      const response = await axios.post('http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/share-with-vendor', {
+      const response = await axios.post('http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/candidates/share-with-vendor', {
         vendorEmail,
         jobId
       }, {
@@ -1768,9 +1768,9 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
       <Card sx={{ width: "100%", p: 0, m: 0 }}>
         <CardContent sx={{ p: 3 }}>
           <Box display="flex" justifyContent="flex-end">
-            <Button variant="outlined" onClick={handleVendorClick}>
+            {/* <Button variant="outlined" onClick={handleVendorClick}>
               Vendors
-            </Button>
+            </Button> */}
           </Box>
       
           <Dialog 
