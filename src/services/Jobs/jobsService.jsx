@@ -41,7 +41,7 @@ export const getJobById = async (jobId) => {
 
 export const fetchNotesByJob = async (jobId) => {
   try {
-    const response = await axios.get(`http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/notes/${jobId}`,{
+    const response = await axios.get(`/api/v1/notes/${jobId}`,{
       headers:{
            'ngrok-skip-browser-warning': 'true'
       }
@@ -57,7 +57,7 @@ export const fetchNotesByJob = async (jobId) => {
 export const createNote = async (jobId, content) => {
   try {
     const response = await axios.post(
-      `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/notes/${jobId}`,{
+      `/api/v1/notes/${jobId}`,{
         headers:{
                 'ngrok-skip-browser-warning': 'true'
         }
@@ -75,7 +75,7 @@ export const createNote = async (jobId, content) => {
 export const updateNote = async (noteId, content) => {
   try {
     const response = await axios.put(
-      `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/notes/${noteId}`,{
+      `/api/v1/notes/${noteId}`,{
         headers:{
                 'ngrok-skip-browser-warning': 'true'
         }
@@ -93,7 +93,7 @@ export const updateNote = async (noteId, content) => {
 export const deleteNote = async (noteId) => {
   try {
     const response = await axios.delete(
-      `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/notes/${noteId}`,
+      `/api/v1/notes/${noteId}`,
       {
         headers:{
                 'ngrok-skip-browser-warning': 'true'

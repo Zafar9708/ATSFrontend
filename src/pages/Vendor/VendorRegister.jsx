@@ -119,7 +119,7 @@ const VendorRegister = () => {
     setLoading(true);
     try {
       await axios.post(
-        `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/vendor/register?token=${token}`,
+        `/api/v1/vendor/register?token=${token}`,
         formData
       );
 

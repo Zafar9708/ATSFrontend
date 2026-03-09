@@ -67,7 +67,7 @@ const OfflineInterviews = ({ searchTerm, statusFilter, selectedDate }) => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/offline/interviews', {
+        const res = await axios.get('/api/v1/offline/interviews', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.success) {

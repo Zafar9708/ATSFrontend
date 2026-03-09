@@ -322,7 +322,7 @@ export const analyzeResume = async (file, jobId = null) => {
     }
     
     const response = await axios.post(
-      "http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/a/pi/v1/candidates/resumes/analyze",
+      "/v1/candidates/resumes/analyze",
       formData,
       {
         ...getAuthHeader(),

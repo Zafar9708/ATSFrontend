@@ -302,7 +302,7 @@ const AdminVendorsPage = () => {
   const fetchCandidates = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.comapi/vendor-candidates', getAuthHeaders());
+      const res = await axios.get('/api/vendor-candidates', getAuthHeaders());
       if (res.data.success) setCandidates(res.data.data || []);
     } catch (e) { showNotification(e.response?.data?.message || 'Failed to fetch candidates', 'error'); }
     finally { setLoading(false); }
@@ -357,7 +357,7 @@ const AdminVendorsPage = () => {
         if (key === 'resumeFile') { if (val) formData.append('resume', val); }
         else if (key !== 'resumeFileName') formData.append(key, val ?? '');
       });
-      await axios.post('http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.comapi/vendor-candidates/submit', formData, {
+      await axios.post('/api/vendor-candidates/submit', formData, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'multipart/form-data' }
       });
       const vendorName = candidateForm.vendorName || 'this vendor';
@@ -372,7 +372,7 @@ const AdminVendorsPage = () => {
   const downloadTemplate = async (type) => {
     try {
       const response = await axios({
-        url: `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.comapi/vendor-candidates/template/download`,
+        url: `/api/vendor-candidates/template/download`,
         method: 'GET',
         responseType: 'blob',
         headers: getAuthHeaders().headers
@@ -456,7 +456,7 @@ const AdminVendorsPage = () => {
 
     try {
       const response = await axios.post(
-        'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.comapi/vendor-candidates/bulk-upload',
+        '/api/vendor-candidates/bulk-upload',
         formData,
         {
           headers: {

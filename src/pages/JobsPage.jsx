@@ -1812,7 +1812,7 @@ const JobsPage = () => {
       const token = localStorage.getItem('token');
       
       // Using localhost:5000 as specified in your requirement
-      const response = await axios.get('http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/admin/vendors', {
+      const response = await axios.get('/api/admin/vendors', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -2021,7 +2021,7 @@ const JobsPage = () => {
     const token = localStorage.getItem('token');
     
     const response = await axios.post(
-      'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/job-shares/share',
+      '/api/job-shares/share',
       {
         jobId: shareDialog.jobId,
         vendorIds: selectedVendors

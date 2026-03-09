@@ -1217,7 +1217,7 @@ const ScheduleOfflineInterviewForm = ({ open, onClose, candidate, user }) => {
                     const fetchDurations = async () => {
                         try {
                             const token = localStorage.getItem('token');
-                            const res = await axios.get("http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/interviews/durations", {
+                            const res = await axios.get("/api/v1/interviews/durations", {
                                 headers: {
                                     Authorization: `Bearer ${token}`,
                                     'ngrok-skip-browser-warning': 'true'

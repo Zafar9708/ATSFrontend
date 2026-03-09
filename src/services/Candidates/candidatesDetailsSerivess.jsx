@@ -203,7 +203,7 @@ export const externalServices = {
   },
   
   getRemarks: (id) => {
-    return axios.get(`https://hire-onboardbackend-production.up.railway.app/api/candidate-comments/${id}`,
+    return axios.get(`/api/candidate-comments/${id}`,
         {
        headers: {'ngrok-skip-browser-warning': 'true'
        }
@@ -213,7 +213,7 @@ export const externalServices = {
   },
   
   getFeedback: (id) => {
-    return axios.get(`http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.comapi/v1/interviews/candidate/${id}/feedback`,{
+    return axios.get(`/api/v1/interviews/candidate/${id}/feedback`,{
        headers: {'ngrok-skip-browser-warning': 'true'
        }
 

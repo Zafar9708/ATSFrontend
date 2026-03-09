@@ -283,7 +283,7 @@ import {
 import axios from 'axios';
 
 // Use a consistent base URL
-const API_BASE_URL = 'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1';
+const API_BASE_URL = '/api/v1';
 
 const MoveCandidateForm = ({ open, onClose, candidate, onMoveComplete }) => {
     const [newStage, setNewStage] = useState("");

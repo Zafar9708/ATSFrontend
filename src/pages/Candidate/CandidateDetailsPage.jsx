@@ -466,7 +466,7 @@ const previewCandidateResume = async (id) => {
   try {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-      `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`,
+      `/api/v1/candidates/preview-resume/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
