@@ -29,7 +29,7 @@ export default {
   // Fetch all candidates
   async fetchCandidates() {
     try {
-      const response = await candidateApi.get('/');
+      const response = await candidateApi.get('');
       return response.data.candidates || [];
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Failed to fetch candidates');
