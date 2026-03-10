@@ -322,7 +322,7 @@ export const analyzeResume = async (file, jobId = null) => {
     }
     
     const response = await axios.post(
-      "/v1/candidates/resumes/analyze",
+      `${API_BASE_URL}/candidates/resumes/analyze`,
       formData,
       {
         ...getAuthHeader(),
