@@ -45,7 +45,7 @@ const defaultStageOptions = [
 export default {
   async fetchStages() {
     try {
-      const response = await stageApi.get('/');
+      const response = await stageApi.get('');
       return response.data || defaultStages;
     } catch (error) {
       console.error("Error fetching stages:", error);
