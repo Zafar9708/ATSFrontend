@@ -36,7 +36,7 @@ import {
 import axios from "axios";
 import { useParams } from "react-router-dom";
 
-const API_BASE = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1";
+const API_BASE = "/api/v1";
 
 // Dummy data for templates
 const DUMMY_TEMPLATES = [
@@ -57,38 +57,6 @@ const DUMMY_TEMPLATES = [
         name: "Final Round Interview",
         subject: "Final Interview Round Invitation",
         body: "Dear {recipient},\n\nWe are pleased to invite you for the final round of interviews with our leadership team.\n\n**Interview Details:**\n📅 Date: {date}\n⏰ Time: {time}\n⏱ Duration: {duration}\n🌐 Timezone: {timezone}\n💻 Platform: {platform}\n👥 Interview Panel: {interviewer}\n\nThis will be an opportunity to discuss your experience and expectations in detail.\n\nBest regards,\nLeadership Team"
-    }
-];
-
-// Dummy data for interviewers
-const DUMMY_INTERVIEWERS = [
-    {
-        _id: "interviewer_1",
-        name: "Sarah Johnson",
-        email: "sarah.johnson@company.com",
-        phone: "+1 (555) 123-4567",
-        role: "Technical Lead"
-    },
-    {
-        _id: "interviewer_2",
-        name: "Mike Chen",
-        email: "mike.chen@company.com",
-        phone: "+1 (555) 987-6543",
-        role: "Engineering Manager"
-    },
-    {
-        _id: "interviewer_3",
-        name: "Emma Wilson",
-        email: "emma.wilson@company.com",
-        phone: "+1 (555) 456-7890",
-        role: "HR Manager"
-    },
-    {
-        _id: "interviewer_4",
-        name: "David Brown",
-        email: "david.brown@company.com",
-        phone: "+1 (555) 234-5678",
-        role: "Product Manager"
     }
 ];
 
@@ -266,7 +234,7 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
     const {id} = useParams()
     console.log("idddddddd",candidate?.jobId);
     
-    const [interviewers, setInterviewers] = useState(DUMMY_INTERVIEWERS);
+    const [interviewers, setInterviewers] = useState([]);
     const [selectedInterviewers, setSelectedInterviewers] = useState([]);
     const [date, setDate] = useState("");
     const [startTime, setStartTime] = useState("");
@@ -294,6 +262,7 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
         severity: "success"
     });
     const [selectedTemplate, setSelectedTemplate] = useState("");
+    const [fetchingInterviewers, setFetchingInterviewers] = useState(false);
 
     const validateForm = () => {
         return (
@@ -309,13 +278,32 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
         );
     };
 
+    const fetchInterviewers = async () => {
+        setFetchingInterviewers(true);
+        try {
+            const response = await axios.get(`${API_BASE}/interviewers`);
+            console.log("Fetched interviewers:", response.data);
+            setInterviewers(response.data);
+        } catch (error) {
+            console.error("Error fetching interviewers:", error);
+            setSnackbar({
+                open: true,
+                message: "Failed to fetch interviewers",
+                severity: "error"
+            });
+        } finally {
+            setFetchingInterviewers(false);
+        }
+    };
+
     useEffect(() => {
         if (open) {
+            fetchInterviewers();
+            
             try {
-                // Use dummy data directly
+                // Use dummy data for other data
                 setTimezones(DUMMY_TIMEZONES);
                 setDurations(DUMMY_DURATIONS);
-                setInterviewers(DUMMY_INTERVIEWERS);
                 setTemplates(DUMMY_TEMPLATES);
                 
                 // Set default values
@@ -362,16 +350,16 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
         try {
             setLoading(true);
             
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            const newInterviewerObj = {
-                _id: `interviewer_${interviewers.length + 1}`,
+            // API call to add interviewer
+            const response = await axios.post(`${API_BASE}/interviewers`, {
                 name: newInterviewer.name,
                 email: newInterviewer.email,
-                phone: newInterviewer.phone,
-                role: "Interviewer"
-            };
+                phone: newInterviewer.phone || ""
+            });
+            
+            console.log("Added interviewer response:", response.data);
+            
+            const newInterviewerObj = response.data;
             
             setInterviewers([...interviewers, newInterviewerObj]);
             setSelectedInterviewers([...selectedInterviewers, newInterviewerObj._id]);
@@ -385,9 +373,18 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
             });
         } catch (error) {
             console.error("Error adding interviewer:", error);
+            let errorMessage = "Failed to add interviewer";
+            
+            if (error.response) {
+                errorMessage = error.response.data?.message || 
+                              `Server responded with ${error.response.status}`;
+            } else if (error.request) {
+                errorMessage = "No response received from server";
+            }
+            
             setSnackbar({
                 open: true,
-                message: "Failed to add interviewer",
+                message: errorMessage,
                 severity: "error"
             });
         } finally {
@@ -452,7 +449,8 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
 
             console.log("Submitting interview data:", requestData);
 
-            // Simulate API call
+            // Simulate API call for interview scheduling
+            // Replace this with actual API endpoint when available
             await new Promise(resolve => setTimeout(resolve, 1500));
             
             // Simulate successful response
@@ -568,19 +566,31 @@ const ScheduleOnlineInterviewForm = ({ open, onClose, candidate, user }) => {
                                                     key={id} 
                                                     label={interviewer.name} 
                                                     onDelete={() => setSelectedInterviewers(prev => prev.filter(i => i !== id))}
+                                                    onMouseDown={(e) => e.stopPropagation()}
                                                 />
                                             ) : null;
                                         })}
                                     </Box>
                                 )}
                                 inputProps={{ name: 'interviewers' }}
-                                disabled={loading}
+                                disabled={loading || fetchingInterviewers}
                             >
-                                {interviewers.map((interviewer) => (
-                                    <MenuItem key={interviewer._id} value={interviewer._id}>
-                                        {interviewer.name} ({interviewer.email})
+                                {fetchingInterviewers ? (
+                                    <MenuItem disabled>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                            <CircularProgress size={20} />
+                                            <Typography>Loading interviewers...</Typography>
+                                        </Box>
                                     </MenuItem>
-                                ))}
+                                ) : interviewers.length > 0 ? (
+                                    interviewers.map((interviewer) => (
+                                        <MenuItem key={interviewer._id} value={interviewer._id}>
+                                            {interviewer.name} ({interviewer.email})
+                                        </MenuItem>
+                                    ))
+                                ) : (
+                                    <MenuItem disabled>No interviewers available</MenuItem>
+                                )}
                             </Select>
                         </FormControl>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>

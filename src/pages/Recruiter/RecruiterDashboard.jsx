@@ -774,7 +774,7 @@ const RecruiterDashboard = () => {
                     Create New Job Posting
                   </Button>
                   <Button fullWidth startIcon={<PeopleIcon sx={{ fontSize: 16 }} />}
-                    onClick={() => navigate('/candidates')}
+                    onClick={() => navigate('/all/candidates')}
                     variant="outlined"
                     sx={{
                       borderRadius: 2, py: 1.2, fontSize: 13, fontWeight: 700, textTransform: 'none', borderColor: C.border, color: C.textSub,

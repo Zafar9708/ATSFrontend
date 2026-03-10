@@ -1581,13 +1581,13 @@ const Dashboard = () => {
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: 1.5 }}>
-            <PrimaryButton 
+            {/* <PrimaryButton 
               size="small" 
               startIcon={<AddIcon />}
               onClick={() => navigate(`/candidates/add/${jobId}`)}
             >
               Add Candidate
-            </PrimaryButton>
+            </PrimaryButton> */}
           </Box>
         </Box>
         
@@ -1970,9 +1970,9 @@ const Dashboard = () => {
                   Candidates ({filteredCandidates.length})
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1 }}>
-                  <PrimaryButton startIcon={<AddIcon />} onClick={() => navigate(`/candidates/add/${jobId}`)}>
+                  {/* <PrimaryButton startIcon={<AddIcon />} onClick={() => navigate(`/candidates/add/${jobId}`)}>
                     Add Candidate
-                  </PrimaryButton>
+                  </PrimaryButton> */}
                 </Box>
               </Box>
 
