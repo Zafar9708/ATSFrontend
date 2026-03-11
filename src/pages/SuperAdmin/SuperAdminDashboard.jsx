@@ -4,7 +4,7 @@ import {
   TableHead, TableRow, CircularProgress, Alert, Button, Avatar,
   IconButton, Dialog, DialogContent, Grid, Card, Chip, Switch,
   TextField, InputAdornment, MenuItem, Select, Tooltip, Snackbar,
-  FormControl, InputLabel, useMediaQuery
+  FormControl, InputLabel, useMediaQuery, Stepper, Step, StepLabel
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
@@ -14,7 +14,10 @@ import {
   People as PeopleIcon, Business as BusinessIcon,
   Settings as SettingsIcon, Email as EmailIcon,
   ContentCopy as CopyIcon, Close as CloseIcon,
-  MarkEmailRead as MailSentIcon, BarChart as BarChartIcon
+  MarkEmailRead as MailSentIcon, BarChart as BarChartIcon,
+  Phone as PhoneIcon, Language as LanguageIcon,
+  LocationOn as LocationIcon, Person as PersonIcon,
+  NavigateNext as NextIcon, NavigateBefore as PrevIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -90,6 +93,19 @@ const inputSx = {
   '& .MuiOutlinedInput-notchedOutline': { borderColor: T.border },
 };
 
+/* ── Step Section Header ─────────────────────────────────────────────── */
+const SectionHeader = ({ icon, title, subtitle, color = T.indigo }) => (
+  <Box sx={{ display:'flex', alignItems:'center', gap:1.2, mb:2 }}>
+    <Box sx={{ p:.7, borderRadius:'10px', background:`${color}15`, display:'flex', flexShrink:0 }}>
+      {React.cloneElement(icon, { sx:{ fontSize:18, color } })}
+    </Box>
+    <Box>
+      <Typography sx={{ fontWeight:700, fontSize:13, color:T.navy, lineHeight:1.2 }}>{title}</Typography>
+      <Typography sx={{ fontSize:11, color:T.muted }}>{subtitle}</Typography>
+    </Box>
+  </Box>
+);
+
 /* ════════════════════════════════════════════════════════════════════════
    MAIN COMPONENT
 ════════════════════════════════════════════════════════════════════════ */
@@ -113,10 +129,40 @@ const SuperAdminDashboard = () => {
   const [tenantToDelete, setTenantToDelete] = useState(null);
   const [successData,    setSuccessData]    = useState(null);
 
-  const emptyForm = { name:'', domain:'', email:'', adminPassword:'' };
+  /* ── Multi-step form state ──────────────────────────────────────── */
+  const [activeStep, setActiveStep] = useState(0);
+
+  const emptyForm = {
+    // Company Info
+    name: '',
+    domain: '',
+    email: '',
+    companyPhone: '',
+    website: '',
+    industry: '',
+    companySize: '',
+    gstNumber: '',
+    // Company Address
+    street: '',
+    city: '',
+    state: '',
+    country: '',
+    zipCode: '',
+    // Admin Info
+    adminFirstName: '',
+    adminLastName: '',
+    adminPhone: '',
+    adminPassword: '',
+  };
+
   const [form,       setForm]       = useState(emptyForm);
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  const STEPS = ['Company Info', 'Address', 'Admin Details'];
+
+  const INDUSTRY_OPTIONS = ['IT', 'Finance', 'Healthcare', 'Education', 'Manufacturing', 'Retail', 'Real Estate', 'Logistics', 'Other'];
+  const SIZE_OPTIONS = ['1-10', '11-50', '51-200', '201-500', '501-1000', '1000+'];
 
   /* ── Fetch ──────────────────────────────────────────────────────── */
   const fetchTenants = async () => {
@@ -191,26 +237,82 @@ const SuperAdminDashboard = () => {
   };
 
   /* ── Form ───────────────────────────────────────────────────────── */
-  const handleInput = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+  const handleInput = e => {
+    setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+    // Clear error on change
+    if (formErrors[e.target.name]) {
+      setFormErrors(p => ({ ...p, [e.target.name]: '' }));
+    }
+  };
 
-  const validate = () => {
+  const validateStep = (step) => {
     const e = {};
-    if (!form.name.trim())          e.name          = 'Organisation name is required';
-    if (!form.domain.trim())        e.domain        = 'Domain is required';
-    if (!form.email.trim())         e.email         = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email address';
-    if (!form.adminPassword)        e.adminPassword = 'Password is required';
-    else if (form.adminPassword.length < 8) e.adminPassword = 'Minimum 8 characters';
-    setFormErrors(e);
+    if (step === 0) {
+      if (!form.name.trim())         e.name         = 'Organisation name is required';
+      if (!form.domain.trim())       e.domain       = 'Domain is required';
+      if (!form.email.trim())        e.email        = 'Email is required';
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email address';
+      if (!form.companyPhone.trim()) e.companyPhone = 'Company phone is required';
+      if (!form.industry)            e.industry     = 'Industry is required';
+      if (!form.companySize)         e.companySize  = 'Company size is required';
+    }
+    if (step === 1) {
+      if (!form.street.trim())  e.street  = 'Street is required';
+      if (!form.city.trim())    e.city    = 'City is required';
+      if (!form.state.trim())   e.state   = 'State is required';
+      if (!form.country.trim()) e.country = 'Country is required';
+      if (!form.zipCode.trim()) e.zipCode = 'Zip code is required';
+    }
+    if (step === 2) {
+      if (!form.adminFirstName.trim()) e.adminFirstName = 'First name is required';
+      if (!form.adminLastName.trim())  e.adminLastName  = 'Last name is required';
+      if (!form.adminPhone.trim())     e.adminPhone     = 'Admin phone is required';
+      if (!form.adminPassword)         e.adminPassword  = 'Password is required';
+      else if (form.adminPassword.length < 8) e.adminPassword = 'Minimum 8 characters';
+    }
+    setFormErrors(prev => ({ ...prev, ...e }));
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (ev) => {
-    ev.preventDefault();
-    if (!validate()) return;
+  const handleNext = () => {
+    if (validateStep(activeStep)) setActiveStep(s => s + 1);
+  };
+
+  const handleBack = () => setActiveStep(s => s - 1);
+
+  const resetForm = () => {
+    setForm(emptyForm);
+    setFormErrors({});
+    setActiveStep(0);
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep(2)) return;
     setSubmitting(true);
     try {
-      const res = await createTenant(form);
+      const payload = {
+        name:         form.name,
+        domain:       form.domain,
+        email:        form.email,
+        companyPhone: form.companyPhone,
+        website:      form.website,
+        industry:     form.industry,
+        companySize:  form.companySize,
+        gstNumber:    form.gstNumber,
+        companyAddress: {
+          street:  form.street,
+          city:    form.city,
+          state:   form.state,
+          country: form.country,
+          zipCode: form.zipCode,
+        },
+        adminFirstName: form.adminFirstName,
+        adminLastName:  form.adminLastName,
+        adminPhone:     form.adminPhone,
+        adminPassword:  form.adminPassword,
+      };
+
+      const res = await createTenant(payload);
       setAddOpen(false);
       setSuccessData({
         name:      form.name,
@@ -218,8 +320,7 @@ const SuperAdminDashboard = () => {
         domain:    form.domain,
         loginLink: res?.data?.loginLink || `https://${form.domain}/login`,
       });
-      setForm(emptyForm);
-      setFormErrors({});
+      resetForm();
       setSuccessOpen(true);
       fetchTenants();
     } catch(err) {
@@ -360,7 +461,6 @@ const SuperAdminDashboard = () => {
                   <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Status Distribution</Typography>
                   <Typography sx={{ fontSize:11, color:T.muted }}>Current tenant states</Typography>
                 </Box>
-                {/* Legend manually rendered so colors are always correct */}
                 <Box sx={{ display:'flex', gap:2.5, mb:1 }}>
                   {pieData.map((d,i) => (
                     <Box key={d.name} sx={{ display:'flex', alignItems:'center', gap:.6 }}>
@@ -616,12 +716,12 @@ const SuperAdminDashboard = () => {
       </Grid>
 
       {/* ════════════════════════════════════════════════════════════════
-          ADD ORGANISATION DIALOG  (4 fields: name, domain, email, pwd)
+          ADD ORGANISATION DIALOG  — 3-step form
       ════════════════════════════════════════════════════════════════ */}
       <Dialog
         open={addOpen}
-        onClose={() => { setAddOpen(false); setForm(emptyForm); setFormErrors({}); }}
-        maxWidth="xs" fullWidth
+        onClose={() => { setAddOpen(false); resetForm(); }}
+        maxWidth="sm" fullWidth
         PaperProps={{ sx:{ borderRadius:'24px', overflow:'hidden', p:0 } }}>
 
         {/* Gradient header */}
@@ -629,7 +729,7 @@ const SuperAdminDashboard = () => {
           background:`linear-gradient(135deg, ${T.indigo} 0%, #7C3AED 100%)`,
           px:3, pt:3, pb:2.5
         }}>
-          <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+          <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:2 }}>
             <Box sx={{ display:'flex', alignItems:'center', gap:1.5 }}>
               <Box sx={{ p:.9, borderRadius:'12px', background:'rgba(255,255,255,0.18)', display:'flex' }}>
                 <BusinessIcon sx={{ color:'#fff', fontSize:22 }} />
@@ -644,84 +744,257 @@ const SuperAdminDashboard = () => {
               </Box>
             </Box>
             <IconButton
-              onClick={() => { setAddOpen(false); setForm(emptyForm); setFormErrors({}); }}
+              onClick={() => { setAddOpen(false); resetForm(); }}
               sx={{ color:'rgba(255,255,255,0.7)', p:.5, '&:hover':{ color:'#fff', background:'rgba(255,255,255,0.12)' } }}>
               <CloseIcon fontSize="small" />
             </IconButton>
           </Box>
+
+          {/* Stepper */}
+          <Stepper activeStep={activeStep} sx={{
+            '& .MuiStepLabel-label': { color:'rgba(255,255,255,0.6)', fontSize:11, fontWeight:600 },
+            '& .MuiStepLabel-label.Mui-active': { color:'#fff', fontWeight:700 },
+            '& .MuiStepLabel-label.Mui-completed': { color:'rgba(255,255,255,0.8)' },
+            '& .MuiStepIcon-root': { color:'rgba(255,255,255,0.3)', fontSize:20 },
+            '& .MuiStepIcon-root.Mui-active': { color:'#fff' },
+            '& .MuiStepIcon-root.Mui-completed': { color:'rgba(255,255,255,0.8)' },
+            '& .MuiStepConnector-line': { borderColor:'rgba(255,255,255,0.25)' },
+            '& .MuiStepIcon-text': { fill: T.indigo, fontSize:10, fontWeight:700 },
+          }}>
+            {STEPS.map(label => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
         </Box>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <Box sx={{ px:3, py:2.5, display:'flex', flexDirection:'column', gap:2 }}>
+        {/* Form body */}
+        <Box sx={{ px:3, py:2.5, maxHeight:'60vh', overflowY:'auto' }}>
 
-            {/* Organisation Name */}
-            <TextField
-              fullWidth label="Organisation Name" name="name"
-              value={form.name} onChange={handleInput}
-              error={!!formErrors.name} helperText={formErrors.name}
-              size="small" placeholder="e.g. Acme Corporation"
-              sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <BusinessIcon sx={{ fontSize:16, color:T.muted }} />
-                  </InputAdornment>
-                )
-              }} />
+          {/* ── STEP 0: Company Info ─────────────────────────────── */}
+          {activeStep === 0 && (
+            <Box sx={{ display:'flex', flexDirection:'column', gap:2 }}>
+              <SectionHeader
+                icon={<BusinessIcon />}
+                title="Company Information"
+                subtitle="Basic details about the organisation"
+              />
 
-            {/* Domain */}
-            <TextField
-              fullWidth label="Domain" name="domain"
-              value={form.domain} onChange={handleInput}
-              error={!!formErrors.domain} helperText={formErrors.domain}
-              size="small" placeholder="e.g. acme.com"
-              sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Typography sx={{ fontSize:13, color:T.muted, lineHeight:1, userSelect:'none' }}>🌐</Typography>
-                  </InputAdornment>
-                )
-              }} />
+              {/* Name + Domain */}
+              <Grid container spacing={1.5}>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Organisation Name" name="name"
+                    value={form.name} onChange={handleInput}
+                    error={!!formErrors.name} helperText={formErrors.name}
+                    size="small" placeholder="e.g. Kludrac Group" sx={inputSx}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><BusinessIcon sx={{ fontSize:16, color:T.muted }} /></InputAdornment> }} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Domain" name="domain"
+                    value={form.domain} onChange={handleInput}
+                    error={!!formErrors.domain} helperText={formErrors.domain}
+                    size="small" placeholder="e.g. kloudrac.com" sx={inputSx}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ fontSize:13, color:T.muted, lineHeight:1, userSelect:'none' }}>🌐</Typography></InputAdornment> }} />
+                </Grid>
+              </Grid>
 
-            {/* Admin Email */}
-            <TextField
-              fullWidth label="Admin Email" name="email" type="email"
-              value={form.email} onChange={handleInput}
-              error={!!formErrors.email} helperText={formErrors.email}
-              size="small" placeholder="e.g. admin@acme.com"
-              sx={inputSx}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <EmailIcon sx={{ fontSize:16, color:T.muted }} />
-                  </InputAdornment>
-                )
-              }} />
+              {/* Email + Phone */}
+              <Grid container spacing={1.5}>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Admin Email" name="email" type="email"
+                    value={form.email} onChange={handleInput}
+                    error={!!formErrors.email} helperText={formErrors.email}
+                    size="small" placeholder="e.g. admin@kloudrac.com" sx={inputSx}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ fontSize:16, color:T.muted }} /></InputAdornment> }} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Company Phone" name="companyPhone"
+                    value={form.companyPhone} onChange={handleInput}
+                    error={!!formErrors.companyPhone} helperText={formErrors.companyPhone}
+                    size="small" placeholder="e.g. 9876543210" sx={inputSx}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon sx={{ fontSize:16, color:T.muted }} /></InputAdornment> }} />
+                </Grid>
+              </Grid>
 
-            {/* Admin Password */}
-            <TextField
-              fullWidth label="Admin Password" name="adminPassword" type="password"
-              value={form.adminPassword} onChange={handleInput}
-              error={!!formErrors.adminPassword}
-              helperText={formErrors.adminPassword || 'Minimum 8 characters'}
-              size="small" sx={inputSx} />
+              {/* Website */}
+              <TextField fullWidth label="Website (optional)" name="website"
+                value={form.website} onChange={handleInput}
+                size="small" placeholder="e.g. https://kloudrac.com" sx={inputSx}
+                InputProps={{ startAdornment: <InputAdornment position="start"><LanguageIcon sx={{ fontSize:16, color:T.muted }} /></InputAdornment> }} />
 
-          </Box>
+              {/* Industry + Company Size */}
+              <Grid container spacing={1.5}>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="small" error={!!formErrors.industry}>
+                    <InputLabel sx={{ fontSize:14 }}>Industry</InputLabel>
+                    <Select name="industry" value={form.industry}
+                      onChange={e => { setForm(p => ({ ...p, industry: e.target.value })); if (formErrors.industry) setFormErrors(p => ({ ...p, industry: '' })); }}
+                      label="Industry"
+                      sx={{ borderRadius:'10px', background:'#F8FAFC', fontSize:14, '& .MuiOutlinedInput-notchedOutline':{ borderColor:T.border } }}>
+                      {INDUSTRY_OPTIONS.map(o => <MenuItem key={o} value={o} sx={{ fontSize:13 }}>{o}</MenuItem>)}
+                    </Select>
+                    {formErrors.industry && <Typography sx={{ fontSize:11, color:'#d32f2f', mt:.3, ml:1.5 }}>{formErrors.industry}</Typography>}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth size="small" error={!!formErrors.companySize}>
+                    <InputLabel sx={{ fontSize:14 }}>Company Size</InputLabel>
+                    <Select name="companySize" value={form.companySize}
+                      onChange={e => { setForm(p => ({ ...p, companySize: e.target.value })); if (formErrors.companySize) setFormErrors(p => ({ ...p, companySize: '' })); }}
+                      label="Company Size"
+                      sx={{ borderRadius:'10px', background:'#F8FAFC', fontSize:14, '& .MuiOutlinedInput-notchedOutline':{ borderColor:T.border } }}>
+                      {SIZE_OPTIONS.map(o => <MenuItem key={o} value={o} sx={{ fontSize:13 }}>{o}</MenuItem>)}
+                    </Select>
+                    {formErrors.companySize && <Typography sx={{ fontSize:11, color:'#d32f2f', mt:.3, ml:1.5 }}>{formErrors.companySize}</Typography>}
+                  </FormControl>
+                </Grid>
+              </Grid>
 
-          {/* Footer buttons */}
-          <Box sx={{ px:3, pb:3, display:'flex', gap:1.5 }}>
-            <Button
-              onClick={() => { setAddOpen(false); setForm(emptyForm); setFormErrors({}); }}
-              fullWidth
+              {/* GST Number */}
+              <TextField fullWidth label="GST Number (optional)" name="gstNumber"
+                value={form.gstNumber} onChange={handleInput}
+                size="small" placeholder="e.g. 22AAAAA0000A1Z5" sx={inputSx} />
+            </Box>
+          )}
+
+          {/* ── STEP 1: Company Address ──────────────────────────── */}
+          {activeStep === 1 && (
+            <Box sx={{ display:'flex', flexDirection:'column', gap:2 }}>
+              <SectionHeader
+                icon={<LocationIcon />}
+                title="Company Address"
+                subtitle="Registered office address details"
+                color={T.sky}
+              />
+
+              {/* Street */}
+              <TextField fullWidth label="Street Address" name="street"
+                value={form.street} onChange={handleInput}
+                error={!!formErrors.street} helperText={formErrors.street}
+                size="small" placeholder="e.g. Sector 62" sx={inputSx}
+                InputProps={{ startAdornment: <InputAdornment position="start"><LocationIcon sx={{ fontSize:16, color:T.muted }} /></InputAdornment> }} />
+
+              {/* City + State */}
+              <Grid container spacing={1.5}>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="City" name="city"
+                    value={form.city} onChange={handleInput}
+                    error={!!formErrors.city} helperText={formErrors.city}
+                    size="small" placeholder="e.g. Noida" sx={inputSx} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="State" name="state"
+                    value={form.state} onChange={handleInput}
+                    error={!!formErrors.state} helperText={formErrors.state}
+                    size="small" placeholder="e.g. Uttar Pradesh" sx={inputSx} />
+                </Grid>
+              </Grid>
+
+              {/* Country + Zip */}
+              <Grid container spacing={1.5}>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Country" name="country"
+                    value={form.country} onChange={handleInput}
+                    error={!!formErrors.country} helperText={formErrors.country}
+                    size="small" placeholder="e.g. India" sx={inputSx} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Zip / Postal Code" name="zipCode"
+                    value={form.zipCode} onChange={handleInput}
+                    error={!!formErrors.zipCode} helperText={formErrors.zipCode}
+                    size="small" placeholder="e.g. 201301" sx={inputSx} />
+                </Grid>
+              </Grid>
+            </Box>
+          )}
+
+          {/* ── STEP 2: Admin Details ────────────────────────────── */}
+          {activeStep === 2 && (
+            <Box sx={{ display:'flex', flexDirection:'column', gap:2 }}>
+              <SectionHeader
+                icon={<PersonIcon />}
+                title="Admin Details"
+                subtitle="Primary administrator account credentials"
+                color={T.emerald}
+              />
+
+              {/* First + Last name */}
+              <Grid container spacing={1.5}>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="First Name" name="adminFirstName"
+                    value={form.adminFirstName} onChange={handleInput}
+                    error={!!formErrors.adminFirstName} helperText={formErrors.adminFirstName}
+                    size="small" placeholder="e.g. Atul" sx={inputSx}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ fontSize:16, color:T.muted }} /></InputAdornment> }} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField fullWidth label="Last Name" name="adminLastName"
+                    value={form.adminLastName} onChange={handleInput}
+                    error={!!formErrors.adminLastName} helperText={formErrors.adminLastName}
+                    size="small" placeholder="e.g. Singhal" sx={inputSx} />
+                </Grid>
+              </Grid>
+
+              {/* Admin Phone */}
+              <TextField fullWidth label="Admin Phone" name="adminPhone"
+                value={form.adminPhone} onChange={handleInput}
+                error={!!formErrors.adminPhone} helperText={formErrors.adminPhone}
+                size="small" placeholder="e.g. 9876543210" sx={inputSx}
+                InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon sx={{ fontSize:16, color:T.muted }} /></InputAdornment> }} />
+
+              {/* Admin Password */}
+              <TextField fullWidth label="Admin Password" name="adminPassword" type="password"
+                value={form.adminPassword} onChange={handleInput}
+                error={!!formErrors.adminPassword}
+                helperText={formErrors.adminPassword || 'Minimum 8 characters'}
+                size="small" sx={inputSx} />
+
+              {/* Summary preview */}
+              <Box sx={{ p:2, borderRadius:'12px', background:'#F0FDF4', border:'1px solid #BBF7D0', mt:.5 }}>
+                <Typography sx={{ fontSize:11, fontWeight:700, color:'#065F46', mb:.8 }}>Review Summary</Typography>
+                {[
+                  ['Organisation', form.name],
+                  ['Domain',       form.domain],
+                  ['Email',        form.email],
+                  ['Location',     [form.city, form.state, form.country].filter(Boolean).join(', ')],
+                  ['Industry',     form.industry],
+                ].map(([k,v]) => v && (
+                  <Box key={k} sx={{ display:'flex', gap:1, mb:.3 }}>
+                    <Typography sx={{ fontSize:11, color:'#047857', fontWeight:600, minWidth:80 }}>{k}:</Typography>
+                    <Typography sx={{ fontSize:11, color:'#065F46' }}>{v}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </Box>
+
+        {/* Footer buttons */}
+        <Box sx={{ px:3, pb:3, pt:1.5, borderTop:`1px solid ${T.border}`, display:'flex', gap:1.5 }}>
+          <Button
+            onClick={activeStep === 0 ? () => { setAddOpen(false); resetForm(); } : handleBack}
+            fullWidth
+            startIcon={activeStep > 0 ? <PrevIcon sx={{ fontSize:'16px !important' }} /> : null}
+            sx={{
+              borderRadius:'10px', textTransform:'none', fontWeight:600, py:1.1,
+              color:T.slate, border:`1px solid ${T.border}`, '&:hover':{ background:T.bg }
+            }}>
+            {activeStep === 0 ? 'Cancel' : 'Back'}
+          </Button>
+
+          {activeStep < STEPS.length - 1 ? (
+            <Button onClick={handleNext} variant="contained" fullWidth
+              endIcon={<NextIcon sx={{ fontSize:'16px !important' }} />}
               sx={{
-                borderRadius:'10px', textTransform:'none', fontWeight:600, py:1.1,
-                color:T.slate, border:`1px solid ${T.border}`, '&:hover':{ background:T.bg }
+                borderRadius:'10px', textTransform:'none', fontWeight:700, py:1.1,
+                background:T.indigo, boxShadow:`0 4px 16px ${T.indigo}45`,
+                '&:hover':{ background:T.indigoL }
               }}>
-              Cancel
+              Next
             </Button>
-            <Button type="submit" variant="contained" fullWidth disabled={submitting}
+          ) : (
+            <Button onClick={handleSubmit} variant="contained" fullWidth disabled={submitting}
               sx={{
                 borderRadius:'10px', textTransform:'none', fontWeight:700, py:1.1,
                 background:T.indigo, boxShadow:`0 4px 16px ${T.indigo}45`,
@@ -730,8 +1003,8 @@ const SuperAdminDashboard = () => {
               }}>
               {submitting ? 'Creating…' : 'Register Organisation'}
             </Button>
-          </Box>
-        </form>
+          )}
+        </Box>
       </Dialog>
 
       {/* ════════════════════════════════════════════════════════════════
@@ -751,7 +1024,6 @@ const SuperAdminDashboard = () => {
           <Box sx={{ position:'absolute', top:-30, left:-30, width:110, height:110, borderRadius:'50%', background:'rgba(255,255,255,0.08)' }} />
           <Box sx={{ position:'absolute', bottom:-20, right:-20, width:80,  height:80,  borderRadius:'50%', background:'rgba(255,255,255,0.06)' }} />
           <Box sx={{ position:'relative', zIndex:1 }}>
-            {/* Pulsing check icon */}
             <Box sx={{
               width:64, height:64, borderRadius:'50%',
               background:'rgba(255,255,255,0.22)',
@@ -772,8 +1044,6 @@ const SuperAdminDashboard = () => {
 
         {/* Body */}
         <Box sx={{ px:3, py:2.5 }}>
-
-          {/* Org summary card */}
           <Box sx={{
             display:'flex', alignItems:'center', gap:1.5,
             p:1.8, background:'#F0FDF4', borderRadius:'14px',
@@ -795,7 +1065,6 @@ const SuperAdminDashboard = () => {
               sx={{ background:'#D1FAE5', color:'#065F46', fontWeight:700, fontSize:10, flexShrink:0 }} />
           </Box>
 
-          {/* Email sent banner */}
           <Box sx={{
             display:'flex', alignItems:'flex-start', gap:1.3,
             p:1.8, background:'#EFF6FF', borderRadius:'14px',
@@ -812,7 +1081,6 @@ const SuperAdminDashboard = () => {
               </Typography>
             </Box>
           </Box>
-
         </Box>
 
         <Box sx={{ px:3, pb:3 }}>
