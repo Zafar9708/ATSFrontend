@@ -1674,7 +1674,7 @@ const SuperAdminDashboard = () => {
                   New Organisation
                 </Typography>
                 <Typography sx={{ fontSize:13, color:'rgba(255,255,255,0.70)', mt:.3 }}>
-                  Complete all steps to register a new tenant
+                  Complete all steps to register a new Organization
                 </Typography>
               </Box>
             </Box>
