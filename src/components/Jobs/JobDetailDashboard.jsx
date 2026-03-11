@@ -2193,7 +2193,8 @@ import {
   LineChart, Line, PieChart, Pie, Cell
 } from 'recharts';
 import axios from 'axios';
-import AddCandidateForm from "./AddCandidateForm";
+// import AddCandidateForm from "./AddCandidateForm";
+import AddCandidateForm from "../Candidates/AddCandidateForm";
 
 // API Configuration
 const API_BASE_URL = '/api';
