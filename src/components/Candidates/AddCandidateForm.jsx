@@ -2354,20 +2354,20 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
         <DialogContent dividers>
           {analysisData?.aiAnalysis && (
             <Box>
-              <Typography variant="h6" gutterBottom>
+              {/* <Typography variant="h6" gutterBottom>
                 Matching Score: {analysisData.aiAnalysis.matchPercentage || 0}%
-              </Typography>
+              </Typography> */}
 
-              {analysisData.aiAnalysis.recommendation && (
+              {/* {analysisData.aiAnalysis.recommendation && (
                 <>
                   <Typography variant="subtitle1" gutterBottom>
                     Recommendation: {analysisData.aiAnalysis.recommendation}
                   </Typography>
                   <Divider sx={{ my: 2 }} />
                 </>
-              )}
+              )} */}
 
-              <Typography variant="subtitle1" gutterBottom>
+              {/* <Typography variant="subtitle1" gutterBottom>
                 Matching Skills:
               </Typography>
               {analysisData.aiAnalysis.matchingSkills?.length > 0 ? (
@@ -2393,14 +2393,14 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                 >
                   No matching skills identified
                 </Typography>
-              )}
-
+              )} */}
+{/* 
               <Divider sx={{ my: 2 }} />
 
               <Typography variant="subtitle1" gutterBottom>
                 Missing Skills:
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
+              </Typography> */}
+              {/* <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 3 }}>
                 {analysisData.aiAnalysis.missingSkills?.map((skill, index) => (
                   <Chip
                     key={index}
@@ -2410,9 +2410,9 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                     sx={{ mb: 1 }}
                   />
                 ))}
-              </Box>
+              </Box> */}
 
-              {analysisData.aiAnalysis.experienceMatch && (
+              {/* {analysisData.aiAnalysis.experienceMatch && (
                 <>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="subtitle1" gutterBottom>
@@ -2422,9 +2422,9 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                     {analysisData.aiAnalysis.experienceMatch}
                   </Typography>
                 </>
-              )}
+              )} */}
 
-              {analysisData.aiAnalysis.educationMatch && (
+              {/* {analysisData.aiAnalysis.educationMatch && (
                 <>
                   <Divider sx={{ my: 2 }} />
                   <Typography variant="subtitle1" gutterBottom>
@@ -2434,9 +2434,9 @@ const AddCandidateForm = ({ onClose, onSubmit }) => {
                     {analysisData.aiAnalysis.educationMatch}
                   </Typography>
                 </>
-              )}
+              )} */}
 
-              <Divider sx={{ my: 2 }} />
+              {/* <Divider sx={{ my: 2 }} /> */}
 
               <Typography variant="subtitle1" gutterBottom>
                 Analysis Summary:
