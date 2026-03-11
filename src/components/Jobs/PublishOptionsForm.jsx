@@ -288,7 +288,7 @@ const PublishOptionsForm = ({
   recruiters, 
   selectedRecruiters, 
   setSelectedRecruiters,
-  userRole, // Changed from isAdmin to userRole
+  userRole, 
   loading
 }) => {
   const [publishOptions, setPublishOptions] = useState({
