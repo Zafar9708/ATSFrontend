@@ -1,196 +1,249 @@
-
 import React, { useEffect, useState } from 'react';
+import { Link } from "react-router-dom";
 import {
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  CircularProgress,
-  Grid,
-  Snackbar,
-  Alert,
-  Divider,
-  Chip,
-  Avatar,
-  IconButton,
-  Card,
-  CardContent,
-  InputAdornment,
-  Badge,
-  Tooltip,
-  useTheme,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel
+  Box, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Button, Dialog, DialogContent,
+  TextField, CircularProgress, Grid, Snackbar, Alert,
+  Chip, Avatar, IconButton, Card, CardContent, InputAdornment,
+  Tooltip, useTheme, MenuItem, Select, FormControl, InputLabel,
+  useMediaQuery, LinearProgress,
 } from '@mui/material';
 import {
-  Add as AddIcon,
-  Search as SearchIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  CheckCircle as ActiveIcon,
-  Cancel as InactiveIcon,
-  Refresh as RefreshIcon,
-  People as PeopleIcon,
-  Work as WorkIcon,
-  BarChart as BarChartIcon,
-  TrendingUp as TrendingUpIcon,
-  Email as EmailIcon,
-  Lock as LockIcon,
-  FilterAlt as FilterIcon,
-  CalendarToday as CalendarIcon,
-  Dashboard as DashboardIcon,
-  Person as PersonIcon,
-  Phone as PhoneIcon,
-  WorkHistory as ExperienceIcon,
-  Link as LinkIcon,
-  Send as SendIcon
+  Add as AddIcon, Search as SearchIcon, Edit as EditIcon,
+  Delete as DeleteIcon, CheckCircle as ActiveIcon,
+  Refresh as RefreshIcon, People as PeopleIcon, Work as WorkIcon,
+  BarChart as BarChartIcon, TrendingUp as TrendingUpIcon,
+  Email as EmailIcon, Dashboard as DashboardIcon, Person as PersonIcon,
+  Phone as PhoneIcon, WorkHistory as ExperienceIcon,
+  Close as CloseIcon, CheckCircleOutline as SuccessCircleIcon,
+  MarkEmailRead as MailSentIcon, Send as SendIcon,
+  Business as BusinessIcon, LocationOn as LocationIcon,
+  Badge as BadgeIcon,
 } from '@mui/icons-material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as ChartTooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip as ChartTooltip, Legend, ResponsiveContainer,
+} from 'recharts';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import adminService from '../../services/adminService';
 import { useNavigate } from 'react-router-dom';
-import {inviteVendor}  from '../../services/Vendor/vendorService';
-import MainLayout from '../../layout/MainLayout';
+import { inviteVendor } from '../../services/Vendor/vendorService';
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────────────────────────────────────────── */
+const T = {
+  bg:          '#f0f4f8',
+  surface:     '#ffffff',
+  border:      '#e2e8f0',
+  primary:     '#1e40af',
+  primaryMid:  '#2563eb',
+  primaryLight:'#eff6ff',
+  text:        '#0f172a',
+  textSub:     '#475569',
+  textMuted:   '#94a3b8',
+  success:     '#059669',
+  successBg:   '#ecfdf5',
+  warning:     '#d97706',
+  warningBg:   '#fffbeb',
+  danger:      '#dc2626',
+  dangerBg:    '#fff1f2',
+  info:        '#0284c7',
+  infoBg:      '#f0f9ff',
+  purple:      '#7c3aed',
+  purpleBg:    '#faf5ff',
+};
 
+const INDUSTRIES = [
+  'Information Technology', 'Healthcare', 'Finance', 'Education',
+  'Retail', 'Manufacturing', 'Construction', 'Telecommunications',
+  'Transportation and Logistics', 'Marketing and Advertising',
+  'Legal Services', 'Human Resources / Staffing', 'Real Estate',
+  'Media and Entertainment', 'Government', 'Non-Profit',
+  'Energy and Utilities', 'Hospitality', 'Agriculture',
+  'Aerospace and Defense', 'E-commerce', 'Pharmaceuticals',
+  'Automotive', 'Insurance', 'Consulting', 'Other',
+];
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SMALL REUSABLES
+───────────────────────────────────────────────────────────────────────────── */
+const DarkTip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <Box sx={{ background: '#1e293b', borderRadius: '10px', p: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
+      <Typography sx={{ color: '#94a3b8', fontSize: 11, fontWeight: 700, mb: 0.5 }}>{label}</Typography>
+      {payload.map((p, i) => (
+        <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
+          <Box sx={{ width: 7, height: 7, borderRadius: '50%', background: p.color }} />
+          <Typography sx={{ color: '#f8fafc', fontSize: 12, fontWeight: 600 }}>{p.name}: {p.value}</Typography>
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
+const StatCard = ({ label, value, sub, icon, color, bg }) => (
+  <Card sx={{
+    borderRadius: '16px', border: `1px solid ${T.border}`,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.05)', background: T.surface,
+    overflow: 'hidden', position: 'relative',
+    transition: 'transform 0.15s, box-shadow 0.15s',
+    '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(0,0,0,0.09)' },
+  }}>
+    <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: color }} />
+    <CardContent sx={{ pt: 2.5, pb: '18px !important', px: { xs: 2, sm: 2.5 } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+        <Typography sx={{ fontSize: 11, fontWeight: 800, color: T.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, lineHeight: 1.3 }}>
+          {label}
+        </Typography>
+        <Box sx={{ width: 40, height: 40, borderRadius: '11px', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
+          {icon}
+        </Box>
+      </Box>
+      <Typography sx={{ fontSize: { xs: 28, sm: 34 }, fontWeight: 900, color: T.text, lineHeight: 1, mb: 1 }}>{value}</Typography>
+      <Typography sx={{ fontSize: 11, color: T.textMuted, fontWeight: 500 }}>{sub}</Typography>
+    </CardContent>
+  </Card>
+);
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────────────────────────────────────────── */
 const AdminDashboard = () => {
-  const theme = useTheme();
+  const theme    = useTheme();
   const navigate = useNavigate();
-  const [recruiters, setRecruiters] = useState([]);
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [newRecruiter, setNewRecruiter] = useState({
-    email: '',
-    password: '',
-    username: '',
-    experience: 0,
-    phoneNumber: '',
-    profilePicture: null
-  });
-  const [editingId, setEditingId] = useState(null);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [saving, setSaving] = useState(false);
-  const [searchRecruiter, setSearchRecruiter] = useState('');
-  const [searchJob, setSearchJob] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
-  const [timeFilter, setTimeFilter] = useState('all');
-  const [dateRange, setDateRange] = useState([null, null]);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [profileImage, setProfileImage] = useState(null);
-  const [profilePreview, setProfilePreview] = useState(null);
-  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
-  const [newRecruiterLink, setNewRecruiterLink] = useState('');
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+
+  const [recruiters,            setRecruiters]            = useState([]);
+  const [jobs,                  setJobs]                  = useState([]);
+  const [loading,               setLoading]               = useState(true);
+  const [openDialog,            setOpenDialog]            = useState(false);
+  const [saving,                setSaving]                = useState(false);
+  const [saveSuccess,           setSaveSuccess]           = useState(false);
+  const [savedRecruiterEmail,   setSavedRecruiterEmail]   = useState('');
+  const [editingId,             setEditingId]             = useState(null);
+  const [searchRecruiter,       setSearchRecruiter]       = useState('');
+  const [searchJob,             setSearchJob]             = useState('');
+  const [refreshing,            setRefreshing]            = useState(false);
+  const [timeFilter,            setTimeFilter]            = useState('all');
+  const [startDate,             setStartDate]             = useState(null);
+  const [endDate,               setEndDate]               = useState(null);
+  const [profileImage,          setProfileImage]          = useState(null);
+  const [profilePreview,        setProfilePreview]        = useState(null);
   const [recruiterActivityData, setRecruiterActivityData] = useState([]);
-  const [openVendorDialog, setOpenVendorDialog] = useState(false);
-  const [vendorEmail, setVendorEmail] = useState('');
-  const [vendorInviteLoading, setVendorInviteLoading] = useState(false);
-  const [vendorInviteSuccess, setVendorInviteSuccess] = useState(false);
+  const [openVendorDialog,      setOpenVendorDialog]      = useState(false);
+  const [vendorInviteLoading,   setVendorInviteLoading]   = useState(false);
+  const [vendorInviteSuccess,   setVendorInviteSuccess]   = useState(false);
+  const [savedVendorEmail,      setSavedVendorEmail]      = useState('');
+  const [snackbar,              setSnackbar]              = useState({ open: false, message: '', severity: 'success' });
+  const [sidebarOpen,           setSidebarOpen]           = useState(true); // Assuming you have sidebar state management
 
-  // Calculate recruiter activity data
-  useEffect(() => {
-    if (recruiters.length > 0) {
-      // Group by month and count added recruiters
-      const monthlyData = {};
-
-      recruiters.forEach(recruiter => {
-        const date = new Date(recruiter.createdAt);
-        const monthYear = `${date.toLocaleString('default', { month: 'short' })} ${date.getFullYear()}`;
-
-        if (!monthlyData[monthYear]) {
-          monthlyData[monthYear] = { name: monthYear, added: 0, active: 0 };
-        }
-
-        monthlyData[monthYear].added++;
-        if (recruiter.isActive) {
-          monthlyData[monthYear].active++;
-        }
-      });
-
-      // Convert to array format for the chart and sort by date
-      const activityData = Object.values(monthlyData).sort((a, b) => {
-        const dateA = new Date(a.name);
-        const dateB = new Date(b.name);
-        return dateA - dateB;
-      });
-
-      setRecruiterActivityData(activityData.slice(-6)); // Last 6 months
-    }
-  }, [recruiters]);
-
-  // Filter jobs based on status and target hire date
-  const activeJobs = jobs.filter(job => {
-    const today = new Date();
-    const targetHireDate = new Date(job.jobFormId?.targetHireDate);
-    return job.status === 'Active' && targetHireDate >= today;
+  const [vendorForm, setVendorForm] = useState({
+    firstName: '', lastName: '', email: '', phone: '',
+    designation: '', companyName: '', companyEmail: '',
+    companyPhone: '', companyAddress: '', industry: '',
   });
 
-  // Calculate average jobs per recruiter
-  const avgJobsPerRecruiter = recruiters.length > 0
-    ? (jobs.length / recruiters.length).toFixed(1)
-    : 0;
+  const [newRecruiter, setNewRecruiter] = useState({
+    email: '', password: '', username: '', experience: 0, phoneNumber: '', profilePicture: null,
+  });
 
-  // Job status data for pie chart
-  const jobStatusData = [
-    { name: 'Active', value: activeJobs.length },
-    { name: 'Closed', value: jobs.filter(j => j.status === 'Closed').length },
-    // { name: 'Draft', value: jobs.filter(j => j.status === 'Draft').length },
-  ];
+  /* ── responsive helper ───────────────────────────────────────────────── */
+  const getResponsiveValue = (mobile, tablet, laptop, desktop) => {
+    if (isMobile) return mobile;
+    if (isTablet) return tablet;
+    // For laptop and desktop, check if sidebar is open to adjust
+    if (sidebarOpen) {
+      return laptop; // When sidebar is open, use laptop values
+    }
+    return desktop; // When sidebar is closed, use desktop values
+  };
 
-  const COLORS = [theme.palette.success.main, theme.palette.error.main, theme.palette.warning.main];
+  // Calculate main content width based on sidebar state
+  const getMainContentWidth = () => {
+    if (isMobile) return '100%';
+    if (isTablet) return '100%';
+    return sidebarOpen ? 'calc(100vw - 240px)' : 'calc(100vw - 65px)'; // Adjust based on your sidebar widths
+  };
 
+  // Calculate grid column spans based on screen size
+  const getGridColumns = (defaultCols = 12) => {
+    if (isMobile) return 12;
+    if (isTablet) return 6;
+    return defaultCols;
+  };
+
+  /* ── data ─────────────────────────────────────────────────────────────── */
   const fetchRecruiters = async () => {
     setLoading(true);
     try {
-      const response = await adminService.getRecruiters();
-      if (response.recruiters && Array.isArray(response.recruiters)) {
-        setRecruiters(response.recruiters);
-      } else if (response.recuiter && Array.isArray(response.recuiter)) {
-        setRecruiters(response.recuiter);
-      } else {
-        setRecruiters([]);
-      }
-    } catch (err) {
-      console.error('Error fetching recruiters:', err);
-      setSnackbar({ open: true, message: 'Failed to fetch recruiters', severity: 'error' });
-      setRecruiters([]);
-    } finally {
-      setLoading(false);
-    }
+      const r = await adminService.getRecruiters();
+      setRecruiters(r.recruiters || r.recuiter || []);
+    } catch { showSnackbar('Failed to fetch recruiters', 'error'); setRecruiters([]); }
+    finally { setLoading(false); }
   };
 
   const fetchJobs = async () => {
     try {
-      const response = await adminService.getAllJobs();
-      if (response.jobs && Array.isArray(response.jobs)) {
-        setJobs(response.jobs);
-      } else {
-        setJobs([]);
-      }
-    } catch (err) {
-      console.error('Error fetching jobs:', err);
-      setSnackbar({ open: true, message: 'Failed to fetch jobs', severity: 'error' });
-      setJobs([]);
-    }
+      const r = await adminService.getAllJobs();
+      setJobs(r.jobs || []);
+    } catch { showSnackbar('Failed to fetch jobs', 'error'); setJobs([]); }
   };
+
+  useEffect(() => { fetchRecruiters(); fetchJobs(); }, []);
+
+  useEffect(() => {
+    if (!recruiters.length) return;
+    const map = {};
+    recruiters.forEach(r => {
+      const d = new Date(r.createdAt);
+      const k = `${d.toLocaleString('default', { month: 'short' })} ${d.getFullYear()}`;
+      if (!map[k]) map[k] = { name: k, added: 0, active: 0 };
+      map[k].added++;
+      if (r.isActive) map[k].active++;
+    });
+    setRecruiterActivityData(Object.values(map).sort((a, b) => new Date(a.name) - new Date(b.name)).slice(-6));
+  }, [recruiters]);
+
+  /* ── computed ─────────────────────────────────────────────────────────── */
+  const todayStr = (() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm   = String(d.getMonth() + 1).padStart(2, '0');
+    const dd   = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  })();
+
+  const toDateStr = (val) => {
+    if (!val) return null;
+    const s = String(val).slice(0, 10);
+    return s.length === 10 ? s : null;
+  };
+
+  const activeJobs = jobs.filter(j => {
+    const ds = toDateStr(j.jobFormId?.targetHireDate);
+    if (!ds) return true;
+    return ds >= todayStr;
+  });
+
+  const closedJobs = jobs.filter(j => {
+    const ds = toDateStr(j.jobFormId?.targetHireDate);
+    if (!ds) return false;
+    return ds < todayStr;
+  });
+
+  const avgJobsPerRec = recruiters.length ? (jobs.length / recruiters.length).toFixed(1) : 0;
+  const jobStatusData = [
+    { name: 'Active', value: activeJobs.length },
+    { name: 'Closed', value: closedJobs.length },
+  ];
+  const PIE_COLORS = [T.success, T.danger];
+
+  const showSnackbar = (message, severity = 'success') => setSnackbar({ open: true, message, severity });
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -198,1448 +251,1400 @@ const AdminDashboard = () => {
     fetchJobs().finally(() => setRefreshing(false));
   };
 
-  useEffect(() => {
-    fetchRecruiters();
-    fetchJobs();
-  }, []);
+  /* ── date range ───────────────────────────────────────────────────────── */
+  const getDateRange = () => {
+    const n = new Date();
+    if (timeFilter === 'weekly')  return { s: new Date(n - 7*86400000), e: n };
+    if (timeFilter === 'monthly') return { s: new Date(n.getFullYear(), n.getMonth()-1, n.getDate()), e: n };
+    if (timeFilter === 'yearly')  return { s: new Date(n.getFullYear()-1, n.getMonth(), n.getDate()), e: n };
+    if (timeFilter === 'custom' && startDate && endDate) {
+      const e = new Date(endDate); e.setHours(23,59,59,999);
+      return { s: new Date(startDate), e };
+    }
+    return { s: null, e: null };
+  };
 
+  /* ── filtered data ────────────────────────────────────────────────────── */
+  const filteredRecruiters = recruiters.filter(r =>
+    r.email.toLowerCase().includes(searchRecruiter.toLowerCase()) ||
+    r.username?.toLowerCase().includes(searchRecruiter.toLowerCase())
+  );
+
+  const filteredJobs = jobs.filter(job => {
+    const q = searchJob.toLowerCase();
+    const hit = job.jobName?.toLowerCase().includes(q) || job.jobTitle?.toLowerCase().includes(q) || job.department?.toLowerCase().includes(q);
+    if (timeFilter === 'all') return hit;
+    const { s, e } = getDateRange();
+    if (!s || !e) return hit;
+    const d = new Date(job.createdAt);
+    return hit && d >= s && d <= e;
+  });
+
+  const getRecruiterName = id => {
+    const r = recruiters.find(x => x._id === id);
+    return r ? r.username || r.email : 'Admin';
+  };
+
+  const isJobActive = (job) => {
+    const ds = toDateStr(job.jobFormId?.targetHireDate);
+    if (!ds) return true;
+    return ds >= todayStr;
+  };
+
+  /* ── recruiter dialog ─────────────────────────────────────────────────── */
   const handleOpenDialog = (recruiter = null) => {
+    setSaveSuccess(false); setSavedRecruiterEmail('');
     if (recruiter) {
       setEditingId(recruiter._id);
-      setNewRecruiter({
-        email: recruiter.email,
-        password: '',
-        username: recruiter.username || '',
-        experience: recruiter.experience || 0,
-        phoneNumber: recruiter.phoneNumber || '',
-        profilePicture: null
-      });
+      setNewRecruiter({ email: recruiter.email, password: '', username: recruiter.username||'', experience: recruiter.experience||0, phoneNumber: recruiter.phoneNumber||'', profilePicture: null });
       setProfilePreview(recruiter.profilePicture || null);
     } else {
       setEditingId(null);
-      setNewRecruiter({
-        email: '',
-        password: '',
-        username: '',
-        experience: 0,
-        phoneNumber: '',
-        profilePicture: null
-      });
+      setNewRecruiter({ email: '', password: '', username: '', experience: 0, phoneNumber: '', profilePicture: null });
       setProfilePreview(null);
     }
+    setProfileImage(null);
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     if (saving) return;
     setOpenDialog(false);
-    setEditingId(null);
-    setNewRecruiter({
-      email: '',
-      password: '',
-      username: '',
-      experience: 0,
-      phoneNumber: '',
-      profilePicture: null
-    });
-    setProfileImage(null);
-    setProfilePreview(null);
+    setTimeout(() => {
+      setEditingId(null); setSaveSuccess(false); setSavedRecruiterEmail('');
+      setNewRecruiter({ email: '', password: '', username: '', experience: 0, phoneNumber: '', profilePicture: null });
+      setProfileImage(null); setProfilePreview(null);
+    }, 250);
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setProfileImage(file);
+    setNewRecruiter(p => ({ ...p, profilePicture: file }));
+    const reader = new FileReader();
+    reader.onloadend = () => setProfilePreview(reader.result);
+    reader.readAsDataURL(file);
+  };
 
-  const handleInviteVendor = async () => {
-    if (!vendorEmail.trim()) {
-      setSnackbar({ open: true, message: 'Email is required', severity: 'warning' });
-      return;
-    }
+  const handleSaveRecruiter = async () => {
+    if (!newRecruiter.email.trim())    { showSnackbar('Email is required', 'warning'); return; }
+    if (!newRecruiter.username.trim()) { showSnackbar('Username is required', 'warning'); return; }
+    setSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append('email',       newRecruiter.email);
+      fd.append('password',    'temporary-password');
+      fd.append('username',    newRecruiter.username);
+      fd.append('experience',  newRecruiter.experience);
+      fd.append('phoneNumber', newRecruiter.phoneNumber);
+      if (newRecruiter.profilePicture) fd.append('profilePicture', newRecruiter.profilePicture);
+      await adminService.addRecruiter(fd);
+      setSavedRecruiterEmail(newRecruiter.email);
+      setSaveSuccess(true);
+      await fetchRecruiters();
+    } catch (err) {
+      showSnackbar(err.response?.data?.message || 'Error saving recruiter', 'error');
+    } finally { setSaving(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this recruiter?')) return;
+    try {
+      await adminService.deleteRecruiter(id);
+      showSnackbar('Recruiter deleted', 'info');
+      fetchRecruiters();
+    } catch (err) { showSnackbar(err.response?.data?.message || 'Error deleting', 'error'); }
+  };
+
+  const handleResendWelcomeEmail = async (recruiterId) => {
+    try { await adminService.resendWelcomeEmail(recruiterId); showSnackbar('Welcome email resent!', 'success'); }
+    catch { showSnackbar('Failed to resend welcome email', 'error'); }
+  };
+
+  /* ── vendor ───────────────────────────────────────────────────────────── */
+  const handleOpenVendorDialog = () => {
+    setVendorForm({
+      firstName: '', lastName: '', email: '', phone: '',
+      designation: '', companyName: '', companyEmail: '',
+      companyPhone: '', companyAddress: '', industry: '',
+    });
+    setVendorInviteSuccess(false);
+    setSavedVendorEmail('');
+    setOpenVendorDialog(true);
+  };
+
+  const handleCloseVendorDialog = () => {
+    if (vendorInviteLoading) return;
+    setOpenVendorDialog(false);
+    setTimeout(() => {
+      setVendorInviteSuccess(false);
+      setSavedVendorEmail('');
+    }, 250);
+  };
+
+  const handleRegisterVendor = async () => {
+    if (!vendorForm.firstName.trim()) { showSnackbar('First name is required', 'warning'); return; }
+    if (!vendorForm.lastName.trim())  { showSnackbar('Last name is required', 'warning'); return; }
+    if (!vendorForm.email.trim())     { showSnackbar('Email is required', 'warning'); return; }
+    if (!vendorForm.companyName.trim()) { showSnackbar('Company name is required', 'warning'); return; }
+    if (!vendorForm.industry)         { showSnackbar('Industry is required', 'warning'); return; }
 
     setVendorInviteLoading(true);
     try {
-      const response = await inviteVendor(vendorEmail);
-
-      setSnackbar({
-        open: true,
-        message: 'Vendor invitation sent successfully!',
-        severity: 'success'
-      });
-
+      await inviteVendor(vendorForm);
+      setSavedVendorEmail(vendorForm.email);
       setVendorInviteSuccess(true);
-      // Reset form after a delay
-      setTimeout(() => {
-        setOpenVendorDialog(false);
-        setVendorEmail('');
-        setVendorInviteSuccess(false);
-      }, 2000);
+      showSnackbar('Vendor registered successfully!', 'success');
     } catch (err) {
-      console.error('Error sending vendor invitation:', err);
-      const message = err.message || 'Error sending vendor invitation';
-      setSnackbar({ open: true, message, severity: 'error' });
+      showSnackbar(err.message || err.response?.data?.message || 'Error registering vendor', 'error');
     } finally {
       setVendorInviteLoading(false);
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfileImage(file);
-      setNewRecruiter({ ...newRecruiter, profilePicture: file });
-
-      // Create a preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfilePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+  /* ── shared sx ────────────────────────────────────────────────────────── */
+  const cardSx = {
+    borderRadius: '16px', border: `1px solid ${T.border}`,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.05)', background: T.surface, overflow: 'hidden',
   };
 
-  const handleSaveRecruiter = async () => {
-    if (!newRecruiter.email.trim()) {
-      setSnackbar({ open: true, message: 'Email is required', severity: 'warning' });
-      return;
-    }
-    if (!newRecruiter.username.trim()) {
-      setSnackbar({ open: true, message: 'Username is required', severity: 'warning' });
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const formData = new FormData();
-      formData.append('email', newRecruiter.email);
-      formData.append('password', 'temporary-password'); // Will be overridden by backend
-      formData.append('username', newRecruiter.username);
-      formData.append('experience', newRecruiter.experience);
-      formData.append('phoneNumber', newRecruiter.phoneNumber);
-
-      if (newRecruiter.profilePicture) {
-        formData.append('profilePicture', newRecruiter.profilePicture);
-      }
-
-      const response = await adminService.addRecruiter(formData);
-
-      if (response.data.status === 'success') {
-        setSnackbar({
-          open: true,
-          message: 'Recruiter added successfully. Welcome email sent!',
-          severity: 'success'
-        });
-
-        // Show welcome dialog with login link
-        setNewRecruiterLink(response.data.data.loginLink);
-        setShowWelcomeDialog(true);
-      } else if (response.data.status === 'partial_success') {
-        setSnackbar({
-          open: true,
-          message: 'Recruiter created but welcome email failed to send',
-          severity: 'warning'
-        });
-
-        // Show dialog with manual link
-        setNewRecruiterLink(response.data.data.loginLink);
-        setShowWelcomeDialog(true);
-      }
-
-      await fetchRecruiters();
-      handleCloseDialog();
-    } catch (err) {
-      console.error('Error saving recruiter:', err);
-      const message = err.response?.data?.message || 'Error saving recruiter';
-      setSnackbar({ open: true, message, severity: 'error' });
-    } finally {
-      setSaving(false);
-    }
+  const fieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px', fontSize: { xs: 12, sm: 13, md: 13 },
+      background: T.bg,
+      '& fieldset': { borderColor: T.border },
+      '&:hover fieldset': { borderColor: '#94a3b8' },
+      '&.Mui-focused fieldset': { borderColor: T.primaryMid, borderWidth: 2 },
+    },
+    '& .MuiInputLabel-root': { fontSize: { xs: 12, sm: 13, md: 13 } },
   };
 
-  const handleResendWelcomeEmail = async (recruiterId) => {
-    try {
-      const response = await adminService.resendWelcomeEmail(recruiterId);
-      setSnackbar({
-        open: true,
-        message: 'Welcome email resent successfully',
-        severity: 'success'
-      });
-      setNewRecruiterLink(response.data.loginLink);
-      setShowWelcomeDialog(true);
-    } catch (err) {
-      console.error('Error resending welcome email:', err);
-      setSnackbar({
-        open: true,
-        message: 'Failed to resend welcome email',
-        severity: 'error'
-      });
-    }
+  const vendorFieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '10px', fontSize: { xs: 12, sm: 13, md: 13 },
+      background: T.bg,
+      '& fieldset': { borderColor: T.border },
+      '&:hover fieldset': { borderColor: '#94a3b8' },
+      '&.Mui-focused fieldset': { borderColor: T.purple, borderWidth: 2 },
+    },
+    '& .MuiInputLabel-root': { fontSize: { xs: 12, sm: 13, md: 13 } },
+    '& .MuiInputLabel-root.Mui-focused': { color: T.purple },
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this recruiter?')) return;
-    try {
-      await adminService.deleteRecruiter(id);
-      setSnackbar({ open: true, message: 'Recruiter deleted successfully', severity: 'info' });
-      fetchRecruiters();
-    } catch (err) {
-      console.error('Error deleting recruiter:', err);
-      const message = err.response?.data?.message || 'Error deleting recruiter';
-      setSnackbar({ open: true, message, severity: 'error' });
-    }
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setSnackbar({ open: true, message: 'Link copied to clipboard', severity: 'success' });
-    });
-  };
-
-  const filteredRecruiters = recruiters.filter(
-    (r) => r.email.toLowerCase().includes(searchRecruiter.toLowerCase()) ||
-      r.username?.toLowerCase().includes(searchRecruiter.toLowerCase())
+  /* ── loading ──────────────────────────────────────────────────────────── */
+  if (loading && !refreshing) return (
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      minHeight: '100vh',
+      width: getMainContentWidth(),
+      ml: { xs: 0, sm: 0, md: sidebarOpen ? '240px' : '65px' },
+      transition: 'margin-left 0.3s ease',
+      gap: 2 
+    }}>
+      <Box sx={{ position: 'relative', width: { xs: 48, sm: 56, md: 64 }, height: { xs: 48, sm: 56, md: 64 } }}>
+        <CircularProgress size={isMobile ? 48 : isTablet ? 56 : 64} thickness={2} sx={{ color: T.primaryLight, position: 'absolute' }} variant="determinate" value={100} />
+        <CircularProgress size={isMobile ? 48 : isTablet ? 56 : 64} thickness={2} sx={{ color: T.primaryMid, position: 'absolute', animationDuration: '900ms' }} />
+        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <DashboardIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22 }, color: T.primaryMid }} />
+        </Box>
+      </Box>
+      <Typography sx={{ color: T.textSub, fontSize: { xs: 12, sm: 13, md: 14 }, fontWeight: 700 }}>Loading Dashboard…</Typography>
+    </Box>
   );
 
-  // Fixed time filter function
-  const getDateRange = () => {
-    const now = new Date();
-    let startDateFilter = null;
-    let endDateFilter = now;
-
-    switch (timeFilter) {
-      case 'weekly':
-        startDateFilter = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-        break;
-      case 'monthly':
-        startDateFilter = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-        break;
-      case 'yearly':
-        startDateFilter = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        break;
-      case 'custom':
-        if (startDate && endDate) {
-          startDateFilter = new Date(startDate);
-          endDateFilter = new Date(endDate);
-          endDateFilter.setHours(23, 59, 59, 999); // Include the entire end day
-        }
-        break;
-      default:
-        // 'all' or any other value - return null to indicate no date filtering
-        return { startDate: null, endDate: null };
-    }
-
-    return { startDate: startDateFilter, endDate: endDateFilter };
-  };
-
-  const filteredJobs = jobs.filter(job => {
-    // Search filter
-    const matchesSearch =
-      job.jobName?.toLowerCase().includes(searchJob.toLowerCase()) ||
-      job.jobTitle?.toLowerCase().includes(searchJob.toLowerCase()) ||
-      job.department?.toLowerCase().includes(searchJob.toLowerCase()) ||
-      (job.jobFormId?.recruitingPerson?.some(email =>
-        email?.toLowerCase().includes(searchJob.toLowerCase()))
-      );
-
-    // Time filter - FIXED VERSION
-    if (timeFilter === 'all') {
-      return matchesSearch; // Show all jobs regardless of date
-    }
-
-    const jobDate = new Date(job.createdAt);
-    const { startDate: startDateFilter, endDate: endDateFilter } = getDateRange();
-
-    // If we have a valid date range, filter by it
-    if (startDateFilter && endDateFilter) {
-      const matchesTime = jobDate >= startDateFilter && jobDate <= endDateFilter;
-      return matchesSearch && matchesTime;
-    }
-
-    // If no valid date range (e.g., custom selected but no dates), show all
-    return matchesSearch;
-  });
-
-  // Function to get recruiter name from tenant ID
-  const getRecruiterName = (tenantId) => {
-    const recruiter = recruiters.find(r => r._id === tenantId);
-    return recruiter ? recruiter.username || recruiter.email : 'Unknown';
-  };
-
-  if (loading && !refreshing) {
-    return (
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        minHeight="80vh"
-      >
-        <CircularProgress size={60} />
-        <Typography mt={2}>Loading Dashboard...</Typography>
-      </Box>
-    );
-  }
-
+  /* ════════════════════════════════════════════════════════════════════════
+     RENDER
+  ════════════════════════════════════════════════════════════════════════ */
   return (
-    <>
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Box sx={{
+        width: getMainContentWidth(),
+        minHeight: '100vh',
+        
+        p: { xs: 1, sm: 1.5, md: 2, lg: 2.5 },
+        ml: { xs: 0, sm: 0, md: sidebarOpen ? '200px' : '65px' },
+        transition: 'margin-left 0.3s ease, width 0.3s ease',
+        overflowX: 'hidden',
+        mt: { xs: 7, sm: 8, md: 9 }, // Adjust based on your header height
+      }}>
+
+        {/* ── HEADER ──────────────────────────────────────────────────────── */}
         <Box sx={{
-          p: 0,
-          backgroundColor: theme.palette.background.default,
-          minHeight: '100vh',
-          maxWidth: '100%',
-          overflowX: 'hidden',
-          marginRight: "50px"
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'column', md: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'stretch', md: 'flex-start' },
+          mb: { xs: 2, sm: 2.5, md: 3 },
+          gap: { xs: 1.5, sm: 2, md: 2 },
         }}>
-          {/* Header */}
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} mr={6}>
-            <Box>
-              <Typography variant="h4" fontWeight="700" color="text.primary" gutterBottom>
-                Admin Dashboard
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <DashboardIcon fontSize="small" />
+          <Box sx={{ width: '100%' }}>
+            <Typography sx={{
+              fontSize: { xs: 18, sm: 20, md: 22, lg: 24 },
+              fontWeight: 900,
+              color: T.text,
+              letterSpacing: '-0.5px',
+              lineHeight: 1.2,
+            }}>
+              Admin Dashboard
+            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.5 }}>
+              <DashboardIcon sx={{ fontSize: { xs: 11, sm: 12, md: 13 }, color: T.textMuted }} />
+              <Typography sx={{
+                fontSize: { xs: 11, sm: 12, md: 12 },
+                color: T.textMuted,
+                fontWeight: 500
+              }}>
                 Manage recruiters and job postings
               </Typography>
             </Box>
-            <Box display="flex" alignItems="center" gap={2}>
-              <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>Time Filter</InputLabel>
-                <Select
-                  value={timeFilter}
-                  onChange={(e) => setTimeFilter(e.target.value)}
-                  label="Time Filter"
-                  sx={{ borderRadius: 2 }}
-                >
-                  <MenuItem value="all">All Time</MenuItem>
-                  <MenuItem value="weekly">Weekly</MenuItem>
-                  <MenuItem value="monthly">Monthly</MenuItem>
-                  <MenuItem value="yearly">Yearly</MenuItem>
-                  <MenuItem value="custom">Custom Range</MenuItem>
-                </Select>
-              </FormControl>
-
-              {timeFilter === 'custom' && (
-                <Box display="flex" gap={1} alignItems="center">
-                  <DatePicker
-                    label="Start Date"
-                    value={startDate}
-                    onChange={(newValue) => setStartDate(newValue)}
-                    renderInput={(params) => <TextField {...params} size="small" sx={{ width: 150 }} />}
-                  />
-                  <Typography>-</Typography>
-                  <DatePicker
-                    label="End Date"
-                    value={endDate}
-                    onChange={(newValue) => setEndDate(newValue)}
-                    renderInput={(params) => <TextField {...params} size="small" sx={{ width: 150 }} />}
-                  />
-                </Box>
-              )}
-
-              <Tooltip title="Refresh Data">
-                <IconButton
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                  sx={{
-                    backgroundColor: theme.palette.action.hover,
-                    '&:hover': {
-                      backgroundColor: theme.palette.grey[300]
-                    }
-                  }}
-                >
-                  <RefreshIcon />
-                </IconButton>
-              </Tooltip>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenDialog()}
-                sx={{
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                    boxShadow: theme.shadows[4]
-                  },
-                  boxShadow: theme.shadows[2],
-                  borderRadius: 2,
-                  px: 3,
-                  py: 1,
-                  mr: 1
-                }}
-              >
-                Add Recruiter
-              </Button>
-
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setOpenVendorDialog(true)} // Changed from handleVendor()
-                sx={{
-                  backgroundColor: theme.palette.primary.main,
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                    boxShadow: theme.shadows[4]
-                  },
-                  boxShadow: theme.shadows[2],
-                  borderRadius: 2,
-                  px: 3,
-                  py: 1,
-                  mr: 1
-                }}
-              >
-                Add Vendor
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<WorkIcon />}
-                onClick={() => navigate('/dashboard/jobs/createJob')}
-                sx={{
-                  color: theme.palette.primary.main,
-                  borderColor: theme.palette.primary.main,
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.light,
-                    borderColor: theme.palette.primary.dark
-                  },
-                  borderRadius: 2,
-                  px: 3,
-                  py: 1
-                }}
-              >
-                Create Job
-              </Button>
-            </Box>
           </Box>
 
-          {/* Stats Cards */}
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={3} width={'25%'}>
-              <Card sx={{
-                p: 3,
-                height: '100%',
-                borderRadius: 3,
-                background: `linear-gradient(195deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                color: 'white',
-                boxShadow: theme.shadows[4],
-                position: 'relative',
-                overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '-50px',
-                  right: '-50px',
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.1)'
-                }
-              }}>
-                <Box position="relative" zIndex={1}>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Total Recruiters</Typography>
-                  <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{recruiters.length}</Typography>
-                  <Box display="flex" alignItems="center">
-                    <TrendingUpIcon sx={{ mr: 1 }} />
-                    <Typography variant="body2">+{Math.floor(recruiters.length * 0.12)} from last month</Typography>
-                  </Box>
-                </Box>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3} width={'22%'}>
-              <Card sx={{
-                p: 3,
-                height: '100%',
-                borderRadius: 3,
-                background: `linear-gradient(195deg, ${theme.palette.success.main}, ${theme.palette.success.dark})`,
-                color: 'white',
-                boxShadow: theme.shadows[4],
-                position: 'relative',
-                overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '-50px',
-                  right: '-50px',
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'rgala(255,255,255,0.1)'
-                }
-              }}>
-                <Box position="relative" zIndex={1}>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Total Jobs</Typography>
-                  <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>{jobs.length}</Typography>
-                  <Box display="flex" alignItems="center">
-                    <WorkIcon sx={{ mr: 1 }} />
-                    <Typography variant="body2">{Math.floor(jobs.length * 0.3)} new this month</Typography>
-                  </Box>
-                </Box>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3} width={'22%'}>
-              <Card sx={{
-                p: 3,
-                height: '100%',
-                borderRadius: 3,
-                background: `linear-gradient(195deg, ${theme.palette.info.main}, ${theme.palette.info.dark})`,
-                color: 'white',
-                boxShadow: theme.shadows[4],
-                position: 'relative',
-                overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '-50px',
-                  right: '-50px',
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.1)'
-                }
-              }}>
-                <Box position="relative" zIndex={1}>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Active Jobs</Typography>
-                  <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>
-                    {activeJobs.length}
-                  </Typography>
-                  <Box display="flex" alignItems="center">
-                    <ActiveIcon sx={{ mr: 1 }} />
-                    <Typography variant="body2">
-                      {jobs.length > 0 ? Math.round((activeJobs.length / jobs.length) * 100) : 0}% of total
-                    </Typography>
-                  </Box>
-                </Box>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3} width={'22%'}>
-              <Card sx={{
-                p: 3,
-                height: '100%',
-                borderRadius: 3,
-                background: `linear-gradient(195deg, ${theme.palette.warning.main}, ${theme.palette.warning.dark})`,
-                color: 'white',
-                boxShadow: theme.shadows[4],
-                position: 'relative',
-                overflow: 'hidden',
-                '&:before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '-50px',
-                  right: '-50px',
-                  width: '120px',
-                  height: '120px',
-                  borderRadius: '50%',
-                  background: 'rgala(255,255,255,0.1)'
-                }
-              }}>
-                <Box position="relative" zIndex={1}>
-                  <Typography variant="body2" sx={{ opacity: 0.8 }}>Avg Jobs/Recruiter</Typography>
-                  <Typography variant="h3" fontWeight="700" sx={{ mt: 1, mb: 2 }}>
-                    {avgJobsPerRecruiter}
-                  </Typography>
-                  <Box display="flex" alignItems="center">
-                    <BarChartIcon sx={{ mr: 1 }} />
-                    <Typography variant="body2">Across all recruiters</Typography>
-                  </Box>
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Charts Section */}
-          <Grid container spacing={3} sx={{ mb: 4, }} >
-            <Grid item xs={12} md={6} width={'47%'}>
-              <Card sx={{
-                p: 3,
-                height: '100%',
-                borderRadius: 3,
-                boxShadow: theme.shadows[1],
-                backgroundColor: theme.palette.background.paper
-              }}>
-                <Typography variant="h6" fontWeight="600" gutterBottom sx={{ mb: 3 }}>
-                  Recruiter Activity (Last 6 Months)
-                </Typography>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={recruiterActivityData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-                    <XAxis dataKey="name" stroke={theme.palette.text.secondary} />
-                    <YAxis stroke={theme.palette.text.secondary} />
-                    <ChartTooltip
-                      contentStyle={{
-                        borderRadius: 8,
-                        backgroundColor: theme.palette.background.paper,
-                        border: `1px solid ${theme.palette.divider}`,
-                        boxShadow: theme.shadows[2]
-                      }}
-                    />
-                    <Legend />
-                    <Bar dataKey="added" name="Recruiters Added" fill={theme.palette.success.main} radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="active" name="Active Recruiters" fill={theme.palette.info.main} radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6} width={'47%'}>
-              <Card sx={{
-                p: 3,
-                height: '100%',
-                borderRadius: 3,
-                boxShadow: theme.shadows[1],
-                backgroundColor: theme.palette.background.paper
-              }}>
-                <Typography variant="h6" fontWeight="600" gutterBottom sx={{ mb: 3 }}>
-                  Job Status Distribution
-                </Typography>
-                <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {jobStatusData.some(item => item.value > 0) ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={jobStatusData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {jobStatusData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <ChartTooltip
-                          formatter={(value, name) => [`${value} jobs`, name]}
-                          contentStyle={{
-                            borderRadius: 8,
-                            backgroundColor: theme.palette.background.paper,
-                            border: `1px solid ${theme.palette.divider}`,
-                            boxShadow: theme.shadows[2]
-                          }}
-                        />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No job data available
-                    </Typography>
-                  )}
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Horizontal Layout */}
-          <Grid container spacing={3} >
-            {/* Left Column - Recruiters */}
-            <Grid item xs={12} md={6} mr={6} width={'100%'}>
-              <Card sx={{
-                height: '100%',
-                borderRadius: 3,
-                boxShadow: theme.shadows[1],
-                backgroundColor: theme.palette.background.paper
-              }}>
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  p={3}
-
-                  sx={{
-                    borderBottom: `1px solid ${theme.palette.divider}`
-                  }}
-                >
-                  <Typography variant="h5" fontWeight="600">Recruiters</Typography>
-                  <TextField
-                    size="small"
-                    placeholder="Search recruiters..."
-                    variant="outlined"
-                    value={searchRecruiter}
-                    onChange={(e) => setSearchRecruiter(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon color="action" />
-                        </InputAdornment>
-                      ),
-                      style: {
-                        borderRadius: 8,
-                        backgroundColor: theme.palette.background.default
-                      }
-                    }}
-                    sx={{ width: 300 }}
-                  />
-                </Box>
-                <TableContainer sx={{ maxHeight: 'calc(100vh - 400px)' }}>
-                  <Table stickyHeader>
-                    <TableHead sx={{ backgroundColor: theme.palette.background.default }}>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: 600 }}>Name</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Phone</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Experience</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: 600 }} align="right">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredRecruiters.length > 0 ? (
-                        filteredRecruiters.map((recruiter) => (
-                          <TableRow
-                            key={recruiter._id}
-                            hover
-                            sx={{
-                              '&:last-child td': { borderBottom: 0 },
-                              '&:hover': {
-                                backgroundColor: theme.palette.action.hover
-                              }
-                            }}
-                          >
-                            <TableCell>
-                              <Box display="flex" alignItems="center">
-                                {recruiter.profilePicture ? (
-                                  <Avatar
-                                    src={recruiter.profilePicture}
-                                    sx={{ width: 40, height: 40, mr: 2 }}
-                                  />
-                                ) : (
-                                  <Avatar
-                                    sx={{
-                                      width: 40,
-                                      height: 40,
-                                      mr: 2,
-                                      backgroundColor: theme.palette.primary.main,
-                                      color: 'white'
-                                    }}
-                                  >
-                                    {recruiter.username?.charAt(0)?.toUpperCase() || recruiter.email.charAt(0).toUpperCase()}
-                                  </Avatar>
-                                )}
-                                <Box>
-                                  <Typography fontWeight="500">{recruiter.username || 'No Name'}</Typography>
-                                </Box>
-                              </Box>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" color="text.secondary">
-                                {recruiter.email}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography variant="body2" color="text.secondary">
-                                {recruiter.phoneNumber || 'N/A'}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                icon={<ExperienceIcon />}
-                                label={`${recruiter.experience || 0} yrs`}
-                                size="small"
-                                variant="outlined"
-                                sx={{
-                                  borderColor: theme.palette.info.main,
-                                  color: theme.palette.info.dark
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Chip
-                                label={recruiter.isActive ? 'Active' : 'Inactive'}
-                                size="small"
-                                sx={{
-                                  backgroundColor: recruiter.isActive ? theme.palette.success.light : theme.palette.error.light,
-                                  color: recruiter.isActive ? theme.palette.success.dark : theme.palette.error.dark,
-                                  fontWeight: 500
-                                }}
-                              />
-                            </TableCell>
-                            <TableCell align="right">
-                              <Box display="flex" justifyContent="flex-end" gap={1}>
-                                <Tooltip title="Resend Welcome Email">
-                                  <IconButton
-                                    onClick={() => handleResendWelcomeEmail(recruiter._id)}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: theme.palette.action.hover,
-                                      color: theme.palette.info.main,
-                                      '&:hover': {
-                                        backgroundColor: theme.palette.info.main,
-                                        color: 'white'
-                                      }
-                                    }}
-                                  >
-                                    <EmailIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Edit Recruiter">
-                                  <IconButton
-                                    onClick={() => handleOpenDialog(recruiter)}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: theme.palette.action.hover,
-                                      color: theme.palette.secondary.main,
-                                      '&:hover': {
-                                        backgroundColor: theme.palette.secondary.main,
-                                        color: 'white'
-                                      }
-                                    }}
-                                  >
-                                    <EditIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                                <Tooltip title="Delete Recruiter">
-                                  <IconButton
-                                    onClick={() => handleDelete(recruiter._id)}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: theme.palette.action.hover,
-                                      color: theme.palette.error.main,
-                                      '&:hover': {
-                                        backgroundColor: theme.palette.error.main,
-                                        color: 'white'
-                                      }
-                                    }}
-                                  >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                            <Typography variant="body1" color="text.secondary">
-                              No recruiters found
-                            </Typography>
-                            <Button
-                              variant="text"
-                              startIcon={<AddIcon />}
-                              onClick={() => handleOpenDialog()}
-                              sx={{ mt: 1 }}
-                            >
-                              Add New Recruiter
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Card>
-            </Grid>
-
-            {/* Right Column - Jobs */}
-            <Grid item xs={12} md={6}>
-              <Card
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: { xs: 1, sm: 1, md: 1 },
+            flexWrap: 'wrap',
+            width: { xs: '100%', sm: '100%', md: 'auto' },
+            justifyContent: { xs: 'space-between', sm: 'space-between', md: 'flex-end' },
+          }}>
+            <FormControl size="small" sx={{
+              minWidth: { xs: 100, sm: 120, md: 120 },
+              flex: { xs: 1, sm: 1, md: 0 },
+            }}>
+              <InputLabel sx={{ fontSize: { xs: 11, sm: 12, md: 12 } }}>Time Filter</InputLabel>
+              <Select
+                value={timeFilter}
+                onChange={e => setTimeFilter(e.target.value)}
+                label="Time Filter"
                 sx={{
-                  height: "100%",
-                  borderRadius: 3,
-                  boxShadow: theme.shadows[1],
-                  backgroundColor: theme.palette.background.paper,
-                  display: "flex",
-                  flexDirection: "column",
+                  borderRadius: '9px',
+                  fontSize: { xs: 11, sm: 12, md: 12 },
+                  background: T.surface,
+                  '& fieldset': { borderColor: T.border }
                 }}
               >
-                {/* Header */}
-                <Box
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  p={3}
+                <MenuItem value="all" sx={{ fontSize: { xs: 12, sm: 13, md: 13 } }}>All Time</MenuItem>
+                <MenuItem value="weekly" sx={{ fontSize: { xs: 12, sm: 13, md: 13 } }}>Weekly</MenuItem>
+                <MenuItem value="monthly" sx={{ fontSize: { xs: 12, sm: 13, md: 13 } }}>Monthly</MenuItem>
+                <MenuItem value="yearly" sx={{ fontSize: { xs: 12, sm: 13, md: 13 } }}>Yearly</MenuItem>
+                <MenuItem value="custom" sx={{ fontSize: { xs: 12, sm: 13, md: 13 } }}>Custom</MenuItem>
+              </Select>
+            </FormControl>
+
+            {timeFilter === 'custom' && (
+              <Box sx={{
+                display: 'flex',
+                gap: 1,
+                alignItems: 'center',
+                flexDirection: { xs: 'row', sm: 'row', md: 'row' },
+                width: { xs: '100%', sm: 'auto', md: 'auto' },
+              }}>
+                <DatePicker
+                  label="Start"
+                  value={startDate}
+                  onChange={setStartDate}
+                  renderInput={p => <TextField {...p} size="small" sx={{
+                    width: { xs: '100%', sm: 120, md: 130 },
+                    ...fieldSx
+                  }} />}
+                />
+                <Typography sx={{ color: T.textMuted, display: { xs: 'none', sm: 'block', md: 'block' } }}>–</Typography>
+                <DatePicker
+                  label="End"
+                  value={endDate}
+                  onChange={setEndDate}
+                  renderInput={p => <TextField {...p} size="small" sx={{
+                    width: { xs: '100%', sm: 120, md: 130 },
+                    ...fieldSx
+                  }} />}
+                />
+              </Box>
+            )}
+
+            <Tooltip title="Refresh">
+              <IconButton
+                onClick={handleRefresh}
+                disabled={refreshing}
+                size="small"
+                sx={{
+                  width: { xs: 32, sm: 34, md: 36 },
+                  height: { xs: 32, sm: 34, md: 36 },
+                  background: T.surface,
+                  border: `1px solid ${T.border}`,
+                  borderRadius: '9px',
+                  '&:hover': { background: T.primaryLight, borderColor: T.primaryMid }
+                }}
+              >
+                <RefreshIcon sx={{
+                  fontSize: { xs: 15, sm: 16, md: 17 },
+                  color: refreshing ? T.textMuted : T.primaryMid
+                }} />
+              </IconButton>
+            </Tooltip>
+
+            <Box sx={{
+              display: 'flex',
+              gap: 1,
+              width: { xs: '100%', sm: '100%', md: 'auto' },
+              justifyContent: { xs: 'space-between', sm: 'space-between', md: 'flex-end' },
+            }}>
+              {[
+                {
+                  label: { xs: 'Add', sm: 'Recruiter', md: 'Add Recruiter' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],
+                  icon: <AddIcon sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }} />,
+                  onClick: () => handleOpenDialog(),
+                  bg: T.primaryMid,
+                  hbg: T.primary,
+                  color: '#fff',
+                },
+                {
+                  label: { xs: 'Add', sm: 'Vendor', md: 'Add Vendor' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],
+                  icon: <EmailIcon sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }} />,
+                  onClick: handleOpenVendorDialog,
+                  bg: T.purple,
+                  hbg: '#6d28d9',
+                  color: '#fff',
+                },
+                {
+                  label: { xs: 'Job', sm: 'Create', md: 'Create Job' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],
+                  icon: <WorkIcon sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }} />,
+                  onClick: () => navigate('/dashboard/jobs/createJob'),
+                  bg: T.surface,
+                  hbg: T.bg,
+                  color: T.textSub,
+                  border: `1px solid ${T.border}`,
+                },
+              ].map((btn, i) => (
+                <Button
+                  key={i}
+                  startIcon={btn.icon}
+                  onClick={btn.onClick}
                   sx={{
-                    borderBottom: `1px solid ${theme.palette.divider}`,
+                    flex: { xs: 1, sm: 1, md: 0 },
+                    background: btn.bg,
+                    color: btn.color,
+                    border: btn.border || 'none',
+                    borderRadius: '9px',
+                    px: { xs: 1, sm: 1.5, md: 2 },
+                    py: { xs: '6px', sm: '7px', md: '8px' },
+                    fontSize: { xs: 10, sm: 11, md: 13 },
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    whiteSpace: 'nowrap',
+                    minWidth: 'auto',
+                    boxShadow: btn.border ? 'none' : '0 2px 8px rgba(0,0,0,0.14)',
+                    '&:hover': { background: btn.hbg, transform: 'translateY(-1px)' },
+                    transition: 'all 0.15s',
                   }}
                 >
-                  <Typography variant="h5" fontWeight="600">
-                    Job Postings
-                  </Typography>
-                  <TextField
-                    size="small"
-                    placeholder="Search jobs..."
-                    variant="outlined"
-                    value={searchJob}
-                    onChange={(e) => setSearchJob(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon color="action" />
-                        </InputAdornment>
-                      ),
-                      style: {
-                        borderRadius: 8,
-                        backgroundColor: theme.palette.background.default,
-                      },
-                    }}
-                    sx={{ width: 250 }}
-                  />
-                </Box>
+                  {btn.label}
+                </Button>
+              ))}
+            </Box>
+          </Box>
+        </Box>
 
-                {/* Content */}
-                <Box sx={{ p: 3, flex: 1, overflowY: "auto" }}>
-                  <Grid container spacing={2}>
-                    {filteredJobs.length > 0 ? (
-                      filteredJobs.map((job) => {
-                        const targetHireDate = job.jobFormId?.targetHireDate
-                          ? new Date(job.jobFormId.targetHireDate).toLocaleDateString()
-                          : "Not set";
-                        const isActive =
-                          job.status === "Active" &&
-                          (!job.jobFormId?.targetHireDate ||
-                            new Date(job.jobFormId.targetHireDate) >= new Date());
-                        const recruiterName = getRecruiterName(job.userId);
+        {/* ── STAT CARDS ──────────────────────────────────────────────────── */}
+        <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: { xs: 2, sm: 2.5, md: 2.5 } }}>
+          {[
+            {
+              label: { xs: 'Recruiters', sm: 'Total Recruiters', md: 'Total Recruiters' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],
+              value: recruiters.length,
+              sub: `+${Math.floor(recruiters.length * 0.12)} from last month`,
+              icon: <PeopleIcon sx={{ fontSize: { xs: 18, sm: 19, md: 20 } }} />,
+              color: T.primaryMid,
+              bg: T.primaryLight
+            },
+            {
+              label: { xs: 'Jobs', sm: 'Total Jobs', md: 'Total Jobs' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],
+              value: jobs.length,
+              sub: `${Math.floor(jobs.length * 0.3)} new this month`,
+              icon: <WorkIcon sx={{ fontSize: { xs: 18, sm: 19, md: 20 } }} />,
+              color: T.success,
+              bg: T.successBg
+            },
+            {
+              label: { xs: 'Active', sm: 'Active Jobs', md: 'Active Jobs' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],
+              value: activeJobs.length,
+              sub: `${jobs.length > 0 ? Math.round(activeJobs.length / jobs.length * 100) : 0}% of total`,
+              icon: <ActiveIcon sx={{ fontSize: { xs: 18, sm: 19, md: 20 } }} />,
+              color: T.info,
+              bg: T.infoBg
+            },
+            {
+              label: { xs: 'Avg/Rec', sm: 'Avg Jobs/Rec', md: 'Avg Jobs/Recruiter' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],
+              value: avgJobsPerRec,
+              sub: 'Across all recruiters',
+              icon: <BarChartIcon sx={{ fontSize: { xs: 18, sm: 19, md: 20 } }} />,
+              color: T.warning,
+              bg: T.warningBg
+            },
+          ].map((s, i) => (
+            <Grid item xs={6} md={3} key={i}>
+              <StatCard {...s} />
+            </Grid>
+          ))}
+        </Grid>
 
-                        return (
-                          <Grid item xs={12} sm={6} md={6} key={job._id}>
-                            <Card
+        {/* ── RECRUITERS + JOBS ───────────────────────────────────────────── */}
+   {/*      <Grid container spacing={{ xs: 1.5, sm: 2, md: 2 }}> */}
+          {/* Recruiters Table */}
+        {/*   <Grid item xs={12}>
+            <Card sx={{
+              ...cardSx,
+              height: '100%',
+              width: '1200px',
+              overflow: 'hidden',
+            }}>
+              <Box sx={{
+                px: { xs: 1.5, sm: 2, md: 2.5 },
+                py: { xs: 1.5, sm: 1.75, md: 2 },
+                borderBottom: `1px solid ${T.border}`,
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row', md: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'stretch', sm: 'center', md: 'center' },
+                gap: { xs: 1, sm: 1.5, md: 1.5 },
+              }}>
+                <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, fontWeight: 800, color: T.text }}>
+                  Recruiters
+                  <Box component="span" sx={{
+                    fontSize: { xs: 10, sm: 11, md: 12 },
+                    color: T.textMuted,
+                    fontWeight: 600,
+                    ml: 0.5
+                  }}>
+                    ({filteredRecruiters.length})
+                  </Box>
+                </Typography>
+                <TextField
+                  size="small"
+                  placeholder={isMobile ? "Search…" : isTablet ? "Search recruiters…" : "Search recruiters…"}
+                  value={searchRecruiter}
+                  onChange={e => setSearchRecruiter(e.target.value)}
+                  sx={{
+                    width: { xs: '100%', sm: 200, md: 220 },
+                    ...fieldSx
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ fontSize: { xs: 14, sm: 15, md: 16 }, color: T.textMuted }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+              <TableContainer sx={{
+                overflowX: 'auto',
+                maxHeight: { xs: 400, sm: 450, md: 500 },
+              }}>
+                <Table sx={{ minWidth: { xs: 480, sm: 500, md: 520 } }}>
+                  <TableHead>
+                    <TableRow sx={{ background: '#f8fafc' }}>
+                      {['Name', 'Email', 'Phone', 'Exp', 'Status', ''].map((h, i) => (
+                        <TableCell
+                          key={i}
+                          sx={{
+                            fontSize: { xs: 9, sm: 10, md: 10 },
+                            fontWeight: 800,
+                            color: T.textMuted,
+                            textTransform: 'uppercase',
+                            letterSpacing: 0.7,
+                            py: { xs: 1, sm: 1.25, md: 1.5 },
+                            px: { xs: 1, sm: 1.5, md: 2 },
+                            borderColor: T.border,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {h}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredRecruiters.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center" sx={{ py: { xs: 3, sm: 4, md: 5 } }}>
+                          <Box sx={{
+                            width: { xs: 36, sm: 40, md: 44 },
+                            height: { xs: 36, sm: 40, md: 44 },
+                            borderRadius: '12px',
+                            background: T.primaryLight,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            mx: 'auto',
+                            mb: { xs: 1, sm: 1.25, md: 1.5 },
+                          }}>
+                            <PeopleIcon sx={{ color: T.primaryMid, fontSize: { xs: 18, sm: 20, md: 22 } }} />
+                          </Box>
+                          <Typography sx={{
+                            color: T.textMuted,
+                            fontSize: { xs: 12, sm: 13, md: 13 },
+                            fontWeight: 600,
+                            mb: { xs: 1, sm: 1.25, md: 1.5 }
+                          }}>
+                            No recruiters found
+                          </Typography>
+                          <Button
+                            startIcon={<AddIcon sx={{ fontSize: { xs: 14, sm: 15, md: 16 } }} />}
+                            onClick={() => handleOpenDialog()}
+                            size="small"
+                            sx={{
+                              borderRadius: '8px',
+                              textTransform: 'none',
+                              fontSize: { xs: 11, sm: 12, md: 12 },
+                              fontWeight: 700,
+                              background: T.primaryLight,
+                              color: T.primaryMid,
+                              '&:hover': { background: '#dbeafe' },
+                            }}
+                          >
+                            Add First Recruiter
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredRecruiters.map(r => (
+                        <TableRow
+                          key={r._id}
+                          hover
+                          sx={{ '&:hover': { background: '#fafbff' }, '& td': { borderColor: '#f1f5f9' } }}
+                        >
+                          <TableCell sx={{ px: { xs: 1, sm: 1.5, md: 2 }, py: { xs: 1, sm: 1.25, md: 1.5 } }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.25, md: 1.5 } }}>
+                              <Avatar
+                                src={r.profilePicture}
+                                sx={{
+                                  width: { xs: 28, sm: 30, md: 34 },
+                                  height: { xs: 28, sm: 30, md: 34 },
+                                  fontSize: { xs: 10, sm: 11, md: 12 },
+                                  fontWeight: 900,
+                                  bgcolor: T.primaryMid,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {!r.profilePicture && (r.username?.charAt(0) || r.email.charAt(0)).toUpperCase()}
+                              </Avatar>
+                              <Typography sx={{
+                                fontSize: { xs: 12, sm: 13, md: 13 },
+                                fontWeight: 700,
+                                color: T.text,
+                                whiteSpace: 'nowrap',
+                              }}>
+                                {r.username || '—'}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell sx={{ px: { xs: 1, sm: 1.5, md: 2 } }}>
+                            <Typography sx={{
+                              fontSize: { xs: 11, sm: 12, md: 12 },
+                              color: T.textSub,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              maxWidth: { xs: 90, sm: 110, md: 130 },
+                            }}>
+                              {r.email}
+                            </Typography>
+                          </TableCell>
+                          <TableCell sx={{ px: { xs: 1, sm: 1.5, md: 2 } }}>
+                            <Typography sx={{
+                              fontSize: { xs: 11, sm: 12, md: 12 },
+                              color: T.textSub,
+                              whiteSpace: 'nowrap',
+                            }}>
+                              {r.phoneNumber || '—'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell sx={{ px: { xs: 1, sm: 1.5, md: 2 } }}>
+                            <Chip
+                              label={`${r.experience || 0}y`}
+                              size="small"
                               sx={{
-                                p: 2.5,
-                                borderRadius: 2,
-                                borderLeft: `4px solid ${isActive
-                                    ? theme.palette.success.main
-                                    : theme.palette.error.main
-                                  }`,
-                                "&:hover": {
-                                  boxShadow: theme.shadows[6],
-                                  transform: "translateY(-4px)",
-                                },
-                                transition: "all 0.25s ease-in-out",
-                                height: "100%",
-                                display: "flex",
-                                flexDirection: "column",
-                                justifyContent: "space-between",
+                                fontSize: { xs: 9, sm: 10, md: 10 },
+                                fontWeight: 700,
+                                height: { xs: 18, sm: 19, md: 20 },
+                                borderRadius: '5px',
+                                background: T.infoBg,
+                                color: T.info,
                               }}
-                            >
-                              <Box>
+                            />
+                          </TableCell>
+                          <TableCell sx={{ px: { xs: 1, sm: 1.5, md: 2 } }}>
+                            <Chip
+                              label={r.isActive ? 'Active' : 'Inactive'}
+                              size="small"
+                              sx={{
+                                fontSize: { xs: 9, sm: 10, md: 10 },
+                                fontWeight: 800,
+                                height: { xs: 18, sm: 19, md: 20 },
+                                borderRadius: '5px',
+                                background: r.isActive ? T.successBg : T.dangerBg,
+                                color: r.isActive ? T.success : T.danger,
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell align="right" sx={{ px: { xs: 1, sm: 1.25, md: 1.5 } }}>
+                            <Box sx={{
+                              display: 'flex',
+                              gap: { xs: 0.25, sm: 0.5, md: 0.5 },
+                              justifyContent: 'flex-end',
+                            }}>
+                              <Tooltip title="Resend Welcome Email">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleResendWelcomeEmail(r._id)}
+                                  sx={{
+                                    width: { xs: 24, sm: 26, md: 28 },
+                                    height: { xs: 24, sm: 26, md: 28 },
+                                    borderRadius: '7px',
+                                    color: T.info,
+                                    '&:hover': { background: T.infoBg },
+                                  }}
+                                >
+                                  <EmailIcon sx={{ fontSize: { xs: 13, sm: 14, md: 15 } }} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Edit">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleOpenDialog(r)}
+                                  sx={{
+                                    width: { xs: 24, sm: 26, md: 28 },
+                                    height: { xs: 24, sm: 26, md: 28 },
+                                    borderRadius: '7px',
+                                    color: T.warning,
+                                    '&:hover': { background: T.warningBg },
+                                  }}
+                                >
+                                  <EditIcon sx={{ fontSize: { xs: 13, sm: 14, md: 15 } }} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Delete">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleDelete(r._id)}
+                                  sx={{
+                                    width: { xs: 24, sm: 26, md: 28 },
+                                    height: { xs: 24, sm: 26, md: 28 },
+                                    borderRadius: '7px',
+                                    color: T.danger,
+                                    '&:hover': { background: T.dangerBg },
+                                  }}
+                                >
+                                  <DeleteIcon sx={{ fontSize: { xs: 13, sm: 14, md: 15 } }} />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Card>
+          </Grid> */}
+
+          {/* Job postings - responsive cards grid */}
+          <Grid item xs={12}>
+            <Card sx={{
+              ...cardSx,
+              display: "flex",
+              flexDirection: "column",
+              width: '1200px',
+            
+            }}>
+              <Box sx={{
+                px: { xs: 1.5, sm: 2, md: 2.5 },
+                py: { xs: 1.5, sm: 1.75, md: 2 },
+                borderBottom: `1px solid ${T.border}`,
+                display: "flex",
+                flexDirection: { xs: 'column', sm: 'row', md: 'row' },
+                justifyContent: "space-between",
+                alignItems: { xs: 'stretch', sm: 'center', md: 'center' },
+                gap: { xs: 1, sm: 1.5, md: 1.5 },
+                mt:"10px"
+              }}>
+                <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 15 }, fontWeight: 800, color: T.text }}>
+                  Job Postings
+                  <Box component="span" sx={{
+                    fontSize: { xs: 10, sm: 11, md: 12 },
+                    color: T.textMuted,
+                    fontWeight: 600,
+                    ml: 0.5
+                  }}>
+                    ({filteredJobs.length})
+                  </Box>
+                </Typography>
+
+                <TextField
+                  size="small"
+                  placeholder={isMobile ? "Search…" : isTablet ? "Search jobs…" : "Search jobs…"}
+                  value={searchJob}
+                  onChange={(e) => setSearchJob(e.target.value)}
+                  sx={{
+                    width: { xs: '100%', sm: 180, md: 200 },
+                    ...fieldSx
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ fontSize: { xs: 14, sm: 15, md: 16 }, color: T.textMuted }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+
+              <Box sx={{
+                flex: 1,
+                p: { xs: 1, sm: 1.25, md: 2 },
+              }}>
+                {filteredJobs.length === 0 ? (
+                  <Box sx={{ textAlign: "center", py: { xs: 4, sm: 5, md: 6 } }}>
+                    <Typography sx={{ fontSize: { xs: 13, sm: 14, md: 14 }, color: T.textMuted }}>
+                      No jobs found
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Grid
+                    container
+                    spacing={{ xs: 1.5, sm: 2, md: 3 }}
+                    alignItems="stretch"
+                  >
+                    {filteredJobs.map((job) => {
+                      const rawTargetDate = job.jobFormId?.targetHireDate;
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+
+                      const isExpired = rawTargetDate ? new Date(rawTargetDate) < today : false;
+                      const active = isJobActive(job) && !isExpired;
+
+                      const targetDateLabel = rawTargetDate
+                        ? new Date(rawTargetDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                        : "Not set";
+
+                      const recruiterName = getRecruiterName(job.userId);
+
+                      return (
+                        <Grid
+                          item
+                          xs={12}
+                          sm={6}
+                          md={4}
+                          lg={sidebarOpen ? 3 : 4}
+                          xl={sidebarOpen ? 3 : 4}
+                          key={job._id}
+                          sx={{ display: "flex", flexDirection: "column" }}
+                        >
+                          <Card
+                            sx={{
+                              width: '100%',
+                              display: "flex",
+                              flexDirection: "column",
+                              borderRadius: "14px",
+                              border: `1px solid ${T.border}`,
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                              background: T.surface,
+                              overflow: "hidden",
+                              transition: "all 0.18s",
+                              height: '100%',
+                              "&:hover": {
+                                transform: "translateY(-3px)",
+                                boxShadow: "0 10px 28px rgba(0,0,0,0.10)",
+                                borderColor: "#cbd5e1",
+                              },
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                height: 4,
+                                background: active
+                                  ? `linear-gradient(90deg, ${T.primaryMid}, #60a5fa)`
+                                  : `linear-gradient(90deg, #94a3b8, #cbd5e1)`,
+                              }}
+                            />
+
+                            <Box sx={{
+                              p: { xs: 1.5, sm: 1.75, md: 2 },
+                              display: "flex",
+                              flexDirection: "column",
+                              flex: 1,
+                            }}>
+                              <Box sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                mb: { xs: 1, sm: 1.1, md: 1.2 },
+                                gap: 1,
+                              }}>
                                 <Typography
-                                  variant="h6"
-                                  fontWeight="600"
-                                  gutterBottom
-                                  sx={{ color: theme.palette.text.primary }}
+                                  sx={{
+                                    fontSize: { xs: 12, sm: 13, md: 13.5 },
+                                    fontWeight: 800,
+                                    color: T.text,
+                                    flex: 1,
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    lineHeight: 1.2,
+                                    minHeight: "2.4em",
+                                  }}
                                 >
                                   {job.jobTitle}
                                 </Typography>
 
-                                <Box
-                                  display="flex"
-                                  alignItems="center"
-                                  flexWrap="wrap"
-                                  gap={1}
-                                  mb={2}
-                                >
+                                <Chip
+                                  label={active ? "Active" : isExpired ? "Expired" : "Closed"}
+                                  size="small"
+                                  sx={{
+                                    fontSize: { xs: 9, sm: 10, md: 10 },
+                                    fontWeight: 800,
+                                    height: { xs: 20, sm: 21, md: 22 },
+                                    borderRadius: "7px",
+                                    background: active ? T.successBg : T.dangerBg,
+                                    color: active ? T.success : T.danger,
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              </Box>
+
+                              <Box sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: { xs: 0.5, sm: 0.6, md: 0.7 },
+                                mb: { xs: 1.5, sm: 1.6, md: 1.8 },
+                                minHeight: { xs: 18, sm: 19, md: 20 },
+                              }}>
+                                {job.department && (
                                   <Chip
                                     label={job.department}
                                     size="small"
-                                    variant="outlined"
                                     sx={{
-                                      borderColor: theme.palette.primary.main,
-                                      color: theme.palette.primary.dark,
+                                      fontSize: { xs: 9, sm: 10, md: 10 },
+                                      fontWeight: 700,
+                                      height: { xs: 18, sm: 19, md: 20 },
+                                      borderRadius: "5px",
+                                      background: T.primaryLight,
+                                      color: T.primaryMid,
                                     }}
                                   />
-                                  <Chip
-                                    label={job.jobFormId?.jobType || "Full-time"}
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{
-                                      borderColor: theme.palette.secondary.main,
-                                      color: theme.palette.secondary.dark,
-                                    }}
-                                  />
-                                  <Chip
-                                    label={job.status}
-                                    size="small"
-                                    sx={{
-                                      backgroundColor: isActive
-                                        ? theme.palette.success.light
-                                        : theme.palette.error.light,
-                                      color: isActive
-                                        ? theme.palette.success.dark
-                                        : theme.palette.error.dark,
-                                      fontWeight: 500,
-                                    }}
-                                  />
-                                </Box>
+                                )}
+                                <Chip
+                                  label={job.jobFormId?.jobType || "Full-time"}
+                                  size="small"
+                                  sx={{
+                                    fontSize: { xs: 9, sm: 10, md: 10 },
+                                    fontWeight: 700,
+                                    height: { xs: 18, sm: 19, md: 20 },
+                                    borderRadius: "5px",
+                                    background: T.purpleBg,
+                                    color: T.purple,
+                                  }}
+                                />
+                              </Box>
 
-                                <Box display="flex" flexDirection="column" gap={1}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    <Box component="span" fontWeight="500">
-                                      Job ID:
-                                    </Box>{" "}
-                                    {job.jobName}
-                                  </Typography>
-                                  <Typography variant="body2" color="text.secondary">
-                                    <Box component="span" fontWeight="500">
-                                      Openings:
-                                    </Box>{" "}
-                                    {job.jobFormId?.openings || 0}
-                                  </Typography>
-                                  <Typography variant="body2" color="text.secondary">
-                                    <Box component="span" fontWeight="500">
-                                      Target Hire:
-                                    </Box>{" "}
-                                    {targetHireDate}
-                                  </Typography>
-                                  <Typography variant="body2" color="text.secondary">
-                                    <Box component="span" fontWeight="500">
-                                      Created by:
-                                    </Box>{" "}
+                              <Box sx={{ height: "1px", background: T.border, mb: { xs: 1.25, sm: 1.4, md: 1.5 } }} />
+
+                              <Box sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: { xs: 0.75, sm: 0.9, md: 1 },
+                                flexGrow: 1,
+                              }}>
+                                <Typography sx={{
+                                  fontSize: { xs: 11, sm: 12, md: 12 },
+                                  fontWeight: 700,
+                                }}>
+                                  Job ID: {job.jobName || "—"}
+                                </Typography>
+                                <Typography sx={{
+                                  fontSize: { xs: 11, sm: 12, md: 12 },
+                                  fontWeight: 700,
+                                }}>
+                                  Openings: {job.jobFormId?.openings || 0}
+                                </Typography>
+                                <Typography
+                                  sx={{
+                                    fontSize: { xs: 11, sm: 12, md: 12 },
+                                    fontWeight: 700,
+                                    color: isExpired ? T.danger : "inherit"
+                                  }}
+                                >
+                                  Target Hire: {targetDateLabel}
+                                </Typography>
+                              </Box>
+
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  mt: { xs: 1.5, sm: 1.75, md: 2 },
+                                  pt: { xs: 1, sm: 1.1, md: 1.2 },
+                                  borderTop: `1px solid ${T.border}`,
+                                }}
+                              >
+                                <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.5, sm: 0.6, md: 0.7 } }}>
+                                  <Avatar
+                                    sx={{
+                                      width: { xs: 18, sm: 20, md: 22 },
+                                      height: { xs: 18, sm: 20, md: 22 },
+                                      fontSize: { xs: 9, sm: 10, md: 10 },
+                                      fontWeight: 900,
+                                      bgcolor: T.primaryMid,
+                                    }}
+                                  >
+                                    {recruiterName !== "Unknown" ? recruiterName.charAt(0).toUpperCase() : "?"}
+                                  </Avatar>
+
+                                  <Typography
+                                    sx={{
+                                      fontSize: { xs: 10, sm: 11, md: 11.5 },
+                                      color: T.textSub,
+                                      fontWeight: 600,
+                                      maxWidth: { xs: 80, sm: 90, md: 100 },
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
                                     {recruiterName}
                                   </Typography>
                                 </Box>
-                              </Box>
 
-                              <Box textAlign="right" mt={2}>
-                                <Typography variant="caption" color="text.secondary">
-                                  Created: {new Date(job.createdAt).toLocaleDateString()}
+                                <Typography sx={{
+                                  fontSize: { xs: 9, sm: 10, md: 10.5 },
+                                  color: T.textMuted,
+                                }}>
+                                  {new Date(job.createdAt).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}
                                 </Typography>
                               </Box>
-                            </Card>
-                          </Grid>
-                        );
-                      })
-                    ) : (
-                      <Grid item xs={12}>
-                        <Box textAlign="center" py={4}>
-                          <Typography variant="body1" color="text.secondary">
-                            No jobs found
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    )}
+                            </Box>
+                          </Card>
+                        </Grid>
+                      );
+                    })}
                   </Grid>
-                </Box>
-              </Card>
-            </Grid>
-          </Grid>
-
-          {/* Add/Edit Recruiter Dialog */}
-          <Dialog
-            open={openDialog}
-            onClose={handleCloseDialog}
-            maxWidth="sm"
-            fullWidth
-            PaperProps={{
-              sx: {
-                borderRadius: 3,
-                p: 3,
-                background: theme.palette.background.paper,
-                boxShadow: theme.shadows[5]
-              }
-            }}
-          >
-            <DialogTitle sx={{
-              fontWeight: 700,
-              p: 0,
-              mb: 3,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1
-            }}>
-              <PeopleIcon color="primary" />
-              {editingId ? 'Edit Recruiter' : 'Add New Recruiter'}
-            </DialogTitle>
-            <DialogContent sx={{ p: 0, mb: 3 }}>
-              {/* Profile Picture Upload */}
-              <Box display="flex" alignItems="center" mb={3}>
-                <Avatar
-                  src={profilePreview}
-                  sx={{
-                    width: 80,
-                    height: 80,
-                    mr: 2,
-                    backgroundColor: theme.palette.grey[200]
-                  }}
-                >
-                  {!profilePreview && <PersonIcon sx={{ fontSize: 40 }} />}
-                </Avatar>
-                <Button
-                  variant="outlined"
-                  component="label"
-                  size="small"
-                  sx={{ borderRadius: 2 }}
-                >
-                  Upload Photo
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={handleImageChange}
-                  />
-                </Button>
-                {profileImage && (
-                  <Typography variant="caption" sx={{ ml: 1 }}>
-                    {profileImage.name}
-                  </Typography>
                 )}
               </Box>
+ <div className="text-right mr-5 mb-3">
+  <Link
+    to="/jobs"
+    className="text-blue-600 font-semibold px-3 py-2 rounded-md transition-all duration-200 hover:bg-blue-50 hover:text-blue-700 hover:shadow-sm"
+  >
+    View All Jobs →
+  </Link>
+</div>
+            </Card>
+          
+          </Grid>
+       {/*  </Grid> */}
 
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Username"
-                value={newRecruiter.username}
-                onChange={(e) => setNewRecruiter({ ...newRecruiter, username: e.target.value })}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PersonIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  style: {
-                    borderRadius: 8
-                  }
-                }}
-                disabled={saving}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Email"
-                type="email"
-                value={newRecruiter.email}
-                onChange={(e) => setNewRecruiter({ ...newRecruiter, email: e.target.value })}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  style: {
-                    borderRadius: 8
-                  }
-                }}
-                disabled={saving}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Phone Number"
-                type="tel"
-                value={newRecruiter.phoneNumber}
-                onChange={(e) => setNewRecruiter({ ...newRecruiter, phoneNumber: e.target.value })}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <PhoneIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  style: {
-                    borderRadius: 8
-                  }
-                }}
-                disabled={saving}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Experience (years)"
-                type="number"
-                value={newRecruiter.experience}
-                onChange={(e) => setNewRecruiter({ ...newRecruiter, experience: parseInt(e.target.value) || 0 })}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <ExperienceIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  style: {
-                    borderRadius: 8
-                  }
-                }}
-                disabled={saving}
-                inputProps={{ min: 0, max: 50 }}
-              />
-            </DialogContent>
-            <DialogActions sx={{ p: 0 }}>
-              <Button
-                onClick={handleCloseDialog}
-                variant="outlined"
-                disabled={saving}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  px: 3,
-                  py: 1,
-                  borderColor: theme.palette.divider,
-                  '&:hover': {
-                    borderColor: theme.palette.primary.main
-                  }
-                }}
-              >
+        {/* ════════════════════════════════════════════════════════════════════
+            ADD / EDIT RECRUITER DIALOG (unchanged)
+        ════════════════════════════════════════════════════════════════════ */}
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              borderRadius: '20px',
+              overflow: 'hidden',
+              background: T.surface,
+              boxShadow: '0 32px 80px rgba(0,0,0,0.2)',
+              m: { xs: 1.5, sm: 'auto' },
+              width: { xs: 'calc(100% - 32px)', sm: '100%' },
+            }
+          }}
+        >
+          <Box sx={{ background: `linear-gradient(135deg, ${T.primaryMid} 0%, ${T.primary} 100%)`, px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 2.5 }, display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+            <Box sx={{ position: 'absolute', width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', top: -35, right: 70, pointerEvents: 'none' }} />
+            <Box sx={{ position: 'absolute', width: 55, height: 55, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', bottom: -20, right: 20, pointerEvents: 'none' }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75, position: 'relative', zIndex: 1 }}>
+              <Box sx={{ width: { xs: 36, sm: 44 }, height: { xs: 36, sm: 44 }, borderRadius: '12px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+                <PeopleIcon sx={{ color: '#fff', fontSize: { xs: 20, sm: 23 } }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: { xs: 15, sm: 17 }, fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>
+                  {editingId ? 'Edit Recruiter' : 'Add New Recruiter'}
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 11, sm: 12 }, color: 'rgba(255,255,255,0.72)', mt: 0.2 }}>
+                  {editingId ? 'Update recruiter information' : 'Register a new recruiter account'}
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton onClick={handleCloseDialog} disabled={saving}
+              sx={{ position: 'relative', zIndex: 1, color: 'rgba(255,255,255,0.85)', borderRadius: '9px', width: { xs: 30, sm: 34 }, height: { xs: 30, sm: 34 }, '&:hover': { background: 'rgba(255,255,255,0.18)' } }}>
+              <CloseIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
+            </IconButton>
+          </Box>
+
+          {saving && <LinearProgress sx={{ height: 2.5, '& .MuiLinearProgress-bar': { background: '#93c5fd' } }} />}
+
+          <DialogContent sx={{ p: 0 }}>
+            {saveSuccess ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: { xs: 3, sm: 5 }, px: { xs: 2, sm: 4 } }}>
+                <Box sx={{
+                  width: { xs: 64, sm: 84 }, height: { xs: 64, sm: 84 }, borderRadius: '50%',
+                  background: `linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)`,
+                  border: `3px solid ${T.success}25`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2.5,
+                  boxShadow: `0 8px 28px ${T.success}20`,
+                  animation: 'pop 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+                  '@keyframes pop': { '0%': { transform: 'scale(0.4)', opacity: 0 }, '100%': { transform: 'scale(1)', opacity: 1 } },
+                }}>
+                  <SuccessCircleIcon sx={{ fontSize: { xs: 36, sm: 48 }, color: T.success }} />
+                </Box>
+                <Typography sx={{ fontSize: { xs: 18, sm: 22 }, fontWeight: 900, color: T.text, mb: 0.75, letterSpacing: '-0.3px' }}>
+                  Recruiter Added Successfully!
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 12, sm: 13.5 }, color: T.textSub, mb: 3.5, fontWeight: 500, lineHeight: 1.6, maxWidth: 320 }}>
+                  The recruiter account has been created and is ready to use.
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.75, textAlign: 'left', background: `linear-gradient(135deg, ${T.primaryLight} 0%, #dbeafe 100%)`, border: `1.5px solid ${T.primaryMid}20`, borderRadius: '14px', px: { xs: 1.5, sm: 2.5 }, py: { xs: 1.5, sm: 2 }, maxWidth: 370, width: '100%', boxShadow: `0 4px 16px ${T.primaryMid}12` }}>
+                  <Box sx={{ width: { xs: 32, sm: 40 }, height: { xs: 32, sm: 40 }, borderRadius: '11px', background: T.primaryMid, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, mt: 0.2, boxShadow: `0 3px 10px ${T.primaryMid}30` }}>
+                    <MailSentIcon sx={{ color: '#fff', fontSize: { xs: 18, sm: 21 } }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: { xs: 12, sm: 13.5 }, fontWeight: 800, color: T.primaryMid, mb: 0.4 }}>Login credentials sent!</Typography>
+                    <Typography sx={{ fontSize: { xs: 11, sm: 12.5 }, color: T.textSub, fontWeight: 500, lineHeight: 1.6 }}>
+                      An email with login details has been delivered to{' '}
+                      <Box component="strong" sx={{ color: T.text, fontWeight: 800 }}>{savedRecruiterEmail}</Box>
+                    </Typography>
+                  </Box>
+                </Box>
+                <Button onClick={handleCloseDialog} variant="contained"
+                  sx={{ mt: 4, borderRadius: '11px', px: { xs: 4, sm: 5 }, py: 1.3, fontSize: { xs: 13, sm: 14 }, fontWeight: 800, textTransform: 'none', background: T.primaryMid, boxShadow: `0 4px 14px ${T.primaryMid}35`, '&:hover': { background: T.primary } }}>
+                  Done
+                </Button>
+              </Box>
+            ) : (
+              <Box sx={{ p: { xs: 2, sm: 3 } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.5, sm: 2 }, mb: 2.75, p: { xs: '12px', sm: '14px 16px' }, background: T.bg, borderRadius: '12px', border: `1px solid ${T.border}` }}>
+                  <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                    <Avatar src={profilePreview} sx={{ width: { xs: 48, sm: 58 }, height: { xs: 48, sm: 58 }, bgcolor: T.primaryMid, fontSize: { xs: 18, sm: 22 }, fontWeight: 900, boxShadow: `0 4px 14px ${T.primaryMid}28` }}>
+                      {!profilePreview && <PersonIcon sx={{ fontSize: { xs: 24, sm: 30 } }} />}
+                    </Avatar>
+                    {profilePreview && (
+                      <Box sx={{ position: 'absolute', bottom: -2, right: -2, width: { xs: 14, sm: 18 }, height: { xs: 14, sm: 18 }, borderRadius: '50%', background: T.success, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2.5px solid #fff' }}>
+                        <SuccessCircleIcon sx={{ fontSize: { xs: 8, sm: 11 }, color: '#fff' }} />
+                      </Box>
+                    )}
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: 700, color: T.text, mb: 0.5 }}>Profile Photo</Typography>
+                    <Button component="label" size="small" variant="outlined" disabled={saving}
+                      sx={{ borderRadius: '8px', fontSize: { xs: 10, sm: 11 }, fontWeight: 700, textTransform: 'none', borderColor: T.border, color: T.textSub, py: 0.55, px: { xs: 1, sm: 1.5 }, '&:hover': { borderColor: T.primaryMid, color: T.primaryMid, background: T.primaryLight } }}>
+                      {profilePreview ? 'Change Photo' : 'Upload Photo'}
+                      <input type="file" hidden accept="image/*" onChange={handleImageChange} />
+                    </Button>
+                    {profileImage && (
+                      <Typography sx={{ fontSize: { xs: 9, sm: 10 }, color: T.textMuted, mt: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: { xs: 140, sm: 180 } }}>
+                        {profileImage.name}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Username *" value={newRecruiter.username}
+                      onChange={e => setNewRecruiter(p => ({ ...p, username: e.target.value }))}
+                      disabled={saving} sx={fieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Email Address *" type="email" value={newRecruiter.email}
+                      onChange={e => setNewRecruiter(p => ({ ...p, email: e.target.value }))}
+                      disabled={saving} sx={fieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Phone Number" type="tel" value={newRecruiter.phoneNumber}
+                      onChange={e => setNewRecruiter(p => ({ ...p, phoneNumber: e.target.value }))}
+                      disabled={saving} sx={fieldSx}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Experience (years)" type="number" value={newRecruiter.experience}
+                      onChange={e => setNewRecruiter(p => ({ ...p, experience: parseInt(e.target.value) || 0 }))}
+                      disabled={saving} sx={fieldSx} inputProps={{ min: 0, max: 50 }}
+                      InputProps={{ startAdornment: <InputAdornment position="start"><ExperienceIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                  </Grid>
+                </Grid>
+                <Box sx={{ mt: 2.5, display: 'flex', alignItems: 'center', gap: 1.25, p: '11px 14px', background: T.primaryLight, borderRadius: '10px', border: `1px solid ${T.primaryMid}20` }}>
+                  <MailSentIcon sx={{ fontSize: { xs: 15, sm: 17 }, color: T.primaryMid, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: { xs: 11, sm: 12 }, color: T.primaryMid, fontWeight: 600, lineHeight: 1.5 }}>
+                    Login credentials will be automatically emailed to the recruiter after registration.
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+
+          {!saveSuccess && (
+            <Box sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 }, pt: 2, borderTop: `1px solid ${T.border}`, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+              <Button onClick={handleCloseDialog} disabled={saving} variant="outlined"
+                sx={{ borderRadius: '10px', px: { xs: 2, sm: 3 }, fontSize: { xs: 12, sm: 13 }, fontWeight: 700, textTransform: 'none', borderColor: T.border, color: T.textSub, '&:hover': { borderColor: T.primaryMid, color: T.primaryMid, background: T.primaryLight } }}>
                 Cancel
               </Button>
-              <Button
-                onClick={handleSaveRecruiter}
-                variant="contained"
-                disabled={saving}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  px: 3,
-                  py: 1,
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                    boxShadow: 'none'
-                  }
-                }}
-              >
+              <Button onClick={handleSaveRecruiter} disabled={saving} variant="contained"
+                sx={{ borderRadius: '10px', px: { xs: 2, sm: 3 }, fontSize: { xs: 12, sm: 13 }, fontWeight: 800, textTransform: 'none', background: T.primaryMid, boxShadow: `0 3px 10px ${T.primaryMid}35`, '&:hover': { background: T.primary }, minWidth: { xs: 130, sm: 152 }, transition: 'all 0.15s' }}>
                 {saving ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : editingId ? (
-                  'Update Recruiter'
-                ) : (
-                  'Add Recruiter'
-                )}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                    <CircularProgress size={15} sx={{ color: '#fff' }} />
+                    <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: 700, color: '#fff' }}>Registering…</Typography>
+                  </Box>
+                ) : editingId ? 'Update Recruiter' : 'Add Recruiter'}
               </Button>
-            </DialogActions>
-          </Dialog>
-
-
-          <Dialog
-        open={openVendorDialog}
-        onClose={() => !vendorInviteLoading && setOpenVendorDialog(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            p: 3,
-            background: theme.palette.background.paper,
-            boxShadow: theme.shadows[5]
-          }
-        }}
-      >
-        <DialogTitle sx={{ 
-          fontWeight: 700, 
-          p: 0, 
-          mb: 3,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1
-        }}>
-          <EmailIcon color="primary" />
-          Invite Vendor
-        </DialogTitle>
-        
-        <DialogContent sx={{ p: 0, mb: 3 }}>
-          {vendorInviteSuccess ? (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              Vendor invitation sent successfully! The vendor will receive an email with registration instructions.
-            </Alert>
-          ) : (
-            <>
-              <Typography variant="body1" gutterBottom sx={{ mb: 2 }}>
-                Enter the vendor's email address to send an invitation. They will receive a link to register as a vendor.
-              </Typography>
-              
-              <TextField
-                fullWidth
-                margin="normal"
-                label="Vendor Email"
-                type="email"
-                value={vendorEmail}
-                onChange={(e) => setVendorEmail(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  style: {
-                    borderRadius: 8
-                  }
-                }}
-                disabled={vendorInviteLoading}
-                placeholder="vendor@example.com"
-              />
-            </>
+            </Box>
           )}
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 0 }}>
+        </Dialog>
+
+        {/* ════════════════════════════════════════════════════════════════════
+            VENDOR REGISTRATION DIALOG (unchanged)
+        ════════════════════════════════════════════════════════════════════ */}
+        <Dialog
+          open={openVendorDialog}
+          onClose={handleCloseVendorDialog}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden', background: T.surface, boxShadow: '0 32px 80px rgba(0,0,0,0.2)', m: { xs: 1.5, sm: 'auto' }, width: { xs: 'calc(100% - 32px)', sm: '100%' } } }}
+        >
+          <Box sx={{ background: `linear-gradient(135deg, ${T.purple} 0%, #5b21b6 100%)`, px: { xs: 2, sm: 3 }, py: { xs: 2, sm: 2.5 }, display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+            <Box sx={{ position: 'absolute', width: 90, height: 90, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', top: -35, right: 80, pointerEvents: 'none' }} />
+            <Box sx={{ position: 'absolute', width: 55, height: 55, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', bottom: -20, right: 20, pointerEvents: 'none' }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75, position: 'relative', zIndex: 1 }}>
+              <Box sx={{ width: { xs: 36, sm: 44 }, height: { xs: 36, sm: 44 }, borderRadius: '12px', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+                <BusinessIcon sx={{ color: '#fff', fontSize: { xs: 20, sm: 23 } }} />
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: { xs: 15, sm: 17 }, fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>Register Vendor</Typography>
+                <Typography sx={{ fontSize: { xs: 11, sm: 12 }, color: 'rgba(255,255,255,0.72)', mt: 0.2 }}>Add a new vendor to the platform</Typography>
+              </Box>
+            </Box>
+            <IconButton onClick={handleCloseVendorDialog} disabled={vendorInviteLoading}
+              sx={{ position: 'relative', zIndex: 1, color: 'rgba(255,255,255,0.85)', borderRadius: '9px', width: { xs: 30, sm: 34 }, height: { xs: 30, sm: 34 }, '&:hover': { background: 'rgba(255,255,255,0.18)' } }}>
+              <CloseIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
+            </IconButton>
+          </Box>
+
+          {vendorInviteLoading && <LinearProgress sx={{ height: 2.5, '& .MuiLinearProgress-bar': { background: '#c4b5fd' } }} />}
+
+          <DialogContent sx={{ p: 0 }}>
+            {vendorInviteSuccess ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: { xs: 3, sm: 5 }, px: { xs: 2, sm: 4 } }}>
+                <Box sx={{
+                  width: { xs: 64, sm: 84 }, height: { xs: 64, sm: 84 }, borderRadius: '50%',
+                  background: `linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)`,
+                  border: `3px solid ${T.success}25`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2.5,
+                  boxShadow: `0 8px 28px ${T.success}20`,
+                  animation: 'pop 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+                  '@keyframes pop': { '0%': { transform: 'scale(0.4)', opacity: 0 }, '100%': { transform: 'scale(1)', opacity: 1 } },
+                }}>
+                  <SuccessCircleIcon sx={{ fontSize: { xs: 36, sm: 48 }, color: T.success }} />
+                </Box>
+
+                <Typography sx={{ fontSize: { xs: 18, sm: 22 }, fontWeight: 900, color: T.text, mb: 0.75, letterSpacing: '-0.3px' }}>
+                  Vendor Registered Successfully!
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 12, sm: 13.5 }, color: T.textSub, mb: 3.5, fontWeight: 500, lineHeight: 1.6, maxWidth: 340 }}>
+                  The vendor account has been created and is ready to use.
+                </Typography>
+
+                <Box sx={{
+                  display: 'flex', alignItems: 'flex-start', gap: 1.75, textAlign: 'left',
+                  background: `linear-gradient(135deg, ${T.purpleBg} 0%, #ede9fe 100%)`,
+                  border: `1.5px solid ${T.purple}20`, borderRadius: '14px',
+                  px: { xs: 1.5, sm: 2.5 }, py: { xs: 1.5, sm: 2 }, maxWidth: 400, width: '100%',
+                  boxShadow: `0 4px 16px ${T.purple}12`,
+                }}>
+                  <Box sx={{ width: { xs: 32, sm: 40 }, height: { xs: 32, sm: 40 }, borderRadius: '11px', background: T.purple, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, mt: 0.2, boxShadow: `0 3px 10px ${T.purple}30` }}>
+                    <MailSentIcon sx={{ color: '#fff', fontSize: { xs: 18, sm: 21 } }} />
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontSize: { xs: 12, sm: 13.5 }, fontWeight: 800, color: T.purple, mb: 0.4 }}>
+                      Login credentials sent!
+                    </Typography>
+                    <Typography sx={{ fontSize: { xs: 11, sm: 12.5 }, color: T.textSub, fontWeight: 500, lineHeight: 1.6 }}>
+                      An email with login details has been delivered to{' '}
+                      <Box component="strong" sx={{ color: T.text, fontWeight: 800 }}>{savedVendorEmail}</Box>
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Button onClick={handleCloseVendorDialog} variant="contained"
+                  sx={{ mt: 4, borderRadius: '11px', px: { xs: 4, sm: 5 }, py: 1.3, fontSize: { xs: 13, sm: 14 }, fontWeight: 800, textTransform: 'none', background: T.purple, boxShadow: `0 4px 14px ${T.purple}35`, '&:hover': { background: '#6d28d9' } }}>
+                  Done
+                </Button>
+              </Box>
+            ) : (
+              <Box sx={{ p: { xs: 2, sm: 3 } }}>
+                <Box sx={{ mb: 2.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.75 }}>
+                    <Box sx={{ width: { xs: 24, sm: 28 }, height: { xs: 24, sm: 28 }, borderRadius: '8px', background: T.purpleBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <PersonIcon sx={{ fontSize: { xs: 13, sm: 15 }, color: T.purple }} />
+                    </Box>
+                    <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: 800, color: T.text }}>Contact Person</Typography>
+                  </Box>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth size="small" label="First Name *" value={vendorForm.firstName}
+                        onChange={e => setVendorForm(p => ({ ...p, firstName: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth size="small" label="Last Name *" value={vendorForm.lastName}
+                        onChange={e => setVendorForm(p => ({ ...p, lastName: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><PersonIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth size="small" label="Email Address *" type="email" value={vendorForm.email}
+                        onChange={e => setVendorForm(p => ({ ...p, email: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth size="small" label="Phone" type="tel" value={vendorForm.phone}
+                        onChange={e => setVendorForm(p => ({ ...p, phone: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth size="small" label="Designation" value={vendorForm.designation}
+                        onChange={e => setVendorForm(p => ({ ...p, designation: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><BadgeIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                <Box sx={{ height: '1px', background: T.border, mb: 2.5 }} />
+
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.75 }}>
+                    <Box sx={{ width: { xs: 24, sm: 28 }, height: { xs: 24, sm: 28 }, borderRadius: '8px', background: T.purpleBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <BusinessIcon sx={{ fontSize: { xs: 13, sm: 15 }, color: T.purple }} />
+                    </Box>
+                    <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: 800, color: T.text }}>Company Details</Typography>
+                  </Box>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth size="small" label="Company Name *" value={vendorForm.companyName}
+                        onChange={e => setVendorForm(p => ({ ...p, companyName: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><BusinessIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth size="small" label="Company Email" type="email" value={vendorForm.companyEmail}
+                        onChange={e => setVendorForm(p => ({ ...p, companyEmail: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><EmailIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField fullWidth size="small" label="Company Phone" type="tel" value={vendorForm.companyPhone}
+                        onChange={e => setVendorForm(p => ({ ...p, companyPhone: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth size="small" sx={vendorFieldSx} disabled={vendorInviteLoading}>
+                        <InputLabel>Industry *</InputLabel>
+                        <Select
+                          value={vendorForm.industry}
+                          onChange={e => setVendorForm(p => ({ ...p, industry: e.target.value }))}
+                          label="Industry *"
+                          MenuProps={{ PaperProps: { sx: { maxHeight: 280, borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' } } }}
+                        >
+                          {INDUSTRIES.map(ind => (
+                            <MenuItem key={ind} value={ind} sx={{ fontSize: { xs: 12, sm: 13 } }}>{ind}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField fullWidth size="small" label="Company Address" value={vendorForm.companyAddress}
+                        onChange={e => setVendorForm(p => ({ ...p, companyAddress: e.target.value }))}
+                        disabled={vendorInviteLoading} sx={vendorFieldSx}
+                        InputProps={{ startAdornment: <InputAdornment position="start"><LocationIcon sx={{ fontSize: { xs: 14, sm: 16 }, color: T.textMuted }} /></InputAdornment> }} />
+                    </Grid>
+                  </Grid>
+                </Box>
+
+                <Box sx={{ mt: 2.5, display: 'flex', alignItems: 'center', gap: 1.25, p: '11px 14px', background: T.purpleBg, borderRadius: '10px', border: `1px solid ${T.purple}20` }}>
+                  <MailSentIcon sx={{ fontSize: { xs: 15, sm: 17 }, color: T.purple, flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: { xs: 11, sm: 12 }, color: T.purple, fontWeight: 600, lineHeight: 1.5 }}>
+                    Login credentials will be automatically emailed to the vendor after registration.
+                  </Typography>
+                </Box>
+              </Box>
+            )}
+          </DialogContent>
+
           {!vendorInviteSuccess && (
-            <Button 
-              onClick={() => setOpenVendorDialog(false)}
-              variant="outlined"
-              disabled={vendorInviteLoading}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                px: 3,
-                py: 1,
-                borderColor: theme.palette.divider,
-                '&:hover': {
-                  borderColor: theme.palette.primary.main
-                }
-              }}
-            >
-              Cancel
-            </Button>
+            <Box sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 }, pt: 2, borderTop: `1px solid ${T.border}`, display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+              <Button onClick={handleCloseVendorDialog} disabled={vendorInviteLoading} variant="outlined"
+                sx={{ borderRadius: '10px', px: { xs: 2, sm: 3 }, fontSize: { xs: 12, sm: 13 }, fontWeight: 700, textTransform: 'none', borderColor: T.border, color: T.textSub, '&:hover': { borderColor: T.purple, color: T.purple, background: T.purpleBg } }}>
+                Cancel
+              </Button>
+              <Button onClick={handleRegisterVendor} disabled={vendorInviteLoading} variant="contained"
+                sx={{ borderRadius: '10px', px: { xs: 2, sm: 3 }, fontSize: { xs: 12, sm: 13 }, fontWeight: 800, textTransform: 'none', background: T.purple, boxShadow: `0 3px 10px ${T.purple}35`, '&:hover': { background: '#6d28d9' }, minWidth: { xs: 140, sm: 160 }, transition: 'all 0.15s' }}>
+                {vendorInviteLoading ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                    <CircularProgress size={15} sx={{ color: '#fff' }} />
+                    <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: 700, color: '#fff' }}>Registering…</Typography>
+                  </Box>
+                ) : 'Register Vendor'}
+              </Button>
+            </Box>
           )}
-          
-          {!vendorInviteSuccess ? (
-            <Button 
-              onClick={handleInviteVendor}
-              variant="contained"
-              disabled={vendorInviteLoading || !vendorEmail.trim()}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                px: 3,
-                py: 1,
-                boxShadow: 'none',
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.dark,
-                  boxShadow: 'none'
-                }
-              }}
-            >
-              {vendorInviteLoading ? (
-                <CircularProgress size={24} color="inherit" />
-              ) : (
-                'Send Invitation'
-              )}
-            </Button>
-          ) : (
-            <Button 
-              onClick={() => {
-                setOpenVendorDialog(false);
-                setVendorEmail('');
-                setVendorInviteSuccess(false);
-              }}
-              variant="contained"
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                px: 3,
-                py: 1,
-                boxShadow: 'none',
-                '&:hover': {
-                  backgroundColor: theme.palette.primary.dark,
-                  boxShadow: 'none'
-                }
-              }}
-            >
-              Close
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
+        </Dialog>
 
-          {/* Welcome Dialog with Login Link */}
-          <Dialog
-            open={showWelcomeDialog}
-            onClose={() => setShowWelcomeDialog(false)}
-            maxWidth="sm"
-            fullWidth
-            PaperProps={{
-              sx: {
-                borderRadius: 3,
-                p: 3,
-                background: theme.palette.background.paper,
-                boxShadow: theme.shadows[5]
-              }
+        {/* ── SNACKBAR ──────────────────────────────────────────────────────── */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={5000}
+          onClose={() => setSnackbar(p => ({ ...p, open: false }))}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert
+            severity={snackbar.severity}
+            onClose={() => setSnackbar(p => ({ ...p, open: false }))}
+            sx={{
+              borderRadius: '12px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.14)',
+              fontWeight: 600,
+              fontSize: { xs: 12, sm: 13, md: 13 },
+              width: '100%',
             }}
           >
-            <DialogTitle sx={{
-              fontWeight: 700,
-              p: 0,
-              mb: 3,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              color: theme.palette.success.main
-            }}>
-              <CheckCircleIcon color="success" />
-              Recruiter Added Successfully!
-            </DialogTitle>
-            <DialogContent sx={{ p: 0, mb: 3 }}>
-              <Typography variant="body1" gutterBottom>
-                A welcome email with login instructions has been sent to the recruiter's email address.
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                You can also share this direct login link if needed:
-              </Typography>
-              <Box
-                sx={{
-                  p: 2,
-                  mt: 2,
-                  backgroundColor: theme.palette.grey[100],
-                  borderRadius: 2,
-                  border: `1px solid ${theme.palette.divider}`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    mr: 1
-                  }}
-                >
-                  {newRecruiterLink}
-                </Typography>
-                <Tooltip title="Copy link">
-                  <IconButton
-                    size="small"
-                    onClick={() => copyToClipboard(newRecruiterLink)}
-                    sx={{ color: theme.palette.primary.main }}
-                  >
-                    <LinkIcon />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </DialogContent>
-            <DialogActions sx={{ p: 0 }}>
-              <Button
-                onClick={() => setShowWelcomeDialog(false)}
-                variant="contained"
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  px: 3,
-                  py: 1,
-                  boxShadow: 'none',
-                  '&:hover': {
-                    backgroundColor: theme.palette.primary.dark,
-                    boxShadow: 'none'
-                  }
-                }}
-              >
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
 
-          {/* Snackbar for feedback */}
-          <Snackbar
-            open={snackbar.open}
-            autoHideDuration={6000}
-            onClose={() => setSnackbar({ ...snackbar, open: false })}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          >
-            <Alert
-              onClose={() => setSnackbar({ ...snackbar, open: false })}
-              severity={snackbar.severity}
-              sx={{
-                width: '100%',
-                borderRadius: 2,
-                boxShadow: theme.shadows[3]
-              }}
-            >
-              {snackbar.message}
-            </Alert>
-          </Snackbar>
-        </Box>
-      </LocalizationProvider>
-    </>
+      </Box>
+    </LocalizationProvider>
   );
 };
 

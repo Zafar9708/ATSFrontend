@@ -1,0 +1,65 @@
+/* SECTION */
+.logo-section {
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  background-color: ghostwhite;
+  gap: 40px;
+  padding: 30px 5%;
+  overflow: hidden;
+}
+
+/* LEFT TEXT */
+.logo-title {
+  min-width: 360px;
+  font-size: 1rem;
+  font-weight: bolder;
+  
+  color: #0e438e;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* MARQUEE WRAPPER */
+.logo-marquee {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* MOVING TRACK */
+.logo-track {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  width: max-content;
+  animation: scrollLeft 18s linear infinite;
+}
+
+/* LOGOS */
+.logo-track img {
+  height: 45px;
+ 
+}
+
+/* ANIMATION */
+@keyframes scrollLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .logo-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .logo-title {
+    margin-bottom: 14px;
+  }
+}

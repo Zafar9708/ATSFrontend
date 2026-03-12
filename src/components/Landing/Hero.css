@@ -1,0 +1,267 @@
+/* ===== HERO SECTION ===== */
+.hero {
+  margin-top: 40px;
+  min-height: 100vh;
+  padding: 80px 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px;
+  background: linear-gradient(135deg, #0a1d37, #0f2f5a);
+  color: #ffffff;
+  overflow: hidden;
+}
+
+/* ===== LEFT CONTENT ===== */
+.hero-left {
+  flex: 1;
+  max-width: 600px;
+  transform: translateY(-40px);
+}
+
+/* Badge */
+.hero-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  margin-bottom: 30px;
+  background: rgba(255, 165, 0, 0.15);
+  color: #ffa500;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Heading */
+.hero-left h1 {
+  font-size: 48px;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+/* Typing word */
+.typing-word {
+  color: #ffa500;
+  border-right: 3px solid #ffa500;
+  padding-right: 6px;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,50%,100% { border-color: transparent; }
+  25%,75% { border-color: #ffa500; }
+}
+
+/* Description */
+.hero-desc {
+  font-size: 16px;
+  color: #dbe7ff;
+  margin-bottom: 24px;
+  max-width: 520px;
+}
+
+/* Bullet points */
+.hero-points {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 28px;
+}
+
+.hero-points li {
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #eaf1ff;
+}
+
+/* Buttons */
+.hero-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+/* PRIMARY BUTTON */
+.btn-primary {
+  position: relative;
+  padding: 12px 26px;
+  background: linear-gradient(135deg, #ffb347, #ffa500);
+  color: #0a1d37;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(255, 165, 0, 0.35);
+}
+
+/* Shine animation */
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -40%;
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(255,255,255,0.45),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: shine 2.2s infinite linear;
+}
+
+@keyframes shine {
+  from { left: -40%; }
+  to { left: 120%; }
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 35px rgba(255,165,0,0.5);
+}
+
+/* SECONDARY BUTTON */
+.btn-secondary {
+  padding: 12px 26px;
+  background: transparent;
+  color: #ffffff;
+  border: 1.5px solid rgba(255,255,255,0.4);
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* ===== STATS ===== */
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.hero-stats div {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-stats strong {
+  font-size: 22px;
+  color: #ffa500;
+}
+
+.hero-stats span {
+  font-size: 13px;
+  color: #c9d9ff;
+}
+
+/* ===== RIGHT VIDEO ===== */
+.hero-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.video-card {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+  margin-bottom: 20px;
+}
+
+.video-card video {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+
+}
+
+
+/* ======================= */
+/* ===== TABLET ===== */
+/* ======================= */
+
+@media (max-width: 992px) {
+
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    gap: 40px;
+    padding: 60px 6%;
+  }
+
+  .hero-left {
+    transform: translateY(0);
+    max-width: 100%;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .hero-stats {
+    justify-content: center;
+  }
+
+  .video-card {
+    max-width: 500px;
+  }
+}
+
+/* ======================= */
+/* ===== MOBILE ===== */
+/* ======================= */
+
+@media (max-width: 576px) {
+
+  .hero {
+    padding: 50px 20px;
+    gap: 30px;
+  }
+
+  .hero-left h1 {
+    font-size: 32px;
+  }
+
+  .hero-desc {
+    font-size: 14px;
+  }
+
+  .hero-points li {
+    font-size: 14px;
+  }
+
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+
+  .hero-stats {
+    gap: 20px;
+    justify-content: center;
+  }
+
+  .video-card {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .video-card video {
+    width: 100%;
+    height: auto;
+  }
+}

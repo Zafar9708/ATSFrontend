@@ -23,6 +23,8 @@ import NotificationCenter from '../pages/NotificationCenter';
 import VendorUploadPage from '../services/Vendor/VendorUploadPage';
 import VendorCandidatesPage from '../pages/Vendor/VendorCandidates';
 import ReportsPage from '../pages/Reports';
+import LandingPage from '../pages/LandingPage';
+import RecruitersPage from "../pages/Recruiter/AllRecruiterPage"
 
 // Layout wrapper component
 const LayoutWrapper = ({ children }) => {
@@ -37,7 +39,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* ========== PUBLIC ROUTES (NO AUTH REQUIRED) ========== */}
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<LandingPage/>} />
       <Route path="/login" element={<LoginForm />} />
       <Route path="/first-login" element={<FirstLogin />} />
       <Route path="/forgot-password" element={<ForgotPasswordForm />} />
@@ -94,6 +96,18 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
+
+
+  <Route
+  path="/total-recruiters"
+  element={
+    <ProtectedRoute allowedRoles={['admin', 'superadmin', 'recruiter']}>
+      <LayoutWrapper>
+        <RecruitersPage/>
+      </LayoutWrapper>
+    </ProtectedRoute>
+  }
+/>
       
       {/* Admin Dashboard */}
       <Route

@@ -1,0 +1,114 @@
+/* ===== FEATURES SECTION ===== */
+.features {
+  padding: 90px 40px;
+  background: linear-gradient(180deg, #0a1f44, #0d2a66);
+  color: #ffffff;
+  text-align: center;
+ 
+}
+
+
+/* ===== TITLE ===== */
+.features h2 {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 70px;
+}
+
+/* ===== GRID ===== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== CARD BASE ===== */
+.feature-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 40px 28px;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  /* Scroll animation (initial) */
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.6s ease;
+}
+
+/* Scroll visible */
+.feature-card.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ===== ICON ===== */
+.feature-icon {
+  width: 38px;
+  height: 38px;
+  color: #eba32f;
+  margin-bottom: 20px;
+}
+
+/* ===== TEXT ===== */
+.feature-card h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.feature-card p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #dbe6ff;
+}
+
+/* ===== GLOW EFFECT ===== */
+.feature-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: radial-gradient(
+    300px circle at var(--x, 50%) var(--y, 50%),
+    rgba(77, 163, 255, 0.25),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.feature-card:hover::after {
+  opacity: 1;
+}
+
+/* Lift on hover */
+.feature-card:hover {
+  transform: translateY(-12px);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .features {
+    padding: 60px 20px;
+  }
+
+  .features h2 {
+    font-size: 28px;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}

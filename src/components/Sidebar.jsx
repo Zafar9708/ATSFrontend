@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Typography, Box, Avatar } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupIcon from '@mui/icons-material/Group';
@@ -19,6 +19,42 @@ const Sidebar = () => {
   const location = useLocation();
   const userData = JSON.parse(localStorage.getItem('userData'));
 
+  // Update active index based on current path
+  useEffect(() => {
+    const currentPath = location.pathname;
+    
+    // Check if current path matches any menu item
+    const matchingIndex = menuItems.findIndex((item) => {
+      const roleBasedPath = getRoleBasedPath(item.path);
+      
+      // For Jobs - check if path contains /jobs (including /dashboard/jobs/*)
+      if (item.path === '/jobs') {
+        return currentPath.includes('/jobs') || 
+               currentPath === roleBasedPath || 
+               currentPath.startsWith(roleBasedPath + '/') ||
+               currentPath.includes('/dashboard/jobs');
+      }
+      
+      // For other items, check exact match or starts with
+      return currentPath === roleBasedPath || 
+             currentPath.startsWith(roleBasedPath + '/');
+    });
+
+    if (matchingIndex !== -1) {
+      setActiveIndex(matchingIndex);
+    }
+  }, [location.pathname]);
+
+  const menuItems = [
+    { icon: <DashboardIcon />, text: 'Dashboard', path: '/dashboard' },
+    { icon: <WorkIcon />, text: 'Jobs', path: '/jobs' },
+    { icon: <GroupIcon />, text: 'Candidates', path: '/all/candidates' },
+    { icon: <TodayIcon />, text: 'Interviews', path: '/total-interviews' },
+    { icon: <BusinessIcon />, text: 'Vendors', path: '/total-vendors' },
+    { icon: <BarChartIcon />, text: 'All Recruiters', path:"/total-recruiters" },
+    { icon: <HelpIcon />, text: 'Help', path: '/dashboard/help' },
+  ];
+
   const handleNavigation = (path, index) => {
     setActiveIndex(index);
     navigate(getRoleBasedPath(path));
@@ -32,6 +68,31 @@ const Sidebar = () => {
                  userData.role === 'recruiter' ? `/recruiter/${userData.tenantId}` : '';
     
     return basePath.replace('/dashboard', prefix);
+  };
+
+  // Check if a menu item should be active
+  const isItemActive = (item, index) => {
+    const currentPath = location.pathname;
+    const roleBasedPath = getRoleBasedPath(item.path);
+    
+    // For Jobs - active if path contains /jobs or /dashboard/jobs
+    if (item.path === '/jobs') {
+      return currentPath.includes('/jobs') || 
+             currentPath.includes('/dashboard/jobs') ||
+             currentPath === roleBasedPath || 
+             currentPath.startsWith(roleBasedPath + '/');
+    }
+    
+    // For Dashboard - only active on exact dashboard path
+    if (item.path === '/dashboard') {
+      return currentPath === roleBasedPath || 
+             currentPath === '/dashboard' ||
+             currentPath === `/${userData?.role === 'admin' ? `tenant/${userData.tenantId}` : ''}`;
+    }
+    
+    // For other items
+    return currentPath === roleBasedPath || 
+           currentPath.startsWith(roleBasedPath + '/');
   };
 
   return (
@@ -78,24 +139,8 @@ const Sidebar = () => {
           }
         }}
       >
-        {[
-          { icon: <DashboardIcon />, text: 'Dashboard', path: '/dashboard' },
-          { icon: <WorkIcon />, text: 'Jobs', path: '/jobs' },
-          { icon: <GroupIcon />, text: 'Candidates', path: '/all/candidates' },
-          { icon: <TodayIcon />, text: 'Interviews', path: '/total-interviews' },
-          { icon: <BusinessIcon />, text: 'Vendors', path: '/total-vendors' },
-
-          // { icon: <NotificationsIcon />, text: 'Notifications', path: '/notifications' },
-          { icon: <BarChartIcon />, text: 'Reports', path: '/dashboard/reports' },
-          // { icon: <TaskIcon />, text: 'Tasks', path: '/tasks' },
-          // { icon: <SettingsIcon />, text: 'Settings', path: '/dashboard/settings' },
-          { icon: <HelpIcon />, text: 'Help', path: '/dashboard/help' },
-          // { icon: <FeedbackIcon />, text: 'Feedback', path: '/dashboard/feedback' },
-        ].map((item, index) => {
-          const roleBasedPath = getRoleBasedPath(item.path);
-          const isActive =
-            location.pathname === roleBasedPath ||
-            (index !== 0 && location.pathname.startsWith(roleBasedPath));
+        {menuItems.map((item, index) => {
+          const isActive = isItemActive(item, index);
           
           return (
             <Button

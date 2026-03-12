@@ -190,7 +190,7 @@
 
     return (
       <Box sx={{
-        ml: { xs: 0, sm: '15px' },
+       ml:'190px',
         minHeight: '100vh',
         background: C.bg,
         p: { xs: 2, sm: 3 },
@@ -199,7 +199,7 @@
         maxWidth: '100%',
         overflowX: 'hidden',
         fontFamily: "'DM Sans', 'Outfit', sans-serif",
-        
+        mt:'60px'
       }}>
 
         {/* ── TOP HEADER ── */}

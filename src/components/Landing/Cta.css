@@ -1,0 +1,133 @@
+.cta {
+ background: linear-gradient(
+  135deg,
+  rgba(10, 15, 35, 0.95),
+  rgba(6, 39, 115, 0.9)
+);
+  padding: 80px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+}
+
+.cta-content {
+  max-width: 800px;
+}
+
+/* ---------- Chat Animation ---------- */
+.chat {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: chatAppear 0.6s ease forwards;
+}
+
+.chat-1 { animation-delay: 0.2s; }
+.chat-2 { animation-delay: 0.8s; }
+.chat-3 { animation-delay: 1.4s; }
+.chat-4 { animation-delay: 1.8s; }
+.chat-5 { animation-delay: 2.2s; }
+.chat-6 { animation-delay: 2.6s; }
+.chat-7 { animation-delay: 3.2s; }
+.chat-8 { animation-delay: 3.8s; }
+
+@keyframes chatAppear {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Text ---------- */
+.cta h2 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.cta-subtitle {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #e5e7eb;
+  margin-bottom: 30px;
+}
+
+/* ---------- Features - Single Line ---------- */
+.cta-features {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 35px;
+
+  /* Force single line */
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.cta-features::-webkit-scrollbar {
+  display: none;
+}
+
+.cta-features span {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+
+/* ---------- Buttons ---------- */
+.cta-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: #f97316;
+  color: #ffffff;
+  border: none;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.4);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid #f97316;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #f97316;
+}
+
+/* ---------- Note ---------- */
+.cta-note {
+  font-size: 0.85rem;
+  color: #cbd5f5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cta h2 {
+    font-size: 2rem;
+  }
+}

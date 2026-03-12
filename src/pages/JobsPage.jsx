@@ -33,6 +33,15 @@ import {
   TextField,
   Snackbar,
   Alert,
+  Checkbox,
+  ListItemText,
+  OutlinedInput,
+  useMediaQuery,
+  useTheme,
+  Drawer,
+  Fab,
+  Badge,
+  Tooltip
 } from "@mui/material";
 import {
   Star as StarIcon,
@@ -54,14 +63,19 @@ import {
   Close as CloseIcon,
   FileUpload as FileUploadIcon,
   ContentCopy as ContentCopyIcon,
+  Share as ShareIcon,
+  FilterAlt as FilterAltIcon,
+  Search as SearchIcon,
+  Add as AddIcon,
+  ArrowBack as ArrowBackIcon
 } from "@mui/icons-material";
 import { parseISO, format, isAfter } from "date-fns";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import MainLayout from "../layout/MainLayout";
 import axios from "axios";
 
 const statusOptions = {
-  'Active': ['Inactive', 'On Hold', 'Closed Own', 'Archived'],
+  'Active': ['On Hold', 'Closed Own', 'Archived'],
   'Inactive': ['Active', 'On Hold', 'Closed Own', 'Archived'],
   'On Hold': ['Active', 'Inactive', 'Closed Own', 'Archived'],
   'Closed Own': ['Active', 'Inactive', 'On Hold', 'Archived'],
@@ -72,15 +86,27 @@ const statusOptions = {
 const businessUnitOptions = ["Internal", "External"];
 
 // API Base URL
-const API_BASE_URL = "http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1";
+const API_BASE_URL = "http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1";
 
 const JobsPage = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  
+  // Get tenantId from URL params
+  const { tenantId } = useParams();
+  
+  // Sidebar state - you'll need to connect this to your actual sidebar state management
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [archivedJobs, setArchivedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("card");
   const [showPriority, setShowPriority] = useState(false);
+  const [showActiveOnly, setShowActiveOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
   const [anchorEl, setAnchorEl] = useState(null);
@@ -101,6 +127,21 @@ const JobsPage = () => {
     reason: '',
     jobId: null
   });
+  
+  // New state for share functionality
+  const [shareDialog, setShareDialog] = useState({
+    open: false,
+    jobId: null,
+    jobTitle: ''
+  });
+  const [vendors, setVendors] = useState([]);
+  const [selectedVendors, setSelectedVendors] = useState([]);
+  const [vendorsLoading, setVendorsLoading] = useState(false);
+  const [shareAnchorEl, setShareAnchorEl] = useState(null);
+  
+  // Mobile filter drawer state
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [tempFilters, setTempFilters] = useState({});
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -109,10 +150,48 @@ const JobsPage = () => {
   const isAdmin = userData?.role === 'admin';
   const isRecruiter = userData?.role === 'recruiter';
 
+  // Calculate main content width based on sidebar state
+  const getMainContentWidth = () => {
+    if (isMobile) return '100%';
+    if (isTablet) return '100%';
+    return sidebarOpen ? 'calc(100vw - 240px)' : 'calc(100vw - 65px)';
+  };
+
+  // Get responsive grid columns for job cards
+  const getGridColumns = () => {
+    if (isMobile) return '1fr';
+    if (isTablet) return 'repeat(2, 1fr)';
+    if (sidebarOpen) {
+      return {
+        md: 'repeat(3, 1fr)',
+        lg: 'repeat(3, 1fr)',
+        xl: 'repeat(4, 1fr)'
+      };
+    }
+    return {
+      md: 'repeat(4, 1fr)',
+      lg: 'repeat(5, 1fr)',
+      xl: 'repeat(6, 1fr)'
+    };
+  };
+
+  // Get responsive container padding
+  const getContainerPadding = () => {
+    if (isMobile) return 1;
+    if (isTablet) return 2;
+    return 3;
+  };
+
+const handleBack = () => {
+    navigate(-1); // Navigates to the previous page
+};
+
   useEffect(() => {
     const handleBackButton = (e) => {
       if (location.state?.from) {
         navigate(location.state.from);
+      } else if (tenantId) {
+        navigate(`/tenant/${tenantId}/dashboard`);
       } else {
         navigate('/dashboard');
       }
@@ -120,7 +199,7 @@ const JobsPage = () => {
 
     window.addEventListener('popstate', handleBackButton);
     return () => window.removeEventListener('popstate', handleBackButton);
-  }, [navigate, location.state]);
+  }, [navigate, location.state, tenantId]);
 
   // Fetch jobs from API
   useEffect(() => {
@@ -131,7 +210,12 @@ const JobsPage = () => {
         // Get auth token from localStorage
         const token = localStorage.getItem('token');
         
-        const response = await axios.get(`${API_BASE_URL}/job`, {
+        // Include tenantId in API request if available
+        const url = tenantId 
+          ? `${API_BASE_URL}/tenant/${tenantId}/job` 
+          : `${API_BASE_URL}/job`;
+        
+        const response = await axios.get(url, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -187,7 +271,35 @@ const JobsPage = () => {
     };
 
     fetchJobs();
-  }, []);
+  }, [tenantId]);
+
+  // Fetch vendors function
+  const fetchVendors = async () => {
+    try {
+      setVendorsLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.get('http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/admin/vendors', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data && response.data.success && response.data.vendors) {
+        setVendors(response.data.vendors);
+      }
+    } catch (error) {
+      console.error('Failed to fetch vendors:', error);
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.message || 'Failed to fetch vendors', 
+        severity: "error" 
+      });
+    } finally {
+      setVendorsLoading(false);
+    }
+  };
 
   const formatJobNumber = (index) => {
     const number = index + 1;
@@ -208,6 +320,15 @@ const JobsPage = () => {
   };
 
   const getJobStatus = (job) => {
+    const hireDate = job.jobFormId?.targetHireDate;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // If status is Active but date has passed, return 'Closed Own' visually
+    if (job.status === 'Active' && hireDate && new Date(hireDate) < today) {
+      return 'Closed Own';
+    }
+    
     return job.status || 'Active';
   };
 
@@ -229,6 +350,10 @@ const JobsPage = () => {
 
     if (showPriority && !showArchived) {
       result = result.filter(job => job.jobFormId?.markPriority);
+    }
+
+    if (showActiveOnly && !showArchived) {
+      result = result.filter(job => isJobActive(job));
     }
 
     if (searchTerm) {
@@ -280,13 +405,17 @@ const JobsPage = () => {
     });
 
     setFilteredJobs(result);
-  }, [jobs, archivedJobs, showArchived, showPriority, searchTerm, filters]);
+  }, [jobs, archivedJobs, showArchived, showPriority, showActiveOnly, searchTerm, filters]);
 
   const activeJobsCount = jobs.filter(job => isJobActive(job)).length;
   const priorityJobsCount = jobs.filter(job => job.jobFormId?.markPriority && isJobActive(job)).length;
 
   const handleCreateJobClick = () => {
-    navigate("/dashboard/jobs/createJob");
+    if (tenantId) {
+      navigate(`/tenant/${tenantId}/dashboard/jobs/createJob`);
+    } else {
+      navigate("/dashboard/jobs/createJob");
+    }
   };
 
   const handleMenuClick = (event) => {
@@ -308,9 +437,22 @@ const JobsPage = () => {
     }));
   };
 
+  const handleMobileFilterApply = () => {
+    setFilters(tempFilters);
+    setMobileFilterOpen(false);
+  };
+
+  const handleMobileFilterClear = () => {
+    setTempFilters({});
+  };
+
   const handleResetFilters = () => {
     setFilters({});
+    setTempFilters({});
     setSearchTerm("");
+    setShowPriority(false);
+    setShowActiveOnly(false);
+    setMobileFilterOpen(false);
   };
 
   const handleStatusMenuClick = (event, jobId) => {
@@ -322,6 +464,83 @@ const JobsPage = () => {
   const handleStatusMenuClose = () => {
     setStatusMenuAnchorEl(null);
     setCurrentJobId(null);
+  };
+
+  const handleShareMenuClick = (event, jobId, jobTitle) => {
+    event.stopPropagation();
+    setShareAnchorEl(event.currentTarget);
+    setCurrentJobId(jobId);
+    setShareDialog(prev => ({ ...prev, jobTitle }));
+  };
+
+  const handleShareMenuClose = () => {
+    setShareAnchorEl(null);
+  };
+
+  const handleShareClick = () => {
+    handleShareMenuClose();
+    setShareDialog({ ...shareDialog, open: true, jobId: currentJobId });
+    fetchVendors();
+    setSelectedVendors([]);
+  };
+
+  const handleShareDialogClose = () => {
+    setShareDialog({ open: false, jobId: null, jobTitle: '' });
+    setSelectedVendors([]);
+  };
+
+  const handleVendorChange = (event) => {
+    const value = event.target.value;
+    setSelectedVendors(typeof value === 'string' ? value.split(',') : value);
+  };
+
+  const handleSendToVendors = async () => {
+    if (selectedVendors.length === 0) {
+      setSnackbar({ 
+        open: true, 
+        message: 'Please select at least one vendor', 
+        severity: "error" 
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.post(
+        'http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/job-shares/share',
+        {
+          jobId: shareDialog.jobId,
+          vendorIds: selectedVendors
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        setSnackbar({ 
+          open: true, 
+          message: response.data.message, 
+          severity: "success" 
+        });
+        
+        handleShareDialogClose();
+      }
+    } catch (error) {
+      console.error('Failed to share job:', error);
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.error || 'Failed to share job', 
+        severity: "error" 
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleArchiveClick = (event, jobId) => {
@@ -461,6 +680,8 @@ const JobsPage = () => {
     setShowArchived(!showArchived);
     setFilters({});
     setSearchTerm("");
+    setShowPriority(false);
+    setShowActiveOnly(false);
   };
 
   const handleImportClick = () => {
@@ -683,11 +904,19 @@ const JobsPage = () => {
   };
 
   const handleJobCardClick = (jobId) => {
-    navigate(`/dashboard/jobs/${jobId}`);
+    if (tenantId) {
+      navigate(`/tenant/${tenantId}/dashboard/jobs/${jobId}`);
+    } else {
+      navigate(`/dashboard/jobs/${jobId}`);
+    }
   };
 
   const handleSnackbarClose = () => {
     setSnackbar({ ...snackbar, open: false });
+  };
+
+  const getFilterCount = () => {
+    return Object.keys(filters).filter(key => filters[key]).length;
   };
 
   if (loading && jobs.length === 0) {
@@ -697,9 +926,12 @@ const JobsPage = () => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '60vh'
+          minHeight: '60vh',
+          width: getMainContentWidth(),
+          ml: { xs: 0, sm: 0, md: sidebarOpen ? '240px' : '65px' },
+          transition: 'margin-left 0.3s ease, width 0.3s ease',
         }}>
-          <CircularProgress size={60} thickness={4} />
+          <CircularProgress size={isMobile ? 40 : 60} thickness={4} />
         </Box>
       </MainLayout>
     );
@@ -707,11 +939,124 @@ const JobsPage = () => {
 
   const hasExternalJobs = jobs.some(job => job.jobFormId?.BusinessUnit === 'external');
 
+  // Mobile Filter Drawer Component
+  const MobileFilterDrawer = () => (
+    <Drawer
+      anchor="bottom"
+      open={mobileFilterOpen}
+      onClose={() => setMobileFilterOpen(false)}
+      PaperProps={{
+        sx: {
+          maxHeight: '80vh',
+          borderTopLeftRadius: 16,
+          borderTopRightRadius: 16,
+          p: 2
+        }
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6">Filters</Typography>
+        <IconButton onClick={() => setMobileFilterOpen(false)}>
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      
+      <Box sx={{ maxHeight: 'calc(80vh - 120px)', overflowY: 'auto', px: 1 }}>
+        {filtersConfig.map((filter) => (
+          <Box key={filter.id} sx={{ mb: 2 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>{filter.label}</InputLabel>
+              <Select
+                value={tempFilters[filter.id] || ""}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, [filter.id]: e.target.value }))}
+                label={filter.label}
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                {filter.options.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        ))}
+      </Box>
+      
+      <Box sx={{ display: 'flex', gap: 1, mt: 2, pt: 2, borderTop: '1px solid #eee' }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={handleMobileFilterClear}
+        >
+          Clear
+        </Button>
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleMobileFilterApply}
+        >
+          Apply Filters
+        </Button>
+      </Box>
+    </Drawer>
+  );
+
   return (
     <MainLayout>
-      <Container maxWidth="lg" sx={{ py: 3, marginLeft:1, marginTop:3 }}>
-        {/* Archive Dialog */}
-        <Dialog open={showArchiveDialog} onClose={handleArchiveDialogClose}>
+      <Box
+        sx={{
+          width: getMainContentWidth(),
+          minHeight: '100vh',
+          background: '#f8f9fa',
+          p: getContainerPadding(),
+          ml: { xs: 0, sm: 0, md: sidebarOpen ? '200px' : '65px' },
+          transition: 'margin-left 0.3s ease, width 0.3s ease',
+          mt: { xs: 7, sm: 8, md: 9 },
+          overflowX: 'hidden',
+        }}
+      >
+        {/* Back Button */}
+        <Box sx={{ mb: 2 }}>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={handleBack}
+            sx={{
+              color: 'text.primary',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                borderRadius:"50%",
+                width:"40px",
+                height:"40px"
+              },
+              fontSize: isMobile ? '0.9rem' : '1rem',
+              fontWeight: 500,
+              textTransform: 'none',
+              px: isMobile ? 1 : 2,
+              py: isMobile ? 0.5 : 1,
+            }}
+          >
+            
+          </Button>
+        </Box>
+
+        {/* All Dialogs */}
+        <Dialog 
+          open={showArchiveDialog} 
+          onClose={handleArchiveDialogClose}
+          fullScreen={isMobile}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              m: isMobile ? 1 : 2,
+              width: isMobile ? 'calc(100% - 16px)' : '100%',
+              maxWidth: isMobile ? '100%' : 'sm',
+            }
+          }}
+        >
           <DialogTitle>Archive Job</DialogTitle>
           <DialogContent>
             <Typography>Are you sure you want to archive this job?</Typography>
@@ -725,7 +1070,20 @@ const JobsPage = () => {
         </Dialog>
 
         {/* Status Change Dialog */}
-        <Dialog open={statusChangeDialog.open} onClose={handleStatusChangeDialogClose}>
+        <Dialog 
+          open={statusChangeDialog.open} 
+          onClose={handleStatusChangeDialogClose}
+          fullScreen={isMobile}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              m: isMobile ? 1 : 2,
+              width: isMobile ? 'calc(100% - 16px)' : '100%',
+              maxWidth: isMobile ? '100%' : 'sm',
+            }
+          }}
+        >
           <DialogTitle>Change Status to {statusChangeDialog.newStatus}</DialogTitle>
           <DialogContent>
             <TextField
@@ -734,7 +1092,7 @@ const JobsPage = () => {
               label={`Reason for ${statusChangeDialog.newStatus}`}
               fullWidth
               multiline
-              rows={4}
+              rows={isMobile ? 3 : 4}
               value={statusChangeDialog.reason}
               onChange={(e) => setStatusChangeDialog(prev => ({
                 ...prev,
@@ -756,20 +1114,113 @@ const JobsPage = () => {
           </DialogActions>
         </Dialog>
 
+        {/* Share Dialog */}
+        <Dialog 
+          open={shareDialog.open} 
+          onClose={handleShareDialogClose} 
+          maxWidth="sm" 
+          fullWidth
+          fullScreen={isMobile}
+          PaperProps={{
+            sx: {
+              m: isMobile ? 1 : 2,
+              width: isMobile ? 'calc(100% - 16px)' : '100%',
+              maxWidth: isMobile ? '100%' : 'sm',
+            }
+          }}
+        >
+          <DialogTitle>
+            Share Job: {shareDialog.jobTitle}
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" gutterBottom>
+                Select vendors to share this job with:
+              </Typography>
+              <FormControl fullWidth sx={{ mt: 2 }}>
+                <InputLabel id="vendor-select-label">Vendors</InputLabel>
+                <Select
+                  labelId="vendor-select-label"
+                  id="vendor-select"
+                  multiple
+                  value={selectedVendors}
+                  onChange={handleVendorChange}
+                  input={<OutlinedInput label="Vendors" />}
+                  renderValue={(selected) => {
+                    const selectedNames = vendors
+                      .filter(v => selected.includes(v._id))
+                      .map(v => `${v.firstName} ${v.lastName} (${v.companyName})`);
+                    return selectedNames.join(', ');
+                  }}
+                >
+                  {vendorsLoading ? (
+                    <MenuItem disabled>
+                      <CircularProgress size={20} sx={{ mr: 1 }} />
+                      Loading vendors...
+                    </MenuItem>
+                  ) : vendors.length === 0 ? (
+                    <MenuItem disabled>No vendors available</MenuItem>
+                  ) : (
+                    vendors.map((vendor) => (
+                      <MenuItem key={vendor._id} value={vendor._id}>
+                        <Checkbox checked={selectedVendors.indexOf(vendor._id) > -1} />
+                        <ListItemText 
+                          primary={`${vendor.firstName} ${vendor.lastName}`}
+                          secondary={`${vendor.companyName} - ${vendor.email}`}
+                        />
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </FormControl>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleShareDialogClose}>Cancel</Button>
+            <Button
+              onClick={handleSendToVendors}
+              color="primary"
+              variant="contained"
+              disabled={selectedVendors.length === 0 || vendorsLoading}
+            >
+              Send
+            </Button>
+          </DialogActions>
+        </Dialog>
+
         {/* Import Dialog */}
-        <Dialog open={showImportDialog} onClose={handleImportDialogClose}>
+        <Dialog 
+          open={showImportDialog} 
+          onClose={handleImportDialogClose}
+          fullScreen={isMobile}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: {
+              m: isMobile ? 1 : 2,
+              width: isMobile ? 'calc(100% - 16px)' : '100%',
+              maxWidth: isMobile ? '100%' : 'sm',
+            }
+          }}
+        >
           <DialogTitle>Import Jobs</DialogTitle>
           <DialogContent>
-            <Box sx={{ minWidth: 400, p: 2 }}>
+            <Box sx={{ p: isMobile ? 1 : 2 }}>
               <Typography variant="body1" gutterBottom>
                 Download a template CSV file and fill in your job data:
               </Typography>
 
-              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: isMobile ? 'column' : 'row', 
+                gap: 2, 
+                mb: 3 
+              }}>
                 <Button
                   variant="outlined"
                   onClick={() => downloadTemplate('internal')}
                   startIcon={<FileUploadIcon />}
+                  fullWidth={isMobile}
                 >
                   Internal Jobs Template
                 </Button>
@@ -777,6 +1228,7 @@ const JobsPage = () => {
                   variant="outlined"
                   onClick={() => downloadTemplate('external')}
                   startIcon={<FileUploadIcon />}
+                  fullWidth={isMobile}
                 >
                   External Jobs Template
                 </Button>
@@ -828,7 +1280,10 @@ const JobsPage = () => {
           open={snackbar.open}
           autoHideDuration={6000}
           onClose={handleSnackbarClose}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          anchorOrigin={{ 
+            vertical: isMobile ? 'bottom' : 'top', 
+            horizontal: isMobile ? 'center' : 'right' 
+          }}
         >
           <Alert
             onClose={handleSnackbarClose}
@@ -839,23 +1294,33 @@ const JobsPage = () => {
           </Alert>
         </Snackbar>
 
-        {/* Header Section */}
-        <Paper elevation={0} sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 2,
-          p: 2,
-          mb: 2,
-          backgroundColor: '#f8f9fa',
-          borderRadius: 2
-        }}>
+        {/* Header Section - Responsive */}
+        <Paper 
+          elevation={0} 
+          sx={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "stretch" : "center",
+            justifyContent: "space-between",
+            gap: 2,
+            p: isMobile ? 1.5 : 2,
+            mb: 2,
+            backgroundColor: '#f8f9fa',
+            borderRadius: 2
+          }}
+        >
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 'bold' }}>
-              {showArchived ? 'Archived Jobs' : `Active Jobs (${activeJobsCount})`}
+            <Typography 
+              variant={isMobile ? "h6" : "h5"} 
+              sx={{ color: 'primary.main', fontWeight: 'bold' }}
+            >
+              {showArchived ? 'Archived Jobs' : `Total Jobs (${activeJobsCount})`}
               {showPriority && !showArchived && (
-                <Typography component="span" variant="body2" sx={{ ml: 1, color: 'text.secondary' }}>
+                <Typography 
+                  component="span" 
+                  variant="body2" 
+                  sx={{ ml: 1, color: 'text.secondary', display: isMobile ? 'block' : 'inline' }}
+                >
                   ({priorityJobsCount} priority)
                 </Typography>
               )}
@@ -865,75 +1330,127 @@ const JobsPage = () => {
             </Typography>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
+          <Box sx={{ 
+            display: "flex", 
+            flexDirection: isMobile ? "column" : "row",
+            alignItems: isMobile ? "stretch" : "center", 
+            gap: isMobile ? 1 : 2,
+            flexWrap: "wrap" 
+          }}>
             {!showArchived && (
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Switch
-                  checked={showPriority}
-                  onChange={(e) => setShowPriority(e.target.checked)}
-                  color="primary"
-                />
-                <Typography variant="body2">Priority Only</Typography>
-              </Box>
+              <>
+                <Box sx={{ 
+                  display: "flex", 
+                  alignItems: "center",
+                  justifyContent: isMobile ? 'space-between' : 'flex-start'
+                }}>
+                  <Switch
+                    checked={showPriority}
+                    onChange={(e) => setShowPriority(e.target.checked)}
+                    color="primary"
+                    size={isMobile ? "small" : "medium"}
+                  />
+                  <Typography variant="body2">Priority Only</Typography>
+                </Box>
+
+                <Box sx={{ 
+                  display: "flex", 
+                  alignItems: "center",
+                  justifyContent: isMobile ? 'space-between' : 'flex-start',
+                  ml: { xs: 0, sm: 1 }
+                }}>
+                  <Switch
+                    checked={showActiveOnly}
+                    onChange={(e) => setShowActiveOnly(e.target.checked)}
+                    color="success"
+                    size={isMobile ? "small" : "medium"}
+                  />
+                  <Typography variant="body2" sx={{ color: showActiveOnly ? 'success.main' : 'text.primary' }}>
+                    Active Only
+                  </Typography>
+                </Box>
+              </>
             )}
 
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <IconButton
-                onClick={() => setView("card")}
-                color={view === "card" ? "primary" : "default"}
-                size="small"
-              >
-                <ViewModuleIcon />
-              </IconButton>
-              <IconButton
-                onClick={() => setView("table")}
-                color={view === "table" ? "primary" : "default"}
-                size="small"
-              >
-                <TableRowsIcon />
-              </IconButton>
-            </Box>
+            <Box sx={{ 
+              display: "flex", 
+              gap: 1,
+              justifyContent: isMobile ? 'space-between' : 'flex-end',
+              flex: 1
+            }}>
+              {/* View Toggle - Only show on desktop */}
+              {isDesktop && (
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <IconButton
+                    onClick={() => setView("card")}
+                    color={view === "card" ? "primary" : "default"}
+                    size="small"
+                  >
+                    <ViewModuleIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => setView("table")}
+                    color={view === "table" ? "primary" : "default"}
+                    size="small"
+                  >
+                    <TableRowsIcon />
+                  </IconButton>
+                </Box>
+              )}
 
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Button
                 variant={showArchived ? "outlined" : "contained"}
                 color="primary"
                 onClick={handleShowArchived}
-                size="small"
+                size={isMobile ? "small" : "medium"}
                 startIcon={<ArchiveIcon />}
+                fullWidth={isMobile}
               >
-                {showArchived ? 'Back to Active' : 'View Archived'}
+                {showArchived ? 'Back to Active' : 'Archived'}
               </Button>
 
               {!showArchived && (
                 <>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleCreateJobClick}
-                    size="small"
-                    sx={{
-                      borderTopRightRadius: 0,
-                      borderBottomRightRadius: 0,
-                      height: '36px'
-                    }}
-                  >
-                    Create Job
-                  </Button>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleMenuClick}
-                    size="small"
-                    sx={{
-                      borderTopLeftRadius: 0,
-                      borderBottomLeftRadius: 0,
-                      minWidth: '36px',
-                      height: '36px',
-                    }}
-                  >
-                    <ArrowDropDownIcon fontSize="small" />
-                  </Button>
+                  {isMobile ? (
+                    <Fab
+                      color="primary"
+                      size="small"
+                      onClick={handleCreateJobClick}
+                      sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 1000 }}
+                    >
+                      <AddIcon />
+                    </Fab>
+                  ) : (
+                    <>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleCreateJobClick}
+                        size="small"
+                        sx={{
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
+                          height: '36px'
+                        }}
+                      >
+                        Create Job
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleMenuClick}
+                        size="small"
+                        sx={{
+                          borderTopLeftRadius: 0,
+                          borderBottomLeftRadius: 0,
+                          minWidth: '36px',
+                          height: '36px',
+                        }}
+                      >
+                        <ArrowDropDownIcon fontSize="small" />
+                      </Button>
+                    </>
+                  )}
                   <Menu
                     anchorEl={anchorEl}
                     open={Boolean(anchorEl)}
@@ -954,398 +1471,1074 @@ const JobsPage = () => {
           </Box>
         </Paper>
 
-        {/* Filters Section */}
-        {!showArchived && (
-          <Paper sx={{ p: 2, mb: 2, borderRadius: 2 }}>
-            <Grid container spacing={2}>
-              {filtersConfig.map((filter) => (
-                <Grid item xs={6} sm={4} md={2} key={filter.id}>
-                  <FormControl fullWidth size="small" sx={{ minWidth: 195 }}>
-                    <InputLabel>{filter.label}</InputLabel>
-                    <Select
-                      value={filters[filter.id] || ""}
-                      onChange={(e) => handleFilterChange(filter.id, e.target.value)}
-                      label={filter.label}
-                    >
-                      <MenuItem value="">
-                        <em>None</em>
-                      </MenuItem>
-                      {filter.options.map((option) => (
-                        <MenuItem key={option} value={option}>
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              ))}
-              <Grid item xs={6} sm={4} md={2}>
-                <Button
-                  variant="outlined"
-                  onClick={handleResetFilters}
-                  fullWidth
-                  size="small"
-                  sx={{ height: '40px' }}
-                  disabled={Object.keys(filters).length === 0 && !searchTerm}
+        {/* Filters Section - Responsive */}
+     {/* Filters Section - Responsive with visible labels */}
+{/* Filters Section - Responsive with full-width labels */}
+{!showArchived && (
+  <>
+    {isMobile ? (
+      // Mobile Filter Bar
+      <Paper sx={{ p: 1.5, mb: 2, borderRadius: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <InputBase
+            fullWidth
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search jobs..."
+            sx={{
+              p: '6px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px',
+              backgroundColor: 'white',
+              flex: 1
+            }}
+            startAdornment={
+              <SearchIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+            }
+          />
+          <Badge badgeContent={getFilterCount()} color="primary">
+            <IconButton 
+              onClick={() => {
+                setTempFilters(filters);
+                setMobileFilterOpen(true);
+              }}
+              sx={{ border: '1px solid #ddd', borderRadius: 1 }}
+            >
+              <FilterAltIcon />
+            </IconButton>
+          </Badge>
+        </Box>
+      </Paper>
+    ) : (
+      // Desktop/Tablet Filters - Full width with increased margins
+      <Paper sx={{ p: { xs: 2, sm: 2.5, md: 3 }, mb: 2.5, borderRadius: 2 }}>
+        <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
+          {filtersConfig.map((filter) => (
+            <Grid item xs={12} sm={6} md={4} lg={2.4} key={filter.id}>
+              <FormControl fullWidth size="small">
+                <InputLabel 
+                  sx={{ 
+                    fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                    fontWeight: 500,
+                    color: '#1e293b',
+                    transform: 'translate(14px, -9px) scale(0.85)',
+                    '&.MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -9px) scale(0.85)'
+                    },
+                    backgroundColor: 'white',
+                    px: 0.5,
+                    zIndex: 1
+                  }}
                 >
-                  Reset Filters
-                </Button>
-              </Grid>
+                  {filter.label}
+                </InputLabel>
+                <Select
+                  value={filters[filter.id] || ""}
+                  onChange={(e) => handleFilterChange(filter.id, e.target.value)}
+                  label={filter.label}
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return <em style={{ color: '#64748b', fontSize: '0.9rem' }}>Select {filter.label}</em>;
+                    }
+                    return selected;
+                  }}
+                  sx={{
+                    '& .MuiSelect-select': {
+                      fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                      py: { xs: 1.2, sm: 1.4, md: 1.6 },
+                      px: { xs: 1.5, sm: 2 },
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      '& em': {
+                        color: '#64748b',
+                        fontStyle: 'normal'
+                      }
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#cbd5e1',
+                      borderWidth: '1.5px'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#2563eb'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#2563eb',
+                      borderWidth: '2px'
+                    }
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: 300,
+                        '& .MuiMenuItem-root': {
+                          fontSize: '0.9rem',
+                          py: 1,
+                          px: 2
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <MenuItem value="">
+                    <em style={{ fontSize: '0.9rem', color: '#64748b' }}>None</em>
+                  </MenuItem>
+                  {filter.options.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      <span style={{ fontSize: '0.9rem' }}>{option}</span>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
-
-            <Box sx={{ mt: 2, display: 'flex', maxWidth: '100%' }}>
-              <InputBase
-                fullWidth
-                value={searchTerm}
-                onChange={handleSearchChange}
-                placeholder={`Search ${showArchived ? 'archived' : ''} jobs...`}
-                sx={{
-                  p: '8px 12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  backgroundColor: 'white'
-                }}
-                startAdornment={
-                  <IconButton size="small" sx={{ mr: 1 }}>
-                    <FilterListIcon fontSize="small" />
-                  </IconButton>
+          ))}
+          <Grid item xs={12} sm={6} md={4} lg={2.4}>
+            <Button
+              variant="outlined"
+              onClick={handleResetFilters}
+              fullWidth
+              size="medium"
+              sx={{ 
+                height: { xs: '44px', sm: '48px', md: '52px' },
+                fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                fontWeight: 500,
+                whiteSpace: 'nowrap',
+                borderColor: '#cbd5e1',
+                borderWidth: '1.5px',
+                color: '#475569',
+                '&:hover': {
+                  borderColor: '#2563eb',
+                  backgroundColor: '#f0f9ff',
+                  color: '#2563eb'
+                },
+                '&.Mui-disabled': {
+                  borderColor: '#e2e8f0',
+                  color: '#94a3b8'
                 }
-              />
-            </Box>
-          </Paper>
-        )}
+              }}
+              disabled={Object.keys(filters).length === 0 && !searchTerm && !showPriority && !showActiveOnly}
+            >
+              Reset All Filters
+            </Button>
+          </Grid>
+        </Grid>
 
-        {/* Jobs Display Section */}
+        <Box sx={{ 
+          mt: { xs: 2, sm: 2.5, md: 3 }, 
+          display: 'flex', 
+          maxWidth: '100%' 
+        }}>
+          <InputBase
+            fullWidth
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder={`Search ${showArchived ? 'archived' : ''} jobs...`}
+            sx={{
+              p: { xs: '8px 14px', sm: '10px 16px', md: '12px 18px' },
+              border: '1.5px solid #cbd5e1',
+              borderRadius: '8px',
+              fontSize: { xs: '0.9rem', sm: '0.95rem', md: '1rem' },
+              backgroundColor: 'white',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                borderColor: '#2563eb'
+              },
+              '&:focus-within': {
+                borderColor: '#2563eb',
+                borderWidth: '2px'
+              },
+              '& input::placeholder': {
+                fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                color: '#94a3b8'
+              }
+            }}
+            startAdornment={
+              <SearchIcon sx={{ 
+                mr: 1.5, 
+                fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }, 
+                color: '#64748b' 
+              }} />
+            }
+          />
+        </Box>
+      </Paper>
+    )}
+
+    {/* Mobile Filter Drawer - Enhanced */}
+    <Drawer
+      anchor="bottom"
+      open={mobileFilterOpen}
+      onClose={() => setMobileFilterOpen(false)}
+      PaperProps={{
+        sx: {
+          maxHeight: '90vh',
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          p: { xs: 2.5, sm: 3 }
+        }
+      }}
+    >
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 3,
+        pb: 1,
+        borderBottom: '2px solid #f1f5f9'
+      }}>
+        <Typography variant="h6" sx={{ 
+          fontSize: '1.2rem', 
+          fontWeight: 600,
+          color: '#0f172a'
+        }}>
+          Filter Jobs
+        </Typography>
+        <IconButton onClick={() => setMobileFilterOpen(false)} size="small">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      
+      <Box sx={{ 
+        maxHeight: 'calc(90vh - 180px)', 
+        overflowY: 'auto', 
+        px: 0.5,
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f5f9',
+          borderRadius: '10px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#94a3b8',
+          borderRadius: '10px',
+        },
+      }}>
+        {filtersConfig.map((filter) => (
+          <Box key={filter.id} sx={{ mb: 3 }}>
+            <FormControl fullWidth>
+              <InputLabel 
+                sx={{ 
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  color: '#1e293b',
+                  backgroundColor: 'white',
+                  px: 1,
+                  zIndex: 1
+                }}
+              >
+                {filter.label}
+              </InputLabel>
+              <Select
+                value={tempFilters[filter.id] || ""}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, [filter.id]: e.target.value }))}
+                label={filter.label}
+                displayEmpty
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return <em style={{ color: '#64748b', fontSize: '0.95rem' }}>Select {filter.label}</em>;
+                  }
+                  return selected;
+                }}
+                sx={{
+                  '& .MuiSelect-select': {
+                    fontSize: '0.95rem',
+                    py: 1.6,
+                    px: 2,
+                  },
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#cbd5e1',
+                    borderWidth: '1.5px'
+                  }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 300,
+                      '& .MuiMenuItem-root': {
+                        fontSize: '0.95rem',
+                        py: 1.2,
+                        px: 2
+                      }
+                    }
+                  }
+                }}
+              >
+                <MenuItem value="">
+                  <em style={{ fontSize: '0.95rem', color: '#64748b' }}>None</em>
+                </MenuItem>
+                {filter.options.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    <span style={{ fontSize: '0.95rem' }}>{option}</span>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        ))}
+      </Box>
+      
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 2, 
+        mt: 3, 
+        pt: 2.5, 
+        borderTop: '2px solid #f1f5f9'
+      }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={() => {
+            setTempFilters({});
+            handleMobileFilterClear();
+          }}
+          sx={{ 
+            py: 1.5,
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            borderRadius: 2,
+            borderColor: '#cbd5e1',
+            borderWidth: '1.5px',
+            color: '#475569',
+            '&:hover': {
+              borderColor: '#2563eb',
+              backgroundColor: '#f0f9ff',
+              color: '#2563eb'
+            }
+          }}
+        >
+          Clear All
+        </Button>
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleMobileFilterApply}
+          sx={{ 
+            py: 1.5,
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            borderRadius: 2,
+            backgroundColor: '#2563eb',
+            '&:hover': {
+              backgroundColor: '#1e40af'
+            }
+          }}
+        >
+          Apply Filters {getFilterCount() > 0 && `(${getFilterCount()})`}
+        </Button>
+      </Box>
+    </Drawer>
+  </>
+)}
+
+        {/* Jobs Display Section - Responsive */}
         {filteredJobs.length === 0 ? (
-          <Box display="flex" justifyContent="center" mt={4}>
-            <Typography variant="h6" color="text.secondary">
+          <Box 
+            display="flex" 
+            justifyContent="center" 
+            alignItems="center" 
+            minHeight={isMobile ? "50vh" : "40vh"}
+            flexDirection="column"
+            gap={2}
+          >
+            <Typography variant={isMobile ? "body1" : "h6"} color="text.secondary" align="center">
               {showArchived ? 'No archived jobs found' : 'No jobs match your criteria'}
             </Typography>
+            {!showArchived && (
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleResetFilters}
+                size={isMobile ? "small" : "medium"}
+              >
+                Clear Filters
+              </Button>
+            )}
           </Box>
-        ) : view === "table" ? (
-          <TableContainer component={Paper} sx={{ mt: 2, boxShadow: 'none', border: '1px solid #eee', borderRadius: 2 }}>
-            <Table sx={{ minWidth: 650 }} size="small">
-              <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Job ID</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Department</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Business Unit</TableCell>
-                  {hasExternalJobs && (
-                    <TableCell sx={{ fontWeight: 'bold' }}>Client</TableCell>
-                  )}
-                  <TableCell sx={{ fontWeight: 'bold' }}>Openings</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Hire Date</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Recruiting Member</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Priority</TableCell>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+        ) : (
+          <>
+            {/* For Mobile and Tablet - Always Card View */}
+            {(isMobile || isTablet) && (
+              <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: getGridColumns(),
+                gap: isMobile ? 2 : 3,
+                p: isMobile ? 0.5 : 1
+              }}>
                 {filteredJobs.map((job) => {
                   const jobForm = job.jobFormId || {};
                   const targetDate = jobForm.targetHireDate ? parseISO(jobForm.targetHireDate) : null;
                   const status = getJobStatus(job);
                   const availableStatusChanges = getAvailableStatusChanges(status);
+                  const clientName = jobForm.BusinessUnit === 'external' && jobForm.Client ? getClientName(jobForm.Client) : null;
 
                   return (
-                    <TableRow
+                    <Card
                       key={job._id}
-                      hover
                       onClick={() => handleJobCardClick(job._id)}
                       sx={{
                         cursor: 'pointer',
-                        '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        borderLeft: jobForm.markPriority ? '4px solid #FFD700' : 'none',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        transition: 'all 0.3s ease',
+                        borderRadius: 2,
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                        }
                       }}
                     >
-                      <TableCell sx={{ fontWeight: 500 }}>{job.formattedJobNumber}</TableCell>
-                      <TableCell>{job.jobTitle}</TableCell>
-                      <TableCell>{job.department}</TableCell>
-                      <TableCell>
-                        {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
-                      </TableCell>
-                      <TableCell>
-                        {jobForm.BusinessUnit ? jobForm.BusinessUnit.charAt(0).toUpperCase() + jobForm.BusinessUnit.slice(1) : "-"}
-                      </TableCell>
-                      {hasExternalJobs && (
-                        <TableCell>
-                          {jobForm.BusinessUnit === 'external' ? getClientName(jobForm.Client) : "-"}
-                        </TableCell>
-                      )}
-                      <TableCell align="center">{jobForm.openings || 0}</TableCell>
-                      <TableCell>
-                        {targetDate ? format(targetDate, 'MMM dd, yyyy') : "-"}
-                      </TableCell>
-                      <TableCell>
-                        {Array.isArray(jobForm.recruitingPerson) ?
-                          jobForm.recruitingPerson.join(', ') :
-                          jobForm.recruitingPerson || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={status}
-                          size="small"
-                          color={getStatusColor(status)}
-                          variant="outlined"
-                          sx={{ borderRadius: 1 }}
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        {jobForm.markPriority ? (
-                          <StarIcon color="primary" fontSize="small" />
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCurrentJobId(job._id);
-                            handleStatusMenuClick(e, job._id);
-                          }}
-                        >
-                          <MoreVertIcon fontSize="small" />
-                        </IconButton>
-                        <Menu
-                          anchorEl={statusMenuAnchorEl}
-                          open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
-                          onClose={handleStatusMenuClose}
-                        >
-                          <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-                            Change {status} to:
-                          </Typography>
-                          {availableStatusChanges.map(status => (
-                            <MenuItem
-                              key={status}
-                              onClick={() => handleStatusChange(status)}
-                              sx={{ minWidth: 150 }}
+                      <CardContent sx={{ flexGrow: 1, p: isMobile ? 1.5 : 2 }}>
+                        {/* Header with Job Title and Actions */}
+                        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                          <Box sx={{ flex: 1, minWidth: 0, pr: 1 }}>
+                            <Typography variant="caption" color="primary" fontWeight="bold" noWrap>
+                              {job.formattedJobNumber}
+                            </Typography>
+                            <Typography 
+                              variant={isMobile ? "body2" : "subtitle1"} 
+                              fontWeight="bold" 
+                              sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                lineHeight: 1.3,
+                                minHeight: isMobile ? '2.4em' : '2.6em',
+                                fontSize: isMobile ? '0.9rem' : '1rem'
+                              }}
                             >
-                              <CheckCircleIcon
-                                color={getStatusColor(status)}
-                                sx={{ mr: 1, fontSize: '1rem' }}
-                              />
-                              {status}
-                            </MenuItem>
-                          ))}
-                        </Menu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-            gap: 3,
-            p: 1
-          }}>
-            {filteredJobs.map((job) => {
-              const jobForm = job.jobFormId || {};
-              const targetDate = jobForm.targetHireDate ? parseISO(jobForm.targetHireDate) : null;
-              const status = getJobStatus(job);
-              const availableStatusChanges = getAvailableStatusChanges(status);
-
-              return (
-                <Card
-                  key={job._id}
-                  onClick={() => handleJobCardClick(job._id)}
-                  sx={{
-                    cursor: 'pointer',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderLeft: jobForm.markPriority ? '4px solid #FFD700' : 'none',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                    transition: 'all 0.3s ease',
-                    borderRadius: 2,
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-                    }
-                  }}
-                >
-                  <CardContent sx={{ flexGrow: 1, p: 2 }}>
-                    {/* Header with Job Title and Client Name */}
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
-                      <Box flex="1">
-                        <Typography variant="subtitle2" color="primary" fontWeight="bold">
-                          {job.formattedJobNumber}
-                        </Typography>
-                        <Typography variant="subtitle1" fontWeight="bold" noWrap>
-                          {job.jobTitle}
-                        </Typography>
-                      </Box>
-
-                      {/* Client Name on the right side */}
-                      {jobForm.BusinessUnit === 'external' && jobForm.Client && (
-                        <Box sx={{ ml: 2, textAlign: 'right', minWidth: '80px' }}>
-                          <Typography
-                            variant="subtitle2"
-                            fontWeight="bold"
-                            color="primary"
-                            sx={{
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1,
-                              backgroundColor: '#e3f2fd'
-                            }}
-                          >
-                            {getClientName(jobForm.Client)}
-                          </Typography>
+                              {job.jobTitle}
+                            </Typography>
+                          </Box>
+                          <Box display="flex" alignItems="center" sx={{ flexShrink: 0 }}>
+                            {jobForm.markPriority && (
+                              <StarIcon color="primary" fontSize="small" sx={{ mr: 0.5 }} />
+                            )}
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStatusMenuClick(e, job._id);
+                              }}
+                            >
+                              <MoreVertIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
                         </Box>
-                      )}
 
-                      <Box display="flex" alignItems="center">
-                        {jobForm.markPriority && (
-                          <StarIcon color="primary" fontSize="small" sx={{ mr: 1 }} />
+                        {/* Client Name Section - Only shown if client exists */}
+                        {clientName && (
+                          <Box sx={{ mb: 1 }}>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: 'inline-block',
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: 1,
+                                backgroundColor: '#e3f2fd',
+                                color: 'primary.main',
+                                fontWeight: 500,
+                                fontSize: '0.7rem',
+                                maxWidth: '100%',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {clientName}
+                            </Typography>
+                          </Box>
                         )}
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStatusMenuClick(e, job._id);
-                          }}
-                        >
-                          <MoreVertIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
 
-                    <Box display="flex" alignItems="center" mb={1} gap={1}>
-                      <WorkIcon color="action" fontSize="small" />
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {job.department}
-                      </Typography>
-                      <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-                      <LocationIcon color="action" fontSize="small" />
-                      <Typography variant="body2" color="text.secondary" noWrap>
-                        {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
-                      </Typography>
-                    </Box>
-
-                    <Stack direction="row" spacing={1} mb={1} flexWrap="wrap" useFlexGap>
-                      <Chip
-                        icon={<GroupIcon fontSize="small" />}
-                        label={`${jobForm.openings || 0} openings`}
-                        size="small"
-                        variant="outlined"
-                        sx={{ borderColor: '#90caf9' }}
-                      />
-                      <Chip
-                        icon={<MoneyIcon fontSize="small" />}
-                        label={`${jobForm.currency || 'USD'} ${jobForm.amount || '0'}`}
-                        size="small"
-                        variant="outlined"
-                        sx={{ borderColor: '#a5d6a7' }}
-                      />
-                      <Chip
-                        icon={<TimeIcon fontSize="small" />}
-                        label={jobForm.jobType || 'Full-time'}
-                        size="small"
-                        variant="outlined"
-                        sx={{ borderColor: '#ffcc80' }}
-                      />
-                    </Stack>
-
-                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <CalendarTodayIcon color="action" fontSize="small" />
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{
-                              fontWeight: 'bold',
-                              paddingX: 1,
-                              borderRadius: 1,
-                              display: 'inline-block'
-                            }}
-                          >
-                            Hire Date: {targetDate ? format(targetDate, 'MMM dd, yyyy') : "Not set"}
+                        <Box display="flex" alignItems="center" mb={1} gap={0.5} flexWrap="wrap">
+                          <WorkIcon color="action" sx={{ fontSize: isMobile ? '0.9rem' : '1rem' }} />
+                          <Typography variant="caption" color="text.secondary" noWrap>
+                            {job.department}
+                          </Typography>
+                          <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+                          <LocationIcon color="action" sx={{ fontSize: isMobile ? '0.9rem' : '1rem' }} />
+                          <Typography variant="caption" color="text.secondary" noWrap>
+                            {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
                           </Typography>
                         </Box>
-                      </Box>
-                      <Chip
-                        label={status}
-                        size="small"
-                        color={getStatusColor(status)}
-                        variant="outlined"
-                      />
-                    </Box>
 
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <PersonIcon color="action" fontSize="small" />
-                        <Typography variant="caption"
-                          color="text.secondary"
-                          sx={{
-                            fontWeight: 'bold',
-                            paddingX: 1,
-                            borderRadius: 1,
-                            display: 'inline-block'
-                          }}>
-                          Recruiter: {Array.isArray(jobForm.recruitingPerson) ?
-                            jobForm.recruitingPerson.join(', ') :
-                            jobForm.recruitingPerson || "Not assigned"}
-                        </Typography>
-                      </Box>
-                    </Box>
+                        <Stack 
+                          direction="row" 
+                          spacing={0.5} 
+                          mb={1} 
+                          flexWrap="wrap" 
+                          useFlexGap
+                          sx={{ gap: 0.5 }}
+                        >
+                          <Chip
+                            icon={<GroupIcon sx={{ fontSize: '0.8rem' }} />}
+                            label={`${jobForm.openings || 0}`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ 
+                              borderColor: '#90caf9',
+                              height: isMobile ? 20 : 24,
+                              '& .MuiChip-label': { fontSize: isMobile ? '0.625rem' : '0.75rem' }
+                            }}
+                          />
+                          <Chip
+                            icon={<MoneyIcon sx={{ fontSize: '0.8rem' }} />}
+                            label={jobForm.currency || 'USD'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ 
+                              borderColor: '#a5d6a7',
+                              height: isMobile ? 20 : 24,
+                              '& .MuiChip-label': { fontSize: isMobile ? '0.625rem' : '0.75rem' }
+                            }}
+                          />
+                          <Chip
+                            icon={<TimeIcon sx={{ fontSize: '0.8rem' }} />}
+                            label={jobForm.jobType || 'FT'}
+                            size="small"
+                            variant="outlined"
+                            sx={{ 
+                              borderColor: '#ffcc80',
+                              height: isMobile ? 20 : 24,
+                              '& .MuiChip-label': { fontSize: isMobile ? '0.625rem' : '0.75rem' }
+                            }}
+                          />
+                        </Stack>
 
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
-                      <Box display="flex" flexDirection="column" alignItems="flex-start">
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <BusinessIcon fontSize="small" color="action" />
-                          <Typography variant="caption"
-                            color="text.secondary"
-                            sx={{
-                              fontWeight: 'bold',
-                              paddingLeft: 1,
-                              display: 'inline-block'
-                            }}>
+                        <Box 
+                          display="flex" 
+                          flexDirection={isMobile ? 'column' : 'row'}
+                          justifyContent="space-between" 
+                          alignItems={isMobile ? 'flex-start' : 'center'}
+                          gap={isMobile ? 1 : 0}
+                        >
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            <CalendarTodayIcon color="action" sx={{ fontSize: isMobile ? '0.9rem' : '1rem' }} />
+                            <Typography variant="caption" color="text.secondary">
+                              {targetDate ? format(targetDate, 'MMM dd') : "No date"}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={status}
+                            size="small"
+                            color={getStatusColor(status)}
+                            variant="outlined"
+                            sx={{ 
+                              height: isMobile ? 20 : 24,
+                              '& .MuiChip-label': { fontSize: isMobile ? '0.625rem' : '0.75rem' }
+                            }}
+                          />
+                        </Box>
+
+                        <Box display="flex" alignItems="center" gap={0.5} mt={1}>
+                          <PersonIcon color="action" sx={{ fontSize: isMobile ? '0.9rem' : '1rem' }} />
+                          <Typography variant="caption" color="text.secondary" noWrap>
+                            {Array.isArray(jobForm.recruitingPerson) ?
+                              jobForm.recruitingPerson.join(', ') :
+                              jobForm.recruitingPerson || "Not assigned"}
+                          </Typography>
+                        </Box>
+
+                        <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
+                          <BusinessIcon color="action" sx={{ fontSize: isMobile ? '0.9rem' : '1rem' }} />
+                          <Typography variant="caption" color="text.secondary">
                             Unit: {jobForm.BusinessUnit === 'external' ? 'External' : 'Internal'}
                           </Typography>
                         </Box>
-                      </Box>
-                    </Box>
-                  </CardContent>
+                      </CardContent>
 
-                  <Menu
-                    anchorEl={statusMenuAnchorEl}
-                    open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
-                    onClose={handleStatusMenuClose}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
-                      Change {status} to:
-                    </Typography>
-                    {availableStatusChanges.map(status => (
-                      <MenuItem
-                        key={status}
-                        onClick={() => handleStatusChange(status)}
-                        sx={{ minWidth: 150 }}
+                      <Menu
+                        anchorEl={statusMenuAnchorEl}
+                        open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
+                        onClose={handleStatusMenuClose}
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <CheckCircleIcon
-                          color={getStatusColor(status)}
-                          sx={{ mr: 1, fontSize: '1rem' }}
-                        />
-                        {status}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </Card>
-              );
-            })}
-          </Box>
+                        <MenuItem 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareMenuClick(e, job._id, job.jobTitle);
+                          }}
+                        >
+                          <ShareIcon fontSize="small" sx={{ mr: 1 }} />
+                          Share
+                        </MenuItem>
+                        <Divider />
+                        <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                          Change {status} to:
+                        </Typography>
+                        {availableStatusChanges.map(status => (
+                          <MenuItem
+                            key={status}
+                            onClick={() => handleStatusChange(status)}
+                            sx={{ minWidth: 150 }}
+                          >
+                            <CheckCircleIcon
+                              color={getStatusColor(status)}
+                              sx={{ mr: 1, fontSize: '1rem' }}
+                            />
+                            {status}
+                          </MenuItem>
+                        ))}
+                      </Menu>
+                      <Menu
+                        anchorEl={shareAnchorEl}
+                        open={Boolean(shareAnchorEl && currentJobId === job._id)}
+                        onClose={handleShareMenuClose}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MenuItem onClick={handleShareClick}>
+                          <ShareIcon fontSize="small" sx={{ mr: 1 }} />
+                          Share with Vendors
+                        </MenuItem>
+                      </Menu>
+                    </Card>
+                  );
+                })}
+              </Box>
+            )}
+
+            {/* For Desktop - Both Card and Table Views based on user selection */}
+            {isDesktop && (
+              <>
+                {view === "table" ? (
+                  // Table View
+                  <TableContainer 
+                    component={Paper} 
+                    sx={{ 
+                      mt: 2, 
+                      boxShadow: 'none', 
+                      border: '1px solid #eee', 
+                      borderRadius: 2,
+                      overflowX: 'auto',
+                      maxWidth: '100%'
+                    }}
+                  >
+                    <Table 
+                      sx={{ 
+                        minWidth: 650,
+                        '& .MuiTableCell-root': {
+                          padding: isTablet ? '12px 6px' : '16px 8px',
+                          fontSize: isTablet ? '0.75rem' : '0.875rem'
+                        }
+                      }} 
+                      size={isTablet ? "small" : "medium"}
+                    >
+                      <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Job ID</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Job Title</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Dept.</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Location</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Unit</TableCell>
+                          {hasExternalJobs && (
+                            <TableCell sx={{ fontWeight: 'bold' }}>Client</TableCell>
+                          )}
+                          <TableCell sx={{ fontWeight: 'bold' }}>Open.</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Hire Date</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Recruiter</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Pri.</TableCell>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {filteredJobs.map((job) => {
+                          const jobForm = job.jobFormId || {};
+                          const targetDate = jobForm.targetHireDate ? parseISO(jobForm.targetHireDate) : null;
+                          const status = getJobStatus(job);
+                          const availableStatusChanges = getAvailableStatusChanges(status);
+
+                          return (
+                            <TableRow
+                              key={job._id}
+                              hover
+                              onClick={() => handleJobCardClick(job._id)}
+                              sx={{
+                                cursor: 'pointer',
+                                '&:nth-of-type(even)': { backgroundColor: '#fafafa' }
+                              }}
+                            >
+                              <TableCell sx={{ fontWeight: 500 }}>{job.formattedJobNumber}</TableCell>
+                              <TableCell sx={{ maxWidth: isTablet ? 120 : 200 }}>
+                                <Typography noWrap sx={{ fontSize: isTablet ? '0.75rem' : '0.875rem' }}>
+                                  {job.jobTitle}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography noWrap sx={{ maxWidth: isTablet ? 80 : 120, fontSize: isTablet ? '0.75rem' : '0.875rem' }}>
+                                  {job.department}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography noWrap sx={{ maxWidth: isTablet ? 80 : 120, fontSize: isTablet ? '0.75rem' : '0.875rem' }}>
+                                  {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography sx={{ fontSize: isTablet ? '0.75rem' : '0.875rem' }}>
+                                  {jobForm.BusinessUnit ? jobForm.BusinessUnit.charAt(0).toUpperCase() + jobForm.BusinessUnit.slice(1) : "-"}
+                                </Typography>
+                              </TableCell>
+                              {hasExternalJobs && (
+                                <TableCell>
+                                  <Typography noWrap sx={{ maxWidth: isTablet ? 80 : 100, fontSize: isTablet ? '0.75rem' : '0.875rem' }}>
+                                    {jobForm.BusinessUnit === 'external' ? getClientName(jobForm.Client) : "-"}
+                                  </Typography>
+                                </TableCell>
+                              )}
+                              <TableCell align="center">
+                                <Typography sx={{ fontSize: isTablet ? '0.75rem' : '0.875rem' }}>
+                                  {jobForm.openings || 0}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography sx={{ fontSize: isTablet ? '0.75rem' : '0.875rem' }}>
+                                  {targetDate ? format(targetDate, 'MMM dd') : "-"}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography noWrap sx={{ maxWidth: isTablet ? 80 : 100, fontSize: isTablet ? '0.75rem' : '0.875rem' }}>
+                                  {Array.isArray(jobForm.recruitingPerson) ?
+                                    jobForm.recruitingPerson.join(', ') :
+                                    jobForm.recruitingPerson || "-"}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Chip
+                                  label={status}
+                                  size="small"
+                                  color={getStatusColor(status)}
+                                  variant="outlined"
+                                  sx={{ 
+                                    borderRadius: 1,
+                                    height: isTablet ? 20 : 24,
+                                    '& .MuiChip-label': { fontSize: isTablet ? '0.625rem' : '0.75rem' }
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                {jobForm.markPriority ? (
+                                  <StarIcon color="primary" fontSize="small" />
+                                ) : (
+                                  "-"
+                                )}
+                              </TableCell>
+                              <TableCell align="center">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setCurrentJobId(job._id);
+                                    handleStatusMenuClick(e, job._id);
+                                  }}
+                                >
+                                  <MoreVertIcon fontSize="small" />
+                                </IconButton>
+                                <Menu
+                                  anchorEl={statusMenuAnchorEl}
+                                  open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
+                                  onClose={handleStatusMenuClose}
+                                >
+                                  <MenuItem 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleShareMenuClick(e, job._id, job.jobTitle);
+                                    }}
+                                  >
+                                    <ShareIcon fontSize="small" sx={{ mr: 1 }} />
+                                    Share
+                                  </MenuItem>
+                                  <Divider />
+                                  <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                                    Change {status} to:
+                                  </Typography>
+                                  {availableStatusChanges.map(status => (
+                                    <MenuItem
+                                      key={status}
+                                      onClick={() => handleStatusChange(status)}
+                                      sx={{ minWidth: 150 }}
+                                    >
+                                      <CheckCircleIcon
+                                        color={getStatusColor(status)}
+                                        sx={{ mr: 1, fontSize: '1rem' }}
+                                      />
+                                      {status}
+                                    </MenuItem>
+                                  ))}
+                                </Menu>
+                                <Menu
+                                  anchorEl={shareAnchorEl}
+                                  open={Boolean(shareAnchorEl && currentJobId === job._id)}
+                                  onClose={handleShareMenuClose}
+                                >
+                                  <MenuItem onClick={handleShareClick}>
+                                    <ShareIcon fontSize="small" sx={{ mr: 1 }} />
+                                    Share with Vendors
+                                  </MenuItem>
+                                </Menu>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  // Card View for Desktop
+                  <Box sx={{
+                    display: 'grid',
+                    gridTemplateColumns: getGridColumns(),
+                    gap: 3,
+                    p: 1
+                  }}>
+                    {filteredJobs.map((job) => {
+                      const jobForm = job.jobFormId || {};
+                      const targetDate = jobForm.targetHireDate ? parseISO(jobForm.targetHireDate) : null;
+                      const status = getJobStatus(job);
+                      const availableStatusChanges = getAvailableStatusChanges(status);
+                      const clientName = jobForm.BusinessUnit === 'external' && jobForm.Client ? getClientName(jobForm.Client) : null;
+
+                      return (
+                        <Card
+                          key={job._id}
+                          onClick={() => handleJobCardClick(job._id)}
+                          sx={{
+                            cursor: 'pointer',
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            borderLeft: jobForm.markPriority ? '4px solid #FFD700' : 'none',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                            transition: 'all 0.3s ease',
+                            borderRadius: 2,
+                            '&:hover': {
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                            }
+                          }}
+                        >
+                          <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                            {/* Header with Job Title and Actions */}
+                            <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                              <Box sx={{ flex: 1, minWidth: 0, pr: 1 }}>
+                                <Typography variant="caption" color="primary" fontWeight="bold" noWrap>
+                                  {job.formattedJobNumber}
+                                </Typography>
+                                <Typography 
+                                  variant="subtitle1" 
+                                  fontWeight="bold" 
+                                  sx={{
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical',
+                                    lineHeight: 1.3,
+                                    minHeight: '2.6em',
+                                    fontSize: '1rem'
+                                  }}
+                                >
+                                  {job.jobTitle}
+                                </Typography>
+                              </Box>
+                              <Box display="flex" alignItems="center" sx={{ flexShrink: 0 }}>
+                                {jobForm.markPriority && (
+                                  <StarIcon color="primary" fontSize="small" sx={{ mr: 0.5 }} />
+                                )}
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleStatusMenuClick(e, job._id);
+                                  }}
+                                >
+                                  <MoreVertIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+                            </Box>
+
+                            {/* Client Name Section - Only shown if client exists */}
+                            {clientName && (
+                              <Box sx={{ mb: 1 }}>
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    display: 'inline-block',
+                                    px: 1,
+                                    py: 0.25,
+                                    borderRadius: 1,
+                                    backgroundColor: '#e3f2fd',
+                                    color: 'primary.main',
+                                    fontWeight: 500,
+                                    fontSize: '0.7rem',
+                                    maxWidth: '100%',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap'
+                                  }}
+                                >
+                                  {clientName}
+                                </Typography>
+                              </Box>
+                            )}
+
+                            <Box display="flex" alignItems="center" mb={1} gap={0.5} flexWrap="wrap">
+                              <WorkIcon color="action" sx={{ fontSize: '1rem' }} />
+                              <Typography variant="caption" color="text.secondary" noWrap>
+                                {job.department}
+                              </Typography>
+                              <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+                              <LocationIcon color="action" sx={{ fontSize: '1rem' }} />
+                              <Typography variant="caption" color="text.secondary" noWrap>
+                                {jobForm.locations ? getLocationNames(jobForm.locations) : "Remote"}
+                              </Typography>
+                            </Box>
+
+                            <Stack 
+                              direction="row" 
+                              spacing={0.5} 
+                              mb={1} 
+                              flexWrap="wrap" 
+                              useFlexGap
+                              sx={{ gap: 0.5 }}
+                            >
+                              <Chip
+                                icon={<GroupIcon sx={{ fontSize: '0.8rem' }} />}
+                                label={`${jobForm.openings || 0}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ 
+                                  borderColor: '#90caf9',
+                                  height: 24,
+                                  '& .MuiChip-label': { fontSize: '0.75rem' }
+                                }}
+                              />
+                              <Chip
+                                icon={<MoneyIcon sx={{ fontSize: '0.8rem' }} />}
+                                label={jobForm.currency || 'USD'}
+                                size="small"
+                                variant="outlined"
+                                sx={{ 
+                                  borderColor: '#a5d6a7',
+                                  height: 24,
+                                  '& .MuiChip-label': { fontSize: '0.75rem' }
+                                }}
+                              />
+                              <Chip
+                                icon={<TimeIcon sx={{ fontSize: '0.8rem' }} />}
+                                label={jobForm.jobType || 'FT'}
+                                size="small"
+                                variant="outlined"
+                                sx={{ 
+                                  borderColor: '#ffcc80',
+                                  height: 24,
+                                  '& .MuiChip-label': { fontSize: '0.75rem' }
+                                }}
+                              />
+                            </Stack>
+
+                            <Box 
+                              display="flex" 
+                              justifyContent="space-between" 
+                              alignItems="center"
+                            >
+                              <Box display="flex" alignItems="center" gap={0.5}>
+                                <CalendarTodayIcon color="action" sx={{ fontSize: '1rem' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  {targetDate ? format(targetDate, 'MMM dd') : "No date"}
+                                </Typography>
+                              </Box>
+                              <Chip
+                                label={status}
+                                size="small"
+                                color={getStatusColor(status)}
+                                variant="outlined"
+                                sx={{ 
+                                  height: 24,
+                                  '& .MuiChip-label': { fontSize: '0.75rem' }
+                                }}
+                              />
+                            </Box>
+
+                            <Box display="flex" alignItems="center" gap={0.5} mt={1}>
+                              <PersonIcon color="action" sx={{ fontSize: '1rem' }} />
+                              <Typography variant="caption" color="text.secondary" noWrap>
+                                {Array.isArray(jobForm.recruitingPerson) ?
+                                  jobForm.recruitingPerson.join(', ') :
+                                  jobForm.recruitingPerson || "Not assigned"}
+                              </Typography>
+                            </Box>
+
+                            <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
+                              <BusinessIcon color="action" sx={{ fontSize: '1rem' }} />
+                              <Typography variant="caption" color="text.secondary">
+                                Unit: {jobForm.BusinessUnit === 'external' ? 'External' : 'Internal'}
+                              </Typography>
+                            </Box>
+                          </CardContent>
+
+                          <Menu
+                            anchorEl={statusMenuAnchorEl}
+                            open={Boolean(statusMenuAnchorEl && currentJobId === job._id)}
+                            onClose={handleStatusMenuClose}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MenuItem 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleShareMenuClick(e, job._id, job.jobTitle);
+                              }}
+                            >
+                              <ShareIcon fontSize="small" sx={{ mr: 1 }} />
+                              Share
+                            </MenuItem>
+                            <Divider />
+                            <Typography variant="subtitle2" sx={{ px: 2, py: 1 }}>
+                              Change {status} to:
+                            </Typography>
+                            {availableStatusChanges.map(status => (
+                              <MenuItem
+                                key={status}
+                                onClick={() => handleStatusChange(status)}
+                                sx={{ minWidth: 150 }}
+                              >
+                                <CheckCircleIcon
+                                  color={getStatusColor(status)}
+                                  sx={{ mr: 1, fontSize: '1rem' }}
+                                />
+                                {status}
+                              </MenuItem>
+                            ))}
+                          </Menu>
+                          <Menu
+                            anchorEl={shareAnchorEl}
+                            open={Boolean(shareAnchorEl && currentJobId === job._id)}
+                            onClose={handleShareMenuClose}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MenuItem onClick={handleShareClick}>
+                              <ShareIcon fontSize="small" sx={{ mr: 1 }} />
+                              Share with Vendors
+                            </MenuItem>
+                          </Menu>
+                        </Card>
+                      );
+                    })}
+                  </Box>
+                )}
+              </>
+            )}
+          </>
         )}
-      </Container>
+      </Box>
     </MainLayout>
   );
 };

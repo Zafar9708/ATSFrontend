@@ -400,20 +400,7 @@ const OnlineInterviews = ({ searchTerm, statusFilter, selectedDate }) => {
         gap: 2
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Tooltip title="Go back">
-            <IconButton
-              onClick={() => navigate(-1)}
-              sx={{
-                mr: 2,
-                backgroundColor: theme.palette.action.hover,
-                '&:hover': {
-                  backgroundColor: theme.palette.action.selected
-                }
-              }}
-            >
-              <BackIcon />
-            </IconButton>
-          </Tooltip>
+       
           <Typography variant="h4" sx={{ fontWeight: 700 }}>
             Interview Schedule
           </Typography>
