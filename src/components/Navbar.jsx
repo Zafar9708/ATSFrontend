@@ -52,9 +52,9 @@ const Navbar = () => {
     { text: 'About Us', href: '#about' },
   ];
 
-  const vendorMenuItems = [
+ /*  const vendorMenuItems = [
     { text: 'Vendor Login', href: '/vendor-login' }
-  ];
+  ]; */
 
   const MobileMenu = () => (
     <Drawer

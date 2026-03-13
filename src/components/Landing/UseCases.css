@@ -1,0 +1,125 @@
+/* ===== USE CASES SECTION ===== */
+.usecases {
+  padding: 100px 8%;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(5, 20, 60, 0.75),   /* dark blue */
+      rgba(23, 69, 126, 0.55) /* light blue */
+    ),
+    url("images/b5.avif") no-repeat center center;
+  background-size: cover;
+  color: #ffffff;
+  text-align: center;
+}
+
+/* Heading */
+.usecases h2 {
+  font-size: 42px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: -0.5px;
+}
+
+/* Subtitle */
+.usecases-subtitle {
+  max-width: 700px;
+  margin: 0 auto 60px;
+  font-size: 18px;
+  color: #ffa500;
+  line-height: 1.6;
+}
+
+/* Grid */
+.usecase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 30px;
+}
+
+/* Card */
+.usecase-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 40px 28px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* Animation */
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.6s ease;
+  margin-right: 20px;
+}
+
+/* When visible */
+.usecase-card.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hover Effect */
+.usecase-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 165, 0, 0.6);
+}
+
+/* Icon */
+.usecase-icon {
+  width: 46px;
+  height: 46px;
+  color: #ffa500;
+  margin-bottom: 20px;
+}
+
+/* Card Title */
+.usecase-card h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+/* Card Text */
+.usecase-card p {
+  font-size: 15.5px;
+  color: #e0e7ff;
+  line-height: 1.6;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .usecases {
+    padding: 80px 6%;
+  }
+
+  .usecases h2 {
+    font-size: 34px;
+  }
+
+  .usecases-subtitle {
+    font-size: 16px;
+  }
+}
+
+/* ===== GRID LAYOUT ===== */
+.usecase-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  margin-top: 50px;
+}
+
+/* ===== TABLET ===== */
+@media (max-width: 992px) {
+  .usecase-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 576px) {
+  .usecase-grid {
+    grid-template-columns: 1fr;
+  }
+}

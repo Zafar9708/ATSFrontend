@@ -1,0 +1,112 @@
+/* ===== NAVBAR ===== */
+.navbar {
+  height: 80px;
+  padding: 0 40px;
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: rgba(2, 14, 28, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+/* ===== LEFT ===== */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ===== LOGO ===== */
+.logo-img {
+  height: 150px;          /* ✅ MUST be less than navbar height */
+  width: 150px;
+  object-fit: contain;
+  display: block;
+  margin-top: 20px;
+}
+
+/* ===== BRAND TEXT ===== */
+.brand {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+/* ===== CENTER ===== */
+.nav-center {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.nav-center a {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  opacity: 0.9;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-center a:hover {
+  color: #e78319;
+  opacity: 1;
+}
+
+/* ===== RIGHT ===== */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.login-btn {
+  color: #ffffff;
+  border: 2px solid white;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+}
+
+.login-btn:hover {
+  color: #e78319;
+}
+
+/* ===== SIGN UP BUTTON ===== */
+.signup-btn {
+  padding: 9px 18px;
+  background: #e87b07;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.signup-btn:hover {
+  background: #ff8500;
+  transform: translateY(-1px);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+  .nav-center {
+    display: none;
+  }
+
+  .navbar {
+    padding: 0 20px;
+  }
+}

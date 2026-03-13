@@ -31,10 +31,16 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Divider,
     Snackbar,
     Alert,
     Tooltip,
+    useMediaQuery,
+    useTheme,
+    Drawer,
+    Badge,
+    Stack,
+    Grid,
+    InputAdornment,
 } from "@mui/material";
 import {
     ViewModule as CardViewIcon,
@@ -47,12 +53,14 @@ import {
     Email as EmailIcon,
     Assessment as AnalysisIcon,
     CloudUpload as UploadIcon,
+    Search as SearchIcon,
+    Close as CloseIcon,
+    Person as PersonIcon,
+    ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from '@mui/material/styles';
-import CloseIcon from '@mui/icons-material/Close';
 
-import CandidateDetailsPage from "../../pages/Candidate/CandidateDetailsPage";
+import CandidateDetailsPage from "./CandidateDetailsPage";
 import CandidateResumeAnalysis from "../../pages/Candidate/CandidateResumeAnalysis";
 import candidateService from "../../services/Candidates/candidateService";
 import stageService from "../../services/Candidates/stageService";
@@ -62,6 +70,12 @@ import ErrorBoundary from "../../components/ErrorBoundary";
 export const CandidatesTab = () => {
     const navigate = useNavigate();
     const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+    
+    // Sidebar state
+    const [sidebarOpen, setSidebarOpen] = useState(true);
+    
     const [viewMode, setViewMode] = useState("table");
     const [selectedCandidates, setSelectedCandidates] = useState([]);
     const [interviewAnchorEl, setInterviewAnchorEl] = useState(null);
@@ -98,15 +112,75 @@ export const CandidatesTab = () => {
     const [analysisLoading, setAnalysisLoading] = useState(false);
     const [rejectionTypes, setRejectionTypes] = useState([]);
     const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
+    
+    // Mobile filter drawer state
+    const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+    const [tempFilters, setTempFilters] = useState({});
 
-    // Filter state
+    // Filter state - Updated with new fields
     const [filters, setFilters] = useState({
+        status: '',
+        businessUnit: '',
+        department: '',
+        recruiter: '',
+        location: '',
+        searchQuery: '',
         source: '',
         experience: '',
-        availableToJoin: '',
-        status: '',
-        searchQuery: ''
+        availableToJoin: ''
     });
+
+    // Mock data for filter options (replace with actual API data)
+    const businessUnits = ['Technology', 'Sales', 'Marketing', 'Operations', 'HR'];
+    const departments = ['Engineering', 'Product', 'Design', 'Finance', 'Legal'];
+    const recruiters = ['John Smith', 'Sarah Johnson', 'Mike Brown', 'Lisa Davis'];
+    const locations = ['New York', 'San Francisco', 'London', 'Singapore', 'Mumbai'];
+
+    // Calculate main content width based on sidebar state
+    const getMainContentWidth = () => {
+        if (isMobile) return '100%';
+        if (isTablet) {
+            return sidebarOpen ? 'calc(100vw - 240px)' : 'calc(100vw - 65px)';
+        }
+        return sidebarOpen ? 'calc(100vw - 240px)' : 'calc(100vw - 65px)';
+    };
+
+    // Get responsive grid columns for card view
+    const getCardGridColumns = () => {
+        if (isMobile) return '1fr';
+        if (isTablet) {
+            return sidebarOpen ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)';
+        }
+        if (sidebarOpen) {
+            return {
+                md: 'repeat(2, 1fr)',
+                lg: 'repeat(3, 1fr)',
+                xl: 'repeat(4, 1fr)'
+            };
+        }
+        return {
+            md: 'repeat(3, 1fr)',
+            lg: 'repeat(4, 1fr)',
+            xl: 'repeat(5, 1fr)'
+        };
+    };
+
+    // Get responsive padding
+    const getContainerPadding = () => {
+        if (isMobile) return 1;
+        if (isTablet) return 2;
+        return 3;
+    };
+
+    // Get filter count
+    const getFilterCount = () => {
+        return Object.keys(filters).filter(key => filters[key] && key !== 'searchQuery').length;
+    };
+
+    // Handle back navigation
+    const handleBack = () => {
+        navigate(-1);
+    };
 
     // Fetch all candidates and related data
     useEffect(() => {
@@ -114,11 +188,8 @@ export const CandidatesTab = () => {
             try {
                 setLoading(true);
                 
-                // Fetch all candidates
                 const candidatesResponse = await candidateService.fetchCandidates();
-                console.log("Candidates API response:", candidatesResponse);
                 
-                // Fix: Check if the response is an array directly or has a candidates property
                 let candidatesData = [];
                 if (Array.isArray(candidatesResponse)) {
                     candidatesData = candidatesResponse;
@@ -128,10 +199,8 @@ export const CandidatesTab = () => {
                     candidatesData = candidatesResponse.data;
                 }
                 
-                console.log("Candidates data:", candidatesData);
                 setCandidates(candidatesData);
 
-                // Fetch other data
                 try {
                     const stagesData = await stageService.fetchStages();
                     setStages(stagesData);
@@ -199,7 +268,6 @@ export const CandidatesTab = () => {
         }
         
         if (typeof owner === 'object') {
-            // Extract email and get the username part before @
             if (owner.email) {
                 return owner.email.split('@')[0];
             }
@@ -213,8 +281,6 @@ export const CandidatesTab = () => {
 
     // Helper function to get vendor name
     const getVendorName = (candidate) => {
-        // This is a placeholder - you'll need to adjust based on your API structure
-        // If your API doesn't provide vendor information, you might need to fetch it separately
         return candidate.vendor || 'Not Specified';
     };
 
@@ -272,6 +338,29 @@ export const CandidatesTab = () => {
                         return false;
                     }
                 }
+            }
+
+            // Business Unit filter (mock - replace with actual logic)
+            if (filters.businessUnit && candidate.businessUnit !== filters.businessUnit) {
+                return false;
+            }
+
+            // Department filter (mock - replace with actual logic)
+            if (filters.department && candidate.department !== filters.department) {
+                return false;
+            }
+
+            // Recruiter filter (mock - replace with actual logic)
+            if (filters.recruiter) {
+                const recruiterName = getRecruiterName(candidate.owner);
+                if (recruiterName !== filters.recruiter && recruiterName !== 'Not assigned') {
+                    return false;
+                }
+            }
+
+            // Location filter (mock - replace with actual logic)
+            if (filters.location && candidate.location !== filters.location) {
+                return false;
             }
 
             // Source filter
@@ -415,7 +504,6 @@ export const CandidatesTab = () => {
     const handleStageMove = async (formData) => {
         try {
             await candidateService.updateCandidate(currentCandidate, formData);
-            // Refresh the candidates list
             const candidatesResponse = await candidateService.fetchCandidates();
             let refreshedCandidates = [];
             
@@ -443,7 +531,6 @@ export const CandidatesTab = () => {
             );
 
             await Promise.all(updatePromises);
-            // Refresh the candidates list
             const candidatesResponse = await candidateService.fetchCandidates();
             let refreshedCandidates = [];
             
@@ -515,7 +602,6 @@ export const CandidatesTab = () => {
                     candidateService.deleteCandidate(id)
                 );
                 await Promise.all(deletePromises);
-                // Refresh the candidates list
                 const candidatesResponse = await candidateService.fetchCandidates();
                 let refreshedCandidates = [];
                 
@@ -588,7 +674,6 @@ export const CandidatesTab = () => {
                 candidateId: currentCandidate
             });
 
-            // Refresh the candidates list
             const candidatesResponse = await candidateService.fetchCandidates();
             let refreshedCandidates = [];
             
@@ -633,8 +718,32 @@ export const CandidatesTab = () => {
         setRejectedFilter('');
     };
 
+    const handleMobileFilterApply = () => {
+        setFilters(tempFilters);
+        setMobileFilterOpen(false);
+    };
+
+    const handleMobileFilterClear = () => {
+        setTempFilters({});
+    };
+
+    const handleResetFilters = () => {
+        setFilters({
+            status: '',
+            businessUnit: '',
+            department: '',
+            recruiter: '',
+            location: '',
+            searchQuery: '',
+            source: '',
+            experience: '',
+            availableToJoin: ''
+        });
+        setTempFilters({});
+        setRejectedFilter('');
+    };
+
     const handleBulkUploadComplete = () => {
-        // Refresh the candidates list after bulk upload
         const fetchData = async () => {
             try {
                 setLoading(true);
@@ -662,6 +771,307 @@ export const CandidatesTab = () => {
         fetchData();
     };
 
+    // Mobile Filter Drawer Component - With labels in border left corner
+    const MobileFilterDrawer = () => (
+        <Drawer
+            anchor="bottom"
+            open={mobileFilterOpen}
+            onClose={() => setMobileFilterOpen(false)}
+            PaperProps={{
+                sx: {
+                    maxHeight: '85vh',
+                    borderTopLeftRadius: 24,
+                    borderTopRightRadius: 24,
+                    p: { xs: 2.5, sm: 3 }
+                }
+            }}
+        >
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+                pb: 1,
+                borderBottom: '2px solid #f1f5f9'
+            }}>
+                <Typography variant="h6" sx={{
+                    fontSize: '1.2rem',
+                    fontWeight: 600,
+                    color: '#0f172a'
+                }}>
+                    Filter Candidates
+                </Typography>
+                <IconButton onClick={() => setMobileFilterOpen(false)} size="small">
+                    <CloseIcon />
+                </IconButton>
+            </Box>
+
+            <Box sx={{
+                maxHeight: 'calc(85vh - 180px)',
+                overflowY: 'auto',
+                px: 0.5,
+                '&::-webkit-scrollbar': {
+                    width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                    background: '#f1f5f9',
+                    borderRadius: '10px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                    background: '#94a3b8',
+                    borderRadius: '10px',
+                },
+            }}>
+                <Stack spacing={2.5}>
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Status
+                        </InputLabel>
+                        <Select
+                            value={tempFilters.status || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
+                            label="Status"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
+                        >
+                            <MenuItem value="">
+                                <em style={{ fontSize: '0.95rem' }}>Select Status </em>
+                            </MenuItem>
+                            {stageOptions.map(option => (
+                                <MenuItem key={option._id || option} value={option.name || option}>
+                                    {option.name || option}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Business Unit
+                        </InputLabel>
+                        <Select
+                            value={tempFilters.businessUnit || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, businessUnit: e.target.value }))}
+                            label="Business Unit"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
+                        >
+                            <MenuItem value="">
+                                <em style={{ fontSize: '0.95rem' }}>Select Business Unit </em>
+                            </MenuItem>
+                            {businessUnits.map(unit => (
+                                <MenuItem key={unit} value={unit}>
+                                    {unit}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Department
+                        </InputLabel>
+                        <Select
+                            value={tempFilters.department || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, department: e.target.value }))}
+                            label="Department"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
+                        >
+                            <MenuItem value="">
+                                <em style={{ fontSize: '0.95rem' }}>Select Department </em>
+                            </MenuItem>
+                            {departments.map(dept => (
+                                <MenuItem key={dept} value={dept}>
+                                    {dept}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Recruiter
+                        </InputLabel>
+                        <Select
+                            value={tempFilters.recruiter || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, recruiter: e.target.value }))}
+                            label="Recruiter"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
+                        >
+                            <MenuItem value="">
+                                <em style={{ fontSize: '0.95rem' }}>Select Recruiter </em>
+                            </MenuItem>
+                            {recruiters.map(recruiter => (
+                                <MenuItem key={recruiter} value={recruiter}>
+                                    {recruiter}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Location
+                        </InputLabel>
+                        <Select
+                            value={tempFilters.location || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, location: e.target.value }))}
+                            label="Location"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
+                        >
+                            <MenuItem value="">
+                                <em style={{ fontSize: '0.95rem' }}>Select Location </em>
+                            </MenuItem>
+                            {locations.map(location => (
+                                <MenuItem key={location} value={location}>
+                                    {location}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                </Stack>
+            </Box>
+
+            <Box sx={{
+                display: 'flex',
+                gap: 2,
+                mt: 3,
+                pt: 2.5,
+                borderTop: '2px solid #f1f5f9'
+            }}>
+                <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => {
+                        setTempFilters({});
+                        handleMobileFilterClear();
+                    }}
+                    sx={{
+                        py: 1.5,
+                        fontSize: '0.95rem',
+                        fontWeight: 500,
+                        borderRadius: 2,
+                        borderColor: '#cbd5e1',
+                        borderWidth: '1.5px',
+                        color: '#475569',
+                        '&:hover': {
+                            borderColor: '#2563eb',
+                            backgroundColor: '#f0f9ff',
+                            color: '#2563eb'
+                        }
+                    }}
+                >
+                    Clear All
+                </Button>
+                <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={handleMobileFilterApply}
+                    sx={{
+                        py: 1.5,
+                        fontSize: '0.95rem',
+                        fontWeight: 500,
+                        borderRadius: 2,
+                        backgroundColor: '#2563eb',
+                        '&:hover': {
+                            backgroundColor: '#1e40af'
+                        }
+                    }}
+                >
+                    Apply Filters {getFilterCount() > 0 && `(${getFilterCount()})`}
+                </Button>
+            </Box>
+        </Drawer>
+    );
+
     if (error) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -671,29 +1081,88 @@ export const CandidatesTab = () => {
     }
 
     return (
-        <Box sx={{ p: 1,ml:15, mt:5 }}>
+        <Box sx={{
+            width: getMainContentWidth(),
+            minHeight: '100vh',
+            p: getContainerPadding(),
+            ml: { 
+                xs: 0, 
+                sm: sidebarOpen ? '200px' : '65px',
+                md: sidebarOpen ? '200px' : '65px' 
+            },
+            transition: 'margin-left 0.3s ease, width 0.3s ease',
+            mt: { xs: 7, sm: 8, md: 9 },
+            overflowX: 'hidden',
+        }}>
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={6000}
                 onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                anchorOrigin={{ vertical: isMobile ? 'bottom' : 'top', horizontal: isMobile ? 'center' : 'right' }}
             >
                 <Alert onClose={handleCloseSnackbar} severity={snackbar.severity}>
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+            
+        <Box sx={{ mb: isMobile ? 1 : 2 }}>
+  <Button
+    startIcon={<ArrowBackIcon />}
+    onClick={handleBack}
+    sx={{
+      // Text and icon color - blue
+      color: '#1976d2',
+      
+      // Hover effect - blue text with light grey background
+      '&:hover': {
+        backgroundColor: '#f5f5f5',  // Light grey background on hover
+        color: '#1565C0',  // Slightly darker blue on hover
+      },
+      
+      // Responsive styles
+      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontWeight: 500,
+      textTransform: 'none',
+      px: isMobile ? 1 : 2,
+      py: isMobile ? 0.5 : 1,
+      
+      // Optional: smooth transition for hover effect
+      transition: 'all 0.2s ease',
+      
+      // Remove default background
+      backgroundColor: 'transparent',
+    }}
+  >
+    Back  
+  </Button>
+</Box>
 
             {/* Header */}
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                    All Candidates ({candidates.length})
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <Box sx={{
+                display: "flex",
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: "space-between",
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                gap: 2,
+                mb: 3
+            }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 600 }}>
+                        All Candidates ({candidates.length})
+                    </Typography>
+                </Box>
+                <Box sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 2,
+                    width: { xs: '100%', sm: 'auto' }
+                }}>
                     <Button
                         variant="contained"
                         startIcon={<UploadIcon />}
                         onClick={() => setBulkUploadOpen(true)}
-                        sx={{ mr: 1 }}
+                        fullWidth={isMobile}
+                        size={isMobile ? "small" : "medium"}
                     >
                         Bulk Upload
                     </Button>
@@ -715,8 +1184,25 @@ export const CandidatesTab = () => {
 
             {/* Stages Summary */}
             <Card sx={{ mb: 2, overflow: "hidden" }}>
-                <CardContent sx={{ p: 2 }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, overflowX: "auto", py: 2 }}>
+                <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
+                    <Box sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: { xs: 1, sm: 2 },
+                        overflowX: "auto",
+                        py: { xs: 1, sm: 2 },
+                        px: { xs: 0.5, sm: 1 },
+                        '&::-webkit-scrollbar': {
+                            height: '4px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            background: '#f1f5f9',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            background: '#94a3b8',
+                            borderRadius: '4px',
+                        },
+                    }}>
                         {stageCardData.map(({ stage, label, count, totalCount }) => (
                             <Card
                                 key={stage}
@@ -732,10 +1218,10 @@ export const CandidatesTab = () => {
                                     backgroundColor: (stage === 'sourced' && !filters.status) ||
                                         (stage !== 'sourced' && filters.status.toLowerCase() === stage) ?
                                         "#e3f2fd" : "#f5f5f5",
-                                    width: "150px",
+                                    minWidth: { xs: '110px', sm: '130px', md: '150px' },
                                     textAlign: "center",
                                     borderRadius: 2,
-                                    p: 2,
+                                    p: { xs: 1.5, sm: 2 },
                                     boxShadow: 2,
                                     flexShrink: 0,
                                     cursor: "pointer",
@@ -746,10 +1232,10 @@ export const CandidatesTab = () => {
                                     }
                                 }}
                             >
-                                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                                <Typography variant={isMobile ? "body1" : "h6"} sx={{ fontWeight: 600 }}>
                                     {stage === 'sourced' ? `${totalCount}` : count}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.875rem' } }}>
                                     {label}
                                 </Typography>
                             </Card>
@@ -761,137 +1247,369 @@ export const CandidatesTab = () => {
             {/* Rejected Filter */}
             {filters.status.toLowerCase() === 'rejected' && (
                 <Box sx={{ mb: 2 }}>
-                    <FormControl size="small" sx={{ minWidth: 200 }}>
-                        <InputLabel>Rejection Type</InputLabel>
+                    <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 200 } }}>
+                        <InputLabel sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>Rejection Type</InputLabel>
                         <Select
                             value={rejectedFilter}
                             onChange={handleRejectedFilterChange}
                             label="Rejection Type"
+                            sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}
                         >
-                            <MenuItem value="">All Rejected</MenuItem>
+                            <MenuItem value="">
+                                <em style={{ fontSize: '0.85rem' }}>All Rejected</em>
+                            </MenuItem>
                             {rejectionTypes.map(type => (
-                                <MenuItem key={type} value={type}>{type}</MenuItem>
+                                <MenuItem key={type} value={type}>
+                                    <span style={{ fontSize: '0.85rem' }}>{type}</span>
+                                </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
                 </Box>
             )}
 
-            {/* Filters */}
-            <Card sx={{ mb: 2 }}>
-                <CardContent>
-                    <Typography variant="subtitle1" fontWeight={600} mb={2}>
-                        Filters
-                    </Typography>
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
-                        <FormControl size="small" sx={{ minWidth: 200 }}>
-                            <InputLabel>Source</InputLabel>
-                            <Select
-                                label="Source"
-                                value={filters.source}
-                                onChange={handleFilterChange('source')}
-                            >
-                                <MenuItem value="">All Sources</MenuItem>
-                                {Array.from(new Set(candidates
-                                    .map(c => {
-                                        if (!c) return null;
-                                        if (typeof c.source === 'string') return c.source;
-                                        if (c.source && typeof c.source === 'object') return c.source.name;
-                                        return null;
-                                    })
-                                    .filter(Boolean)
-                                )).map(source => (
-                                    <MenuItem key={source} value={source}>{source}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+            {/* Filters - With labels in border left corner - WIDER VERSION */}
+            {isMobile ? (
+                // Mobile Filter Bar
+                <Card sx={{ mb: 2 }}>
+                    <CardContent sx={{ p: 1.5 }}>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                placeholder="Search jobs..."
+                                value={filters.searchQuery}
+                                onChange={handleFilterChange('searchQuery')}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon fontSize="small" />
+                                        </InputAdornment>
+                                    ),
+                                    sx: { fontSize: '0.85rem' }
+                                }}
+                            />
+                            <Badge badgeContent={getFilterCount()} color="primary">
+                                <IconButton
+                                    onClick={() => {
+                                        setTempFilters(filters);
+                                        setMobileFilterOpen(true);
+                                    }}
+                                    sx={{ border: '1px solid #ddd', borderRadius: 1 }}
+                                >
+                                    <FilterIcon />
+                                </IconButton>
+                            </Badge>
+                        </Box>
+                    </CardContent>
+                </Card>
+            ) : (
+                // Desktop/Tablet Filters - WIDER VERSION with better space utilization
+                <Card sx={{ mb: 2 }}>
+                    <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+                        {/* Filter Row - 6 equal width items (5 filters + reset button) */}
+                        <Grid container spacing={2} alignItems="center">
+                            {/* Status Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Status
+                                    </InputLabel>
+                                    <Select
+                                        label="Status"
+                                        value={filters.status}
+                                        onChange={handleFilterChange('status')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Status </em>
+                                        </MenuItem>
+                                        {stageOptions.map(option => (
+                                            <MenuItem key={option._id || option} value={option.name || option}>
+                                                {option.name || option}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
 
-                        <FormControl size="small" sx={{ minWidth: 200 }}>
-                            <InputLabel>Experience</InputLabel>
-                            <Select
-                                label="Experience"
-                                value={filters.experience}
-                                onChange={handleFilterChange('experience')}
-                            >
-                                <MenuItem value="">All Experience</MenuItem>
-                                <MenuItem value="0-2">0-2 years</MenuItem>
-                                <MenuItem value="3-5">3-5 years</MenuItem>
-                                <MenuItem value="5+">5+ years</MenuItem>
-                            </Select>
-                        </FormControl>
+                            {/* Business Unit Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Business Unit
+                                    </InputLabel>
+                                    <Select
+                                        label="Business Unit"
+                                        value={filters.businessUnit || ""}
+                                        onChange={handleFilterChange('businessUnit')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Business Unit </em>
+                                        </MenuItem>
+                                        {businessUnits.map(unit => (
+                                            <MenuItem key={unit} value={unit}>
+                                                {unit}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
 
-                        <FormControl size="small" sx={{ minWidth: 250 }}>
-                            <InputLabel>Available to join (In Days)</InputLabel>
-                            <Select
-                                label="Available to join (In Days)"
-                                value={filters.availableToJoin}
-                                onChange={handleFilterChange('availableToJoin')}
-                            >
-                                <MenuItem value="">Any Availability</MenuItem>
-                                <MenuItem value="7">Within 7 days</MenuItem>
-                                <MenuItem value="15">Within 15 days</MenuItem>
-                                <MenuItem value="30">Within 30 days</MenuItem>
-                                <MenuItem value="60">Within 60 days</MenuItem>
-                            </Select>
-                        </FormControl>
+                            {/* Department Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Department
+                                    </InputLabel>
+                                    <Select
+                                        label="Department"
+                                        value={filters.department || ""}
+                                        onChange={handleFilterChange('department')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Department </em>
+                                        </MenuItem>
+                                        {departments.map(dept => (
+                                            <MenuItem key={dept} value={dept}>
+                                                {dept}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
 
-                        <FormControl size="small" sx={{ minWidth: 200 }}>
-                            <InputLabel>Status</InputLabel>
-                            <Select
-                                label="Status"
-                                value={filters.status}
-                                onChange={handleFilterChange('status')}
-                            >
-                                <MenuItem value="">All Statuses</MenuItem>
-                                {stageOptions.map(option => (
-                                    <MenuItem key={option._id || option} value={option.name || option}>
-                                        {option.name || option}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                            {/* Recruiter Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Recruiter
+                                    </InputLabel>
+                                    <Select
+                                        label="Recruiter"
+                                        value={filters.recruiter || ""}
+                                        onChange={handleFilterChange('recruiter')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Recruiter</em>
+                                        </MenuItem>
+                                        {recruiters.map(recruiter => (
+                                            <MenuItem key={recruiter} value={recruiter}>
+                                                {recruiter}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
 
-                        <TextField
-                            size="small"
-                            placeholder="Search candidates..."
-                            value={filters.searchQuery}
-                            onChange={handleFilterChange('searchQuery')}
-                            sx={{ minWidth: 410 }}
-                            InputProps={{
-                                endAdornment: (
-                                    <IconButton size="small">
-                                        <FilterIcon />
-                                    </IconButton>
-                                ),
-                            }}
-                        />
-                    </Box>
-                </CardContent>
-            </Card>
+                            {/* Location Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Location
+                                    </InputLabel>
+                                    <Select
+                                        label="Location"
+                                        value={filters.location || ""}
+                                        onChange={handleFilterChange('location')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Location </em>
+                                        </MenuItem>
+                                        {locations.map(location => (
+                                            <MenuItem key={location} value={location}>
+                                                {location}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Reset Button - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <Button
+                                    variant="outlined"
+                                    onClick={handleResetFilters}
+                                    fullWidth
+                                    size="medium"
+                                    sx={{
+                                        height: { xs: '44px', sm: '48px', md: '52px' },
+                                        ml:"70px",
+                                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                        fontWeight: 500,
+                                        whiteSpace: 'nowrap',
+                                        borderColor: '#d32f2f',
+                                        color: '#d32f2f',
+                                        '&:hover': {
+                                            borderColor: '#b71c1c',
+                                            backgroundColor: '#ffebee',
+                                        }
+                                    }}
+                                    disabled={Object.keys(filters).filter(k => filters[k]).length === 0}
+                                >
+                                    RESET ALL FILTERS
+                                </Button>
+                            </Grid>
+                        </Grid>
+
+                        {/* Search Row - Full width */}
+                        <Box sx={{ mt: 2 }}>
+                            <TextField
+                                fullWidth
+                                size="small"
+                                placeholder="Search by name, email, phone, skills..."
+                                value={filters.searchQuery}
+                                onChange={handleFilterChange('searchQuery')}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon fontSize="small" />
+                                        </InputAdornment>
+                                    ),
+                                    sx: { 
+                                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                        py: { xs: 0.5, sm: 0.8, md: 1 }
+                                    }
+                                }}
+                            />
+                        </Box>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Mobile Filter Drawer */}
+            <MobileFilterDrawer />
 
             {/* Bulk Actions */}
             {selectedCandidates.length > 0 && (
-                <Box sx={{ mb: 2, display: "flex", alignItems: "center", gap: 2 }}>
-                    <Typography variant="body2">{selectedCandidates.length} selected</Typography>
-                    <FormControl size="small" sx={{ minWidth: 150 }}>
+                <Box sx={{
+                    mb: 2,
+                    display: "flex",
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    gap: 2,
+                    p: 1.5,
+                    backgroundColor: '#f0f9ff',
+                    borderRadius: 2,
+                    border: '1px solid #bae6fd'
+                }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {selectedCandidates.length} candidate{selectedCandidates.length > 1 ? 's' : ''} selected
+                    </Typography>
+                    <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 150 } }}>
                         <InputLabel>Bulk Actions</InputLabel>
                         <Select
                             label="Bulk Actions"
                             defaultValue=""
                             onChange={(e) => handleBulkAction(e.target.value)}
+                            sx={{ fontSize: '0.85rem' }}
                         >
                             <MenuItem value="email">
                                 <ListItemIcon>
                                     <EmailIcon fontSize="small" />
                                 </ListItemIcon>
-                                <ListItemText>Send email</ListItemText>
+                                <ListItemText primary="Send email" />
                             </MenuItem>
                             <MenuItem value="delete">Delete</MenuItem>
                             <MenuItem value="move-to-sourced">
                                 <ListItemIcon>
                                     <StageIcon fontSize="small" />
                                 </ListItemIcon>
-                                <ListItemText>Move to another Stage</ListItemText>
+                                <ListItemText primary="Move to another Stage" />
                             </MenuItem>
                         </Select>
                     </FormControl>
@@ -899,7 +1617,20 @@ export const CandidatesTab = () => {
             )}
 
             {/* Bulk Move Dialog */}
-            <Dialog open={bulkMoveDialogOpen} onClose={() => setBulkMoveDialogOpen(false)}>
+            <Dialog
+                open={bulkMoveDialogOpen}
+                onClose={() => setBulkMoveDialogOpen(false)}
+                fullScreen={isMobile}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        m: isMobile ? 1 : 2,
+                        width: isMobile ? 'calc(100% - 16px)' : '100%',
+                        maxWidth: isMobile ? '100%' : 'sm',
+                    }
+                }}
+            >
                 <DialogTitle>Move Selected Candidates to Another Stage</DialogTitle>
                 <DialogContent>
                     <FormControl fullWidth margin="normal">
@@ -930,7 +1661,20 @@ export const CandidatesTab = () => {
             </Dialog>
 
             {/* Bulk Email Dialog */}
-            <Dialog open={emailDialogOpen} onClose={() => setEmailDialogOpen(false)} maxWidth="md" fullWidth>
+            <Dialog
+                open={emailDialogOpen}
+                onClose={() => setEmailDialogOpen(false)}
+                maxWidth="md"
+                fullWidth
+                fullScreen={isMobile}
+                PaperProps={{
+                    sx: {
+                        m: isMobile ? 1 : 2,
+                        width: isMobile ? 'calc(100% - 16px)' : '100%',
+                        maxWidth: isMobile ? '100%' : 'md',
+                    }
+                }}
+            >
                 <DialogTitle>Send Email to Selected Candidates</DialogTitle>
                 <DialogContent>
                     <TextField
@@ -951,11 +1695,11 @@ export const CandidatesTab = () => {
                         fullWidth
                         variant="outlined"
                         multiline
-                        rows={10}
+                        rows={isMobile ? 8 : 10}
                         value={emailBody}
                         onChange={(e) => setEmailBody(e.target.value)}
                     />
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontSize: '0.85rem' }}>
                         This email will be sent to {selectedCandidates.length} selected candidates.
                     </Typography>
                 </DialogContent>
@@ -979,10 +1723,10 @@ export const CandidatesTab = () => {
                 onClose={handleCloseInterviewMenu}
             >
                 <MenuItem onClick={() => handleInterviewOption("online", currentCandidate)}>
-                    <ListItemText>Schedule Online Interview</ListItemText>
+                    <ListItemText primary="Schedule Online Interview" />
                 </MenuItem>
                 <MenuItem onClick={() => handleInterviewOption("offline", currentCandidate)}>
-                    <ListItemText>Schedule Offline Interview</ListItemText>
+                    <ListItemText primary="Schedule Offline Interview" />
                 </MenuItem>
             </Menu>
 
@@ -996,7 +1740,7 @@ export const CandidatesTab = () => {
                     setMoveDialogOpen(true);
                     handleCloseStageMenu();
                 }}>
-                    <ListItemText>Move to Another Stage</ListItemText>
+                    <ListItemText primary="Move to Another Stage" />
                 </MenuItem>
             </Menu>
 
@@ -1010,11 +1754,24 @@ export const CandidatesTab = () => {
                     <ListItemIcon>
                         <RemarksIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Add Remarks</ListItemText>
+                    <ListItemText primary="Add Remarks" />
                 </MenuItem>
             </Menu>
 
-            <Dialog open={remarksDialogOpen} onClose={() => setRemarksDialogOpen(false)}>
+            <Dialog
+                open={remarksDialogOpen}
+                onClose={() => setRemarksDialogOpen(false)}
+                fullScreen={isMobile}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        m: isMobile ? 1 : 2,
+                        width: isMobile ? 'calc(100% - 16px)' : '100%',
+                        maxWidth: isMobile ? '100%' : 'sm',
+                    }
+                }}
+            >
                 <DialogTitle>Add Remarks</DialogTitle>
                 <DialogContent>
                     <TextField
@@ -1043,10 +1800,13 @@ export const CandidatesTab = () => {
                 onClose={() => setAnalysisDialogOpen(false)}
                 maxWidth="md"
                 fullWidth
+                fullScreen={isMobile}
                 sx={{
                     '& .MuiDialog-paper': {
-                        borderRadius: 3,
-                        maxHeight: '90vh'
+                        borderRadius: { xs: 0, sm: 3 },
+                        maxHeight: '90vh',
+                        m: isMobile ? 0 : 2,
+                        width: isMobile ? '100%' : 'auto',
                     }
                 }}
             >
@@ -1056,11 +1816,11 @@ export const CandidatesTab = () => {
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '16px 24px'
+                    padding: { xs: '12px 16px', sm: '16px 24px' }
                 }}>
                     <Box display="flex" alignItems="center">
                         <AnalysisIcon sx={{ mr: 1 }} />
-                        <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+                        <Typography variant={isMobile ? "subtitle1" : "h6"} component="div" sx={{ fontWeight: 600 }}>
                             Resume Analysis - {selectedCandidateForAnalysis?.firstName} {selectedCandidateForAnalysis?.lastName}
                         </Typography>
                     </Box>
@@ -1104,14 +1864,19 @@ export const CandidatesTab = () => {
 
             {/* Candidate Views */}
             {viewMode === "table" ? (
-                <TableContainer component={Paper} sx={{ maxWidth: '100%', overflowX: 'auto' }}>
-                    <Table sx={{ minWidth: 1000 }}>
+                <TableContainer component={Paper} sx={{
+                    maxWidth: '100%',
+                    overflowX: 'auto',
+                    borderRadius: 2,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                }}>
+                    <Table sx={{ minWidth: { xs: 800, sm: 900, md: 1000 } }} size={isMobile ? "small" : "medium"}>
                         <TableHead>
                             <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
                                 <TableCell padding="checkbox">
                                     <Checkbox
                                         onChange={handleSelectAllCandidates}
-                                        checked={selectedCandidates.length === filteredCandidates.length}
+                                        checked={selectedCandidates.length === filteredCandidates.length && filteredCandidates.length > 0}
                                         sx={{ color: '#3f51b5' }}
                                     />
                                 </TableCell>
@@ -1130,9 +1895,10 @@ export const CandidatesTab = () => {
                                         key={index}
                                         sx={{
                                             fontWeight: 'bold',
-                                            fontSize: '0.85rem',
+                                            fontSize: { xs: '0.75rem', sm: '0.8rem', md: '0.85rem' },
                                             color: '#333',
-                                            borderBottom: '2px solid #e0e0e0'
+                                            borderBottom: '2px solid #e0e0e0',
+                                            whiteSpace: 'nowrap'
                                         }}
                                     >
                                         {label}
@@ -1156,13 +1922,13 @@ export const CandidatesTab = () => {
                                     </TableCell>
                                     <TableCell>
                                         <Box>
-                                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
                                                 {`${candidate.firstName || ''} ${candidate.middleName || ''} ${candidate.lastName || ''}`.trim()}
                                             </Typography>
-                                            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                                            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                                                 {candidate.experience || '0'} yrs • {candidate.availableToJoin || '0'} days
                                             </Typography>
-                                            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                                            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                                                 {typeof candidate.source === 'string'
                                                     ? candidate.source
                                                     : candidate.source?.name || 'Unknown'}
@@ -1181,11 +1947,11 @@ export const CandidatesTab = () => {
 
                                                         return (
                                                             <>
-                                                                <Typography component="span">
+                                                                <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
                                                                     {stageName}
                                                                 </Typography>
                                                                 {stageName === "Rejected" && rejectionType && (
-                                                                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                                                                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
                                                                         {rejectionType}
                                                                     </Typography>
                                                                 )}
@@ -1194,8 +1960,8 @@ export const CandidatesTab = () => {
                                                     } catch (error) {
                                                         console.error('Error rendering stage:', error);
                                                         return (
-                                                            <Typography color="error">
-                                                                Error loading stage
+                                                            <Typography color="error" sx={{ fontSize: '0.8rem' }}>
+                                                                Error
                                                             </Typography>
                                                         );
                                                     }
@@ -1204,58 +1970,67 @@ export const CandidatesTab = () => {
                                         </ErrorBoundary>
                                     </TableCell>
                                     <TableCell>
-                                        <Box>
-                                            <div>{candidate.email || 'Not provided'}</div>
-                                        </Box>
+                                        <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
+                                            {candidate.email || 'Not provided'}
+                                        </Typography>
                                     </TableCell>
-                                    <TableCell>{candidate.mobile || 'Not provided'}</TableCell>
+                                    <TableCell>
+                                        <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
+                                            {candidate.mobile || 'Not provided'}
+                                        </Typography>
+                                    </TableCell>
                                     <TableCell>
                                         <Tooltip title={formatSkills(candidate.skills)}>
-                                            <Typography variant="body2" sx={{ 
-                                                maxWidth: 200, 
+                                            <Typography variant="body2" sx={{
+                                                maxWidth: { xs: 120, sm: 150, md: 200 },
                                                 overflow: 'hidden',
                                                 textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
+                                                whiteSpace: 'nowrap',
+                                                fontSize: { xs: '0.8rem', sm: '0.85rem' }
                                             }}>
                                                 {formatSkills(candidate.skills)}
                                             </Typography>
                                         </Tooltip>
                                     </TableCell>
                                     <TableCell>
-                                        {getRecruiterName(candidate.owner)}
+                                        <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
+                                            {getRecruiterName(candidate.owner)}
+                                        </Typography>
                                     </TableCell>
                                     <TableCell>
-                                        {getVendorName(candidate)}
+                                        <Typography variant="body2" sx={{ fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
+                                            {getVendorName(candidate)}
+                                        </Typography>
                                     </TableCell>
                                     <TableCell onClick={(e) => e.stopPropagation()}>
-                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1 }}>
                                             <Button
                                                 variant="outlined"
                                                 startIcon={<AnalysisIcon />}
                                                 onClick={() => handleOpenAnalysis(candidate._id)}
                                                 disabled={!candidate.resume}
                                                 size="small"
-                                                sx={{ mr: 1 }}
+                                                sx={{
+                                                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                                                    padding: { xs: '2px 6px', sm: '4px 10px' }
+                                                }}
                                             >
                                                 Analysis
                                             </Button>
-                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                            <Box sx={{ display: 'flex', gap: 0.5 }}>
                                                 <IconButton
-                                                    className="action-button"
                                                     onClick={(e) => handleInterviewClick(e, candidate._id)}
                                                     size="small"
                                                 >
                                                     <InterviewIcon fontSize="small" />
                                                 </IconButton>
                                                 <IconButton
-                                                    className="action-button"
                                                     onClick={(e) => handleStageClick(e, candidate._id)}
                                                     size="small"
                                                 >
                                                     <StageIcon fontSize="small" />
                                                 </IconButton>
                                                 <IconButton
-                                                    className="action-button"
                                                     onClick={(e) => handleRemarksClick(e, candidate._id)}
                                                     size="small"
                                                 >
@@ -1273,8 +2048,8 @@ export const CandidatesTab = () => {
                 <Box
                     sx={{
                         display: "grid",
-                        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" },
-                        gap: 2,
+                        gridTemplateColumns: getCardGridColumns(),
+                        gap: { xs: 2, sm: 2.5, md: 3 },
                     }}
                 >
                     {filteredCandidates.map((candidate) => (
@@ -1295,10 +2070,10 @@ export const CandidatesTab = () => {
                             }}
                         >
                             <CardContent
-                                sx={{ display: "flex", flexDirection: "column", gap: 2, padding: 2 }}
+                                sx={{ display: "flex", flexDirection: "column", gap: { xs: 1.5, sm: 2 }, padding: { xs: 1.5, sm: 2 } }}
                             >
                                 {/* Header: Name, Avatar, and Checkbox */}
-                                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                                     <Checkbox
                                         checked={selectedCandidates.includes(candidate._id)}
                                         onChange={(e) => {
@@ -1307,31 +2082,29 @@ export const CandidatesTab = () => {
                                         }}
                                         color="primary"
                                         sx={{ padding: 0 }}
+                                        size="small"
                                     />
                                     <Avatar
                                         sx={{
                                             bgcolor: "primary.main",
-                                            fontSize: "1.2rem",
+                                            fontSize: { xs: '1rem', sm: '1.2rem' },
                                             fontWeight: "bold",
-                                            width: 40,
-                                            height: 40,
+                                            width: { xs: 32, sm: 40 },
+                                            height: { xs: 32, sm: 40 },
                                         }}
                                         onClick={() => handleNavigateToCandidate(candidate)}
                                     >
                                         {candidate.firstName?.charAt(0) || '?'}
                                     </Avatar>
                                     <Box sx={{ flex: 1 }} onClick={() => handleNavigateToCandidate(candidate)}>
-                                        <Typography variant="h6" sx={{ fontWeight: 600, color: "text.primary", fontSize: '1rem' }}>
-                                            {`${candidate.firstName || ''} ${candidate.middleName || ''} ${candidate.lastName || ''}`.trim()}
+                                        <Typography variant="body1" sx={{ fontWeight: 600, color: "text.primary", fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                                            {`${candidate.firstName || ''} ${candidate.lastName || ''}`.trim()}
                                         </Typography>
-                                        <Typography variant="body2" sx={{ color: "text.secondary", fontSize: '0.8rem' }}>
-                                            {candidate.experience || '0'} years | {typeof candidate.source === 'string'
-                                                ? candidate.source
-                                                : candidate.source?.name || 'Unknown'}
+                                        <Typography variant="body2" sx={{ color: "text.secondary", fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+                                            {candidate.experience || '0'} years • {candidate.availableToJoin || '0'} days
                                         </Typography>
                                     </Box>
                                     <IconButton
-                                        className="action-button"
                                         sx={{ color: "text.secondary" }}
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -1339,31 +2112,31 @@ export const CandidatesTab = () => {
                                         }}
                                         size="small"
                                     >
-                                        <MoreIcon />
+                                        <MoreIcon fontSize="small" />
                                     </IconButton>
                                 </Box>
 
                                 {/* Status Chip */}
-                                <Chip
-                                    label={getStageName(candidate.stage)}
-                                    color={
-                                        getStageName(candidate.stage) === "Hired" ? "success" :
-                                            getStageName(candidate.stage) === "Archived" ? "default" : "primary"
-                                    }
-                                    size="small"
-                                    sx={{
-                                        alignSelf: "flex-start",
-                                        fontWeight: "bold",
-                                        backgroundColor:
-                                            getStageName(candidate.stage) === "Hired" ? "success.light" :
-                                                getStageName(candidate.stage) === "Archived" ? "grey.500" : "primary.light",
-                                        color: "white",
-                                        borderRadius: 20,
-                                        padding: "0.3rem 0.8rem",
-                                        fontSize: '0.7rem',
-                                        mb: 1,
-                                    }}
-                                />
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Chip
+                                        label={getStageName(candidate.stage)}
+                                        color={
+                                            getStageName(candidate.stage) === "Hired" ? "success" :
+                                                getStageName(candidate.stage) === "Archived" ? "default" : "primary"
+                                        }
+                                        size="small"
+                                        sx={{
+                                            fontWeight: "bold",
+                                            fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                                            height: { xs: 20, sm: 24 },
+                                        }}
+                                    />
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                                        {typeof candidate.source === 'string'
+                                            ? candidate.source
+                                            : candidate.source?.name || 'Unknown'}
+                                    </Typography>
+                                </Box>
 
                                 {/* Rejection Details */}
                                 {getStageName(candidate.stage) === "Rejected" && candidate.rejectionType && (
@@ -1373,44 +2146,50 @@ export const CandidatesTab = () => {
                                         borderRadius: 1,
                                         borderLeft: '3px solid #f44336'
                                     }}>
-                                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                                        <Typography variant="body2" sx={{ fontWeight: 500, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                                             {candidate.rejectionType}
                                         </Typography>
                                         {candidate.rejectionReason && (
-                                            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, fontSize: '0.7rem' }}>
+                                            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
                                                 {candidate.rejectionReason}
                                             </Typography>
                                         )}
                                     </Box>
                                 )}
 
-                                {/* Recruiter and Vendor Info */}
-                                <Box onClick={() => handleNavigateToCandidate(candidate)}>
-                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: '0.8rem' }}>
-                                        <strong>Recruiter:</strong> {getRecruiterName(candidate.owner)}
-                                    </Typography>
-                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: '0.8rem' }}>
-                                        <strong>Vendor:</strong> {getVendorName(candidate)}
-                                    </Typography>
+                                {/* Contact Info */}
+                                <Box onClick={() => handleNavigateToCandidate(candidate)} sx={{ mt: 0.5 }}>
+                                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                                        <EmailIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: 'text.secondary' }} />
+                                        <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' }, color: 'text.primary' }}>
+                                            {candidate.email || 'Not provided'}
+                                        </Typography>
+                                    </Stack>
+                                    <Stack direction="row" spacing={1} alignItems="center">
+                                        <PersonIcon sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: 'text.secondary' }} />
+                                        <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' }, color: 'text.primary' }}>
+                                            {candidate.mobile || 'Not provided'}
+                                        </Typography>
+                                    </Stack>
                                 </Box>
 
                                 {/* Skills */}
                                 <Box onClick={() => handleNavigateToCandidate(candidate)}>
-                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", mb: 0.5, fontSize: '0.8rem' }}>
-                                        <strong>Skills:</strong>
+                                    <Typography variant="body2" sx={{ fontWeight: 500, mb: 0.5, fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                                        Skills:
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: "text.secondary", fontSize: '0.8rem', lineHeight: 1.3 }}>
+                                    <Typography variant="body2" sx={{ color: "text.secondary", fontSize: { xs: '0.7rem', sm: '0.75rem' }, lineHeight: 1.3 }}>
                                         {formatSkills(candidate.skills)}
                                     </Typography>
                                 </Box>
 
-                                {/* Contact Info */}
+                                {/* Recruiter and Vendor Info */}
                                 <Box onClick={() => handleNavigateToCandidate(candidate)}>
-                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: '0.8rem' }}>
-                                        <strong>Email:</strong> {candidate.email || 'Not provided'}
+                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                                        <strong>Recruiter:</strong> {getRecruiterName(candidate.owner)}
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: '0.8rem' }}>
-                                        <strong>Phone:</strong> {candidate.mobile || 'Not provided'}
+                                    <Typography variant="body2" sx={{ color: "text.primary", fontWeight: "500", fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                                        <strong>Vendor:</strong> {getVendorName(candidate)}
                                     </Typography>
                                 </Box>
 
@@ -1419,7 +2198,7 @@ export const CandidatesTab = () => {
                                     sx={{
                                         display: "flex",
                                         justifyContent: "space-between",
-                                        marginTop: 2,
+                                        marginTop: 1,
                                         gap: 1
                                     }}
                                     onClick={(e) => e.stopPropagation()}
@@ -1436,8 +2215,8 @@ export const CandidatesTab = () => {
                                             flex: 1,
                                             textTransform: 'none',
                                             backgroundColor: '#4caf50',
-                                            fontSize: '0.7rem',
-                                            padding: '0.3rem 0.6rem',
+                                            fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                                            padding: { xs: '2px 4px', sm: '4px 8px' },
                                             '&:hover': {
                                                 backgroundColor: '#388e3c',
                                             }
@@ -1446,7 +2225,6 @@ export const CandidatesTab = () => {
                                         View Analysis
                                     </Button>
                                     <IconButton
-                                        className="action-button"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleInterviewClick(e, candidate._id);
@@ -1455,7 +2233,7 @@ export const CandidatesTab = () => {
                                             backgroundColor: "primary.main",
                                             color: "white",
                                             borderRadius: "50%",
-                                            padding: 1,
+                                            padding: { xs: 0.5, sm: 1 },
                                             ":hover": { backgroundColor: "primary.dark" },
                                             transition: "background-color 0.2s ease",
                                         }}
@@ -1464,7 +2242,6 @@ export const CandidatesTab = () => {
                                         <InterviewIcon fontSize="small" />
                                     </IconButton>
                                     <IconButton
-                                        className="action-button"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             handleStageClick(e, candidate._id);
@@ -1473,7 +2250,7 @@ export const CandidatesTab = () => {
                                             backgroundColor: "secondary.main",
                                             color: "white",
                                             borderRadius: "50%",
-                                            padding: 1,
+                                            padding: { xs: 0.5, sm: 1 },
                                             ":hover": { backgroundColor: "secondary.dark" },
                                             transition: "background-color 0.2s ease",
                                         }}
@@ -1487,6 +2264,7 @@ export const CandidatesTab = () => {
                     ))}
                 </Box>
             )}
+
             {openDetailsDialog && (
                 <CandidateDetailsPage
                     open={openDetailsDialog}

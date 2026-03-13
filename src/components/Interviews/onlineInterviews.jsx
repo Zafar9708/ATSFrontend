@@ -207,6 +207,7 @@ const OnlineInterviews = ({ searchTerm, statusFilter, selectedDate }) => {
         justifyContent: 'space-between', flexWrap: 'wrap', gap: 2
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
+<<<<<<< HEAD
           <Tooltip title="Go back">
             <IconButton
               onClick={() => navigate(-1)}
@@ -220,6 +221,12 @@ const OnlineInterviews = ({ searchTerm, statusFilter, selectedDate }) => {
             </IconButton>
           </Tooltip>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Interview Schedule</Typography>
+=======
+       
+          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            Interview Schedule
+          </Typography>
+>>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
         </Box>
         <Typography variant="subtitle1" color="text.secondary">
           Showing {filteredInterviews.length} of {interviews.length} interviews

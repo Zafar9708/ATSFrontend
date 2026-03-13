@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from "react";
-import { Box, Typography, CircularProgress, Snackbar, Alert } from "@mui/material";
+import { Box, Typography, CircularProgress, Snackbar, Alert, useMediaQuery, useTheme, Button } from "@mui/material";
+import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import StepIndicator from "../components/Jobs/StepIndicator";
 import JobDescriptionForm from "../components/Jobs/JobDescriptionForm";
 import JobDetailsForm from "../components/Jobs/JobDetailsForm";
@@ -12,10 +12,25 @@ import adminService from "../services/adminService";
 import { useUser } from "../contexts/UserContext"; 
 
 const JobCreationPage = () => {
+  const theme = useTheme();
   const { user: currentUser } = useUser(); 
   const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Responsive breakpoints
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isLaptop = useMediaQuery(theme.breakpoints.between('md', 'lg'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
+
+  // Header height constants (adjust these based on your actual header height)
+  const HEADER_HEIGHT = {
+    mobile: '64px',    // Typical mobile header height
+    tablet: '72px',    // Tablet header height
+    desktop: '80px'    // Desktop header height
+  };
+
   const [step, setStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -52,6 +67,14 @@ const JobCreationPage = () => {
     assignedRecruiters: []
   });
 
+  const handleBack = () => {
+    if (location.state?.from) {
+      navigate(location.state.from);
+    } else {
+      navigate('/jobs');
+    }
+  };
+
   useEffect(() => {
     const initializePage = async () => {
       try {
@@ -77,14 +100,13 @@ const JobCreationPage = () => {
     } else {
       setLoading(false);
     }
-  }, [id, currentUser]); // Add currentUser to dependencies
+  }, [id, currentUser]);
 
   const fetchRecruiters = async () => {
     try {
       const response = await adminService.getRecruiters();
       console.log('Recruiters response:', response);
       
-      // Handle different response structures
       let recruitersList = [];
       
       if (response.recruiters && Array.isArray(response.recruiters)) {
@@ -142,12 +164,6 @@ const JobCreationPage = () => {
         assignedRecruiters: jobData.assignedRecruiters || []
       });
 
-      // Set selected recruiters if in edit mode
-      if (jobData.assignedRecruiters && Array.isArray(jobData.assignedRecruiters)) {
-        // This will be handled by the useEffect below after recruiters are loaded
-        console.log('Job has assigned recruiters:', jobData.assignedRecruiters);
-      }
-      
       setIsEditMode(true);
     } catch (error) {
       console.error("Error loading job data:", error);
@@ -155,7 +171,6 @@ const JobCreationPage = () => {
     }
   };
 
-  // Update selected recruiters when recruiters data changes in edit mode
   useEffect(() => {
     if (isEditMode && recruiters.length > 0 && formData.assignedRecruiters.length > 0) {
       console.log('Setting selected recruiters from form data');
@@ -199,15 +214,12 @@ const JobCreationPage = () => {
   };
 
   const handlePublish = async (options) => {
-    // Create the final data object with proper structure
     const finalData = {
-      // Job Description fields
       jobTitle: formData.jobTitle,
       department: formData.department,
       experience: formData.experience,
       jobDesc: formData.jobDesc,
       
-      // Job Details fields
       jobType: formData.jobType,
       locations: formData.locations,
       openings: formData.openings,
@@ -223,12 +235,10 @@ const JobCreationPage = () => {
       salesPerson: formData.salesPerson,
       recruitingPerson: formData.recruitingPerson,
       
-      // Publish Options
       careerSite: options.careerSite,
       internalEmployees: options.internalEmployees,
       referToEmployees: options.referToEmployees,
       
-      // Recruiter assignment
       ...(currentUser?.role === 'admin' && {
         assignedRecruiters: selectedRecruiters.map(recruiter => recruiter._id)
       })
@@ -246,7 +256,6 @@ const JobCreationPage = () => {
         setSuccessMessage("Job Published Successfully ✅");
       }
       
-      // Wait for 2 seconds before navigating to jobs page
       setTimeout(() => {
         navigate("/jobs");
       }, 2000);
@@ -258,84 +267,246 @@ const JobCreationPage = () => {
     }
   };
 
+  // Get header height based on screen size
+  const getHeaderHeight = () => {
+    if (isMobile) return HEADER_HEIGHT.mobile;
+    if (isTablet) return HEADER_HEIGHT.tablet;
+    return HEADER_HEIGHT.desktop;
+  };
+
+  // Responsive padding and margin values with top margin to clear header
+  const getResponsiveSpacing = () => {
+    const headerHeight = getHeaderHeight();
+    
+    if (isMobile) return { 
+      padding: 1.5, 
+      ml: 0,
+      mt: headerHeight,
+      minHeight: `calc(100vh - ${headerHeight})`
+    };
+    if (isTablet) return { 
+      padding: 2, 
+      ml: 2,
+      mt: headerHeight,
+      minHeight: `calc(100vh - ${headerHeight})`
+    };
+    if (isLaptop) return { 
+      padding: 2.5, 
+      ml: 3,
+      mt: headerHeight,
+      minHeight: `calc(100vh - ${headerHeight})`
+    };
+    return { 
+      padding: 3, 
+      ml: 4,
+      mt: headerHeight,
+      minHeight: `calc(100vh - ${headerHeight})`
+    }; // Desktop
+  };
+
+  const getResponsiveTypography = () => {
+    if (isMobile) return { variant: "h5", fontSize: "1.5rem" };
+    if (isTablet) return { variant: "h4", fontSize: "2rem" };
+    return { variant: "h4", fontSize: "2.125rem" }; // Laptop/Desktop
+  };
+
+  const responsiveSpacing = getResponsiveSpacing();
+  const responsiveTitle = getResponsiveTypography();
+
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <CircularProgress size={60} thickness={4} />
-        <Typography sx={{ ml: 2 }}>Loading...</Typography>
-      </Box>
+      <MainLayout>
+        <Box 
+          display="flex" 
+          justifyContent="center" 
+          alignItems="center" 
+          sx={{
+            minHeight: `calc(100vh - ${getHeaderHeight()})`,
+            mt: getHeaderHeight(),
+            padding: responsiveSpacing.padding,
+            flexDirection: isMobile ? "column" : "row"
+          }}
+        >
+          <CircularProgress 
+            size={isMobile ? 40 : 60} 
+            thickness={4} 
+          />
+          <Typography 
+            sx={{ 
+              ml: isMobile ? 0 : 2, 
+              mt: isMobile ? 2 : 0,
+              fontSize: isMobile ? '1rem' : '1.25rem'
+            }}
+          >
+            Loading...
+          </Typography>
+        </Box>
+      </MainLayout>
     );
   }
 
   return (
     <MainLayout>
-      <Box sx={{ padding: 3, minHeight: "100vh", ml: 4 }}>
-        <Typography variant="h4" sx={{ color: "#1976d2", fontWeight: "bold" }} align="center">
+      <Box 
+        sx={{ 
+          padding: responsiveSpacing.padding,
+          ml: "210px",
+          mt: responsiveSpacing.mt,
+          minHeight: responsiveSpacing.minHeight,
+          width: '1200px',
+          maxWidth: '100%',
+          overflowX: 'hidden',
+          
+        }}
+      >
+        {/* Back Button */}
+      <Box sx={{ mb: isMobile ? 1 : 2 }}>
+  <Button
+    startIcon={<ArrowBackIcon />}
+    onClick={handleBack}
+    sx={{
+      // Text and icon color - blue
+      color: '#1976d2',
+      
+      // Hover effect - blue text with light grey background
+      '&:hover': {
+        backgroundColor: '#f5f5f5',  // Light grey background on hover
+        color: '#1565C0',  // Slightly darker blue on hover
+      },
+      
+      // Responsive styles
+      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontWeight: 500,
+      textTransform: 'none',
+      px: isMobile ? 1 : 2,
+      py: isMobile ? 0.5 : 1,
+      
+      // Optional: smooth transition for hover effect
+      transition: 'all 0.2s ease',
+      
+      // Remove default background
+      backgroundColor: 'transparent',
+    }}
+  >
+    Back  
+  </Button>
+</Box>
+
+        <Typography 
+          variant={responsiveTitle.variant}
+          sx={{ 
+            color: "#1976d2", 
+            fontWeight: "bold",
+            fontSize: responsiveTitle.fontSize,
+            mb: isMobile ? 2 : 3,
+            wordBreak: 'break-word',
+            pt: isMobile ? 1 : 2 // Add some top padding inside the content
+          }} 
+          align="center"
+        >
           {isEditMode ? "Update Job Posting" : "Create a New Job"}
         </Typography>
 
-        <StepIndicator activeStep={step} completedSteps={completedSteps} />
-
-        {step === 0 && (
-          <JobDescriptionForm 
-            onContinue={handleJobDescriptionSubmit} 
-            initialData={{
-              jobTitle: formData.jobTitle,
-              department: formData.department,
-              experience: formData.experience,
-              jobDesc: formData.jobDesc
-            }}
+        <Box sx={{ 
+          mb: isMobile ? 2 : 3,
+          px: isMobile ? 0 : 1
+        }}>
+          <StepIndicator 
+            activeStep={step} 
+            completedSteps={completedSteps}
+            isMobile={isMobile}
           />
-        )}
+        </Box>
 
-        {step === 1 && (
-          <JobDetailsForm 
-            onContinue={handleJobDetailsSubmit} 
-            initialData={{
-              BusinessUnit: formData.BusinessUnit,
-              Client: formData.Client,
-              jobType: formData.jobType,
-              locations: formData.locations,
-              openings: formData.openings,
-              targetHireDate: formData.targetHireDate,
-              currency: formData.currency,
-              amount: formData.amount,
-              allowReapply: formData.allowReapply,
-              reapplyDate: formData.reapplyDate,
-              markPriority: formData.markPriority,
-              hiringFlow: formData.hiringFlow,
-              salesPerson: formData.salesPerson,
-              recruitingPerson: formData.recruitingPerson,
-            }}
-          />
-        )}
+        <Box sx={{
+          maxWidth: isDesktop ? '1200px' : '100%',
+          margin: '0 auto',
+          px: isMobile ? 0 : isTablet ? 1 : 2
+        }}>
+          {step === 0 && (
+            <JobDescriptionForm 
+              onContinue={handleJobDescriptionSubmit} 
+              initialData={{
+                jobTitle: formData.jobTitle,
+                department: formData.department,
+                experience: formData.experience,
+                jobDesc: formData.jobDesc
+              }}
+              isMobile={isMobile}
+              isTablet={isTablet}
+            />
+          )}
 
-        {step === 2 && currentUser && (
-          <PublishOptionsForm
-            onBack={handlePublishBack}
-            onPublish={handlePublish}
-            initialOptions={{
-              careerSite: formData.careerSite,
-              internalEmployees: formData.internalEmployees,
-              referToEmployees: formData.referToEmployees
-            }}
-            isEditMode={isEditMode}
-            recruiters={recruiters}
-            selectedRecruiters={selectedRecruiters}
-            setSelectedRecruiters={setSelectedRecruiters}
-            userRole={currentUser.role} // Pass user role directly
-            loading={publishLoading}
-          />
-        )}
+          {step === 1 && (
+            <JobDetailsForm 
+              onContinue={handleJobDetailsSubmit} 
+              initialData={{
+                BusinessUnit: formData.BusinessUnit,
+                Client: formData.Client,
+                jobType: formData.jobType,
+                locations: formData.locations,
+                openings: formData.openings,
+                targetHireDate: formData.targetHireDate,
+                currency: formData.currency,
+                amount: formData.amount,
+                allowReapply: formData.allowReapply,
+                reapplyDate: formData.reapplyDate,
+                markPriority: formData.markPriority,
+                hiringFlow: formData.hiringFlow,
+                salesPerson: formData.salesPerson,
+                recruitingPerson: formData.recruitingPerson,
+              }}
+              isMobile={isMobile}
+              isTablet={isTablet}
+            />
+          )}
+
+          {step === 2 && currentUser && (
+            <PublishOptionsForm
+              onBack={handlePublishBack}
+              onPublish={handlePublish}
+              initialOptions={{
+                careerSite: formData.careerSite,
+                internalEmployees: formData.internalEmployees,
+                referToEmployees: formData.referToEmployees
+              }}
+              isEditMode={isEditMode}
+              recruiters={recruiters}
+              selectedRecruiters={selectedRecruiters}
+              setSelectedRecruiters={setSelectedRecruiters}
+              userRole={currentUser.role}
+              loading={publishLoading}
+              isMobile={isMobile}
+              isTablet={isTablet}
+            />
+          )}
+        </Box>
 
         {/* Success Message Snackbar */}
         <Snackbar
           open={!!successMessage}
           autoHideDuration={3000}
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          anchorOrigin={{ 
+            vertical: isMobile ? 'bottom' : 'top', 
+            horizontal: 'center' 
+          }}
+          sx={{
+            bottom: isMobile ? 16 : 'auto',
+            top: isMobile ? 'auto' : getHeaderHeight(),
+            width: isMobile ? '90%' : 'auto',
+            left: isMobile ? '5%' : 'auto',
+            zIndex: 1400 // Ensure snackbar appears above content
+          }}
         >
-          <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity="success" 
+            sx={{ 
+              width: '100%',
+              fontSize: isMobile ? '0.875rem' : '1rem'
+            }}
+          >
             {successMessage}
           </Alert>
         </Snackbar>
@@ -345,9 +516,26 @@ const JobCreationPage = () => {
           open={!!errorMessage}
           autoHideDuration={5000}
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          anchorOrigin={{ 
+            vertical: isMobile ? 'bottom' : 'top', 
+            horizontal: 'center' 
+          }}
+          sx={{
+            bottom: isMobile ? 16 : 'auto',
+            top: isMobile ? 'auto' : getHeaderHeight(),
+            width: isMobile ? '90%' : 'auto',
+            left: isMobile ? '5%' : 'auto',
+            zIndex: 1400 // Ensure snackbar appears above content
+          }}
         >
-          <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+          <Alert 
+            onClose={handleCloseSnackbar} 
+            severity="error" 
+            sx={{ 
+              width: '100%',
+              fontSize: isMobile ? '0.875rem' : '1rem'
+            }}
+          >
             {errorMessage}
           </Alert>
         </Snackbar>

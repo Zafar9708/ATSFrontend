@@ -1,6 +1,244 @@
 import React from "react";
 
 const ReportsPage = () => {
+<<<<<<< HEAD
+=======
+  const theme = useTheme();
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [reportType, setReportType] = useState('overview');
+  const [dateRange, setDateRange] = useState({
+    start: subMonths(new Date(), 6),
+    end: new Date()
+  });
+  const [department, setDepartment] = useState('all');
+  const [recruiter, setRecruiter] = useState('all');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+  const [useDummyData, setUseDummyData] = useState(true);
+  const [reports, setReports] = useState(DUMMY_REPORTS);
+  const [exporting, setExporting] = useState(false);
+
+  const tabs = [
+    { label: 'Overview', value: 'overview' },
+    { label: 'Analytics', value: 'analytics' },
+    { label: 'Performance', value: 'performance' },
+    { label: 'Financial', value: 'financial' },
+    { label: 'Custom Reports', value: 'custom' }
+  ];
+
+  const reportTypes = [
+    { value: 'overview', label: 'Recruitment Overview' },
+    { value: 'monthly', label: 'Monthly Trends' },
+    { value: 'department', label: 'Department Metrics' },
+    { value: 'source', label: 'Source Analysis' },
+    { value: 'cost', label: 'Cost Analysis' },
+    
+  ];
+
+  useEffect(() => {
+    fetchReports();
+  }, [dateRange, department, recruiter]);
+
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      if (!useDummyData) {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(
+          `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/reports`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            params: {
+              startDate: format(dateRange.start, 'yyyy-MM-dd'),
+              endDate: format(dateRange.end, 'yyyy-MM-dd'),
+              department: department !== 'all' ? department : undefined,
+              recruiter: recruiter !== 'all' ? recruiter : undefined
+            }
+          }
+        );
+        setReports(response.data);
+      } else {
+        // Use dummy data
+        setReports(DUMMY_REPORTS);
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+      setSnackbar({
+        open: true,
+        message: 'Using demo data. Backend connection failed.',
+        severity: 'info'
+      });
+      setUseDummyData(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportReport = async (format) => {
+    setExporting(true);
+    try {
+      // Simulate export
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setSnackbar({
+        open: true,
+        message: `Report exported as ${format.toUpperCase()} successfully`,
+        severity: 'success'
+      });
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Export failed',
+        severity: 'error'
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleShareReport = () => {
+    setSnackbar({
+      open: true,
+      message: 'Report sharing feature coming soon',
+      severity: 'info'
+    });
+  };
+
+  const StatCard = ({ title, value, icon, change, subtitle, color }) => (
+    <Card sx={{ height: '100%', borderLeft: `4px solid ${color}` }}>
+      <CardContent>
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+          <Box>
+            <Typography color="text.secondary" variant="body2" gutterBottom>
+              {title}
+            </Typography>
+            <Typography variant="h4" fontWeight="bold">
+              {value}
+            </Typography>
+            {subtitle && (
+              <Typography variant="caption" color="text.secondary">
+                {subtitle}
+              </Typography>
+            )}
+            {change && (
+              <Box display="flex" alignItems="center" mt={1}>
+                {change > 0 ? (
+                  <ArrowUpIcon fontSize="small" color="success" />
+                ) : (
+                  <ArrowDownIcon fontSize="small" color="error" />
+                )}
+                <Typography
+                  variant="body2"
+                  color={change > 0 ? 'success.main' : 'error.main'}
+                  ml={0.5}
+                >
+                  {Math.abs(change)}% from last period
+                </Typography>
+              </Box>
+            )}
+          </Box>
+          <Box
+            sx={{
+              bgcolor: alpha(color, 0.1),
+              p: 1.5,
+              borderRadius: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {icon}
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+
+  const MetricCard = ({ title, value, unit, trend, icon }) => (
+    <Paper sx={{ p: 2, height: '100%' }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <Typography color="text.secondary" variant="body2">
+            {title}
+          </Typography>
+          <Typography variant="h3" fontWeight="bold">
+            {value}
+            {unit && <Typography component="span" variant="h6" color="text.secondary"> {unit}</Typography>}
+          </Typography>
+          {trend && (
+            <Box display="flex" alignItems="center" mt={1}>
+              {trend > 0 ? (
+                <TrendingUpIcon color="success" fontSize="small" />
+              ) : (
+                <TrendingDownIcon color="error" fontSize="small" />
+              )}
+              <Typography
+                variant="body2"
+                color={trend > 0 ? 'success.main' : 'error.main'}
+                ml={0.5}
+              >
+                {trend > 0 ? '+' : ''}{trend}%
+              </Typography>
+            </Box>
+          )}
+        </Box>
+        {icon}
+      </Box>
+    </Paper>
+  );
+
+  const ActivityItem = ({ activity }) => {
+    const getIcon = () => {
+      switch (activity.type) {
+        case 'success': return <SuccessIcon color="success" />;
+        case 'error': return <ErrorIcon color="error" />;
+        case 'warning': return <WarningIcon color="warning" />;
+        default: return <ReportIcon color="info" />;
+      }
+    };
+
+    const getColor = () => {
+      switch (activity.type) {
+        case 'success': return theme.palette.success.main;
+        case 'error': return theme.palette.error.main;
+        case 'warning': return theme.palette.warning.main;
+        default: return theme.palette.info.main;
+      }
+    };
+
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          p: 2,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          '&:last-child': { borderBottom: 'none' }
+        }}
+      >
+        <Box sx={{ mr: 2, color: getColor() }}>
+          {getIcon()}
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="body2" fontWeight="medium">
+            {activity.action}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            By {activity.user} • {activity.time}
+          </Typography>
+        </Box>
+      </Box>
+    );
+  };
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+>>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
   return (
     <div style={{
       display: "flex",

@@ -1,423 +1,3 @@
-
-
-
-// import React, { useState } from 'react';
-// import {
-//   Box,
-//   Tabs,
-//   Tab,
-//   useTheme,
-//   Paper,
-//   Typography,
-//   TextField,
-//   InputAdornment,
-//   MenuItem,
-//   FormControl,
-//   InputLabel,
-//   Select,
-//   Grid,
-//   IconButton,
-//   Collapse,
-//   Button,
-//   Badge,
-//   Stack,
-//   Divider
-// } from '@mui/material';
-// // import OnlineInterviews from './TotalOnlineInterviews';
-// // import OfflineInterviews from './TotalOfflineInterviews';
-// import OnlineInterviews from '../../components/Interviews/onlineInterviews';
-// import OfflineInterviews from '../../components/Interviews/OfflineInterviews';
-// import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
-// import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
-// import SearchIcon from '@mui/icons-material/Search';
-// import ClearIcon from '@mui/icons-material/Clear';
-// import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-// import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-// import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-// import TuneIcon from '@mui/icons-material/Tune';
-
-// const TotalInterviews = () => {
-//   const [tabValue, setTabValue] = useState(0);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [statusFilter, setStatusFilter] = useState('all');
-//   const [selectedDate, setSelectedDate] = useState(null);
-//   const [showFilters, setShowFilters] = useState(false);
-//   const [filterExpanded, setFilterExpanded] = useState(false);
-//   const theme = useTheme();
-
-//   const handleTabChange = (event, newValue) => {
-//     setTabValue(newValue);
-//   };
-
-//   const handleClearFilters = () => {
-//     setSearchTerm('');
-//     setStatusFilter('all');
-//     setSelectedDate(null);
-//   };
-
-//   const statusOptions = [
-//     { value: 'all', label: 'All Statuses' },
-//     { value: 'scheduled', label: 'Scheduled' },
-//     { value: 'completed', label: 'Completed' },
-//     { value: 'cancelled', label: 'Cancelled' }
-//   ];
-
-//   const getFilterBadgeCount = () => {
-//     let count = 0;
-//     if (searchTerm) count++;
-//     if (statusFilter !== 'all') count++;
-//     if (selectedDate) count++;
-//     return count;
-//   };
-
-//   return (
-//     <Paper
-//       elevation={3}
-//       sx={{
-//         width: '200%',
-//         borderRadius: 3,
-//         p: 3,
-//         backgroundColor: theme.palette.background.paper,
-//       }}
-//     >
-//       {/* Header Section */}
-//       <Box sx={{ 
-//         display: 'flex', 
-//         justifyContent: 'space-between', 
-//         alignItems: 'center', 
-//         mb: 3,
-//         gap: 2
-//       }}>
-//         <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-//           Total Interviews 
-//         </Typography>
-        
-//         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-//           <Badge 
-//             badgeContent={getFilterBadgeCount()} 
-//             color="primary"
-//             overlap="circular"
-//             sx={{ 
-//               '& .MuiBadge-badge': { 
-//                 fontSize: '0.7rem', 
-//                 height: 20, 
-//                 minWidth: 20,
-//                 borderRadius: '50%',
-//                 top: 8,
-//                 right: 8,
-//                 border: `2px solid ${theme.palette.background.paper}`
-//               } 
-//             }}
-//           >
-//             <Button
-//               variant="outlined"
-//               startIcon={<TuneIcon />}
-//               endIcon={filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-//               onClick={() => {
-//                 setShowFilters(!showFilters);
-//                 setFilterExpanded(!filterExpanded);
-//               }}
-//               sx={{
-//                 borderRadius: 2,
-//                 px: 2,
-//                 py: 1,
-//                 borderColor: theme.palette.divider,
-//                 backgroundColor: showFilters ? theme.palette.action.selected : 'inherit',
-//                 '&:hover': {
-//                   backgroundColor: theme.palette.action.hover
-//                 }
-//               }}
-//             >
-//               Filters
-//             </Button>
-//           </Badge>
-//         </Box>
-//       </Box>
-
-//       {/* Filter Panel */}
-//       <Collapse in={showFilters} timeout="auto" unmountOnExit>
-//         <Paper
-//           elevation={0}
-//           sx={{
-//             mb: 3,
-//             p: 3,
-//             borderRadius: 2,
-//             backgroundColor: theme.palette.background.default,
-//             border: `1px solid ${theme.palette.divider}`,
-//             boxShadow: theme.shadows[1]
-//           }}
-//         >
-//           <Stack spacing={3}>
-//             {/* Search Field */}
-//             <TextField
-//               fullWidth
-//               variant="outlined"
-//               placeholder="Search candidates, interviewers, emails, job titles, job names"
-//               value={searchTerm}
-//               onChange={(e) => setSearchTerm(e.target.value)}
-//               InputProps={{
-//                 startAdornment: (
-//                   <InputAdornment position="start">
-//                     <SearchIcon color="action" />
-//                   </InputAdornment>
-//                 ),
-//                 endAdornment: searchTerm && (
-//                   <IconButton
-//                     edge="end"
-//                     onClick={() => setSearchTerm('')}
-//                     size="small"
-//                     sx={{ color: theme.palette.text.secondary }}
-//                   >
-//                     <ClearIcon fontSize="small" />
-//                   </IconButton>
-//                 ),
-//                 sx: {
-//                   borderRadius: 2,
-//                   backgroundColor: theme.palette.background.paper
-//                 }
-//               }}
-//               sx={{
-//                 '& .MuiOutlinedInput-root': {
-//                   '& fieldset': {
-//                     borderColor: theme.palette.divider,
-//                   },
-//                   '&:hover fieldset': {
-//                     borderColor: theme.palette.primary.light,
-//                   },
-//                 }
-//               }}
-//             />
-
-//             <Grid container spacing={2}>
-//               {/* Status Filter */}
-//               <Grid item xs={12} sm={6} md={6}>
-//                 <FormControl fullWidth>
-//                   <InputLabel sx={{ 
-//                     color: theme.palette.text.secondary,
-//                     '&.Mui-focused': {
-//                       color: theme.palette.primary.main
-//                     }
-//                   }}>
-//                     Status
-//                   </InputLabel>
-//                   <Select
-//                     value={statusFilter}
-//                     onChange={(e) => setStatusFilter(e.target.value)}
-//                     label="Status"
-//                     sx={{
-//                       borderRadius: 2,
-//                       '& .MuiOutlinedInput-notchedOutline': {
-//                         borderColor: theme.palette.divider,
-//                       },
-//                       '&:hover .MuiOutlinedInput-notchedOutline': {
-//                         borderColor: theme.palette.primary.light,
-//                       },
-//                     }}
-//                     MenuProps={{
-//                       PaperProps: {
-//                         sx: {
-//                           borderRadius: 2,
-//                           mt: 1,
-//                           boxShadow: theme.shadows[3]
-//                         }
-//                       }
-//                     }}
-//                   >
-//                     {statusOptions.map((option) => (
-//                       <MenuItem 
-//                         key={option.value} 
-//                         value={option.value}
-//                         sx={{
-//                           '&.Mui-selected': {
-//                             backgroundColor: theme.palette.action.selected,
-//                           },
-//                           '&:hover': {
-//                             backgroundColor: theme.palette.action.hover,
-//                           }
-//                         }}
-//                       >
-//                         {option.label}
-//                       </MenuItem>
-//                     ))}
-//                   </Select>
-//                 </FormControl>
-//               </Grid>
-
-//               {/* Date Picker */}
-//               <Grid item xs={12} sm={6} md={6}>
-//                 <TextField
-//                   fullWidth
-//                   type="date"
-//                   label="Select Interview Date"
-//                   value={selectedDate || ''}
-//                   onChange={(e) => setSelectedDate(e.target.value)}
-//                   InputLabelProps={{ 
-//                     shrink: true,
-//                     sx: {
-//                       color: theme.palette.text.secondary,
-//                       '&.Mui-focused': {
-//                         color: theme.palette.primary.main
-//                       }
-//                     }
-//                   }}
-//                   InputProps={{
-//                     startAdornment: (
-//                       <InputAdornment position="start">
-//                         <CalendarTodayIcon color="action" />
-//                       </InputAdornment>
-//                     ),
-//                     endAdornment: selectedDate && (
-//                       <IconButton
-//                         edge="end"
-//                         onClick={() => setSelectedDate(null)}
-//                         size="small"
-//                         sx={{ color: theme.palette.text.secondary }}
-//                       >
-//                         <ClearIcon fontSize="small" />
-//                       </IconButton>
-//                     ),
-//                   }}
-//                   sx={{
-//                     borderRadius: 2,
-//                     '& .MuiOutlinedInput-root': {
-//                       '& fieldset': {
-//                         borderColor: theme.palette.divider,
-//                       },
-//                       '&:hover fieldset': {
-//                         borderColor: theme.palette.primary.light,
-//                       },
-//                     }
-//                   }}
-//                 />
-//               </Grid>
-//             </Grid>
-
-//             {/* Filter Actions */}
-//             <Box sx={{ 
-//               display: 'flex', 
-//               justifyContent: 'flex-end', 
-//               gap: 2,
-//               pt: 1
-//             }}>
-//               <Button
-//                 variant="text"
-//                 color="inherit"
-//                 onClick={handleClearFilters}
-//                 startIcon={<ClearIcon />}
-//                 disabled={getFilterBadgeCount() === 0}
-//                 sx={{
-//                   textTransform: 'none',
-//                   color: theme.palette.text.secondary,
-//                   '&:hover': {
-//                     color: theme.palette.text.primary,
-//                     backgroundColor: 'transparent'
-//                   }
-//                 }}
-//               >
-//                 Clear all
-//               </Button>
-//               <Button
-//                 variant="contained"
-//                 color="primary"
-//                 onClick={() => setFilterExpanded(false)}
-//                 sx={{
-//                   borderRadius: 2,
-//                   px: 3,
-//                   textTransform: 'none',
-//                   boxShadow: 'none',
-//                   '&:hover': {
-//                     boxShadow: 'none'
-//                   }
-//                 }}
-//               >
-//                 Apply Filters
-//               </Button>
-//             </Box>
-//           </Stack>
-//         </Paper>
-//       </Collapse>
-
-//       {/* Tabs Section */}
-//       <Tabs 
-//         value={tabValue} 
-//         onChange={handleTabChange} 
-//         aria-label="interview types tabs"
-//         variant="fullWidth"
-//         sx={{
-//           mb: 3,
-//           '& .MuiTabs-indicator': {
-//             backgroundColor: theme.palette.primary.main,
-//             height: 3,
-//             borderRadius: 3
-//           },
-//           '& .MuiTab-root': {
-//             textTransform: 'none',
-//             fontWeight: 500,
-//             fontSize: '0.9375rem',
-//             minHeight: 48,
-//             color: theme.palette.text.secondary,
-//             '&.Mui-selected': {
-//               color: theme.palette.primary.main,
-//               fontWeight: 600,
-//             },
-//           },
-//         }}
-//       >
-//         <Tab
-//           icon={<VideoCameraFrontIcon />}
-//           iconPosition="start"
-//           label="Online Interviews"
-//           sx={{
-//             minHeight: 48,
-//             '& .MuiTab-iconWrapper': {
-//               mb: 0,
-//               mr: 1
-//             }
-//           }}
-//         />
-//         <Tab
-//           icon={<MeetingRoomIcon />}
-//           iconPosition="start"
-//           label="Offline Interviews"
-//           sx={{
-//             minHeight: 48,
-//             '& .MuiTab-iconWrapper': {
-//               mb: 0,
-//               mr: 1
-//             }
-//           }}
-//         />
-//       </Tabs>
-
-//       {/* Content Section */}
-//       <Box sx={{ 
-//         mt: 2,
-//         borderRadius: 2,
-//         overflow: 'hidden'
-//       }}>
-//         {tabValue === 0 && (
-//           <OnlineInterviews 
-//             searchTerm={searchTerm}
-//             statusFilter={statusFilter}
-//             selectedDate={selectedDate}
-//           />
-//         )}
-//         {tabValue === 1 && (
-//           <OfflineInterviews 
-//             searchTerm={searchTerm}
-//             statusFilter={statusFilter}
-//             selectedDate={selectedDate}
-//           />
-//         )}
-//       </Box>
-//     </Paper>
-//   );
-// };
-
-// export default TotalInterviews;
-
-//--------
-
 import React, { useState } from 'react';
 import {
   Box,
@@ -437,8 +17,15 @@ import {
   Collapse,
   Button,
   Badge,
-  Stack
+  Stack,
+  Container,
+  useMediaQuery,
+  Drawer,
+  Fab,
+  Chip,
+  Divider
 } from '@mui/material';
+import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import OnlineInterviews from '../../components/Interviews/onlineInterviews';
 import OfflineInterviews from '../../components/Interviews/OfflineInterviews';
 import RejectedInterviews from '../../components/Interviews/RejectedInterviews';
@@ -451,6 +38,9 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import TuneIcon from '@mui/icons-material/Tune';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import CloseIcon from '@mui/icons-material/Close';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const TotalInterviews = () => {
   const [tabValue, setTabValue] = useState(0);
@@ -459,7 +49,26 @@ const TotalInterviews = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filterExpanded, setFilterExpanded] = useState(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [tempFilters, setTempFilters] = useState({
+    searchTerm: '',
+    statusFilter: 'all',
+    selectedDate: null
+  });
+  
   const theme = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+
+  // Fixed sidebar width - must match your sidebar
+  const sidebarWidth = 180;
+
+  const handleBack = () => {
+ navigate(-1)
+  };
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -469,10 +78,31 @@ const TotalInterviews = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setSelectedDate(null);
+    setTempFilters({
+      searchTerm: '',
+      statusFilter: 'all',
+      selectedDate: null
+    });
+  };
+
+  const handleApplyMobileFilters = () => {
+    setSearchTerm(tempFilters.searchTerm);
+    setStatusFilter(tempFilters.statusFilter);
+    setSelectedDate(tempFilters.selectedDate);
+    setMobileFilterOpen(false);
+  };
+
+  const handleOpenMobileFilters = () => {
+    setTempFilters({
+      searchTerm,
+      statusFilter,
+      selectedDate
+    });
+    setMobileFilterOpen(true);
   };
 
   const statusOptions = [
-    { value: 'all', label: 'All Statuses' },
+    { value: 'all', label: 'All Status' },
     { value: 'scheduled', label: 'Scheduled' },
     { value: 'completed', label: 'Completed' },
     { value: 'cancelled', label: 'Cancelled' },
@@ -487,198 +117,529 @@ const TotalInterviews = () => {
     return count;
   };
 
-  return (
-    <Box 
-      sx={{ 
-        width: '80vw',   // full screen width
-        minHeight: '100vh', 
-        bgcolor: theme.palette.background.default,
-        boxSizing: 'border-box',
-        p: 2,             // remove extra padding
-        m: 0  ,
-        marginLeft:12            // remove margin
+  // Mobile Filter Drawer Component
+  const MobileFilterDrawer = () => (
+    <Drawer
+      anchor="bottom"
+      open={mobileFilterOpen}
+      onClose={() => setMobileFilterOpen(false)}
+      PaperProps={{
+        sx: {
+          maxHeight: '85vh',
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          p: 2.5
+        }
       }}
     >
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 2,
+        pb: 1,
+        borderBottom: `1px solid ${theme.palette.divider}`
+      }}>
+        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+          Filter Interviews
+        </Typography>
+        <IconButton onClick={() => setMobileFilterOpen(false)} size="small">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+
+      <Box sx={{ 
+        maxHeight: 'calc(85vh - 150px)', 
+        overflowY: 'auto',
+        px: 0.5
+      }}>
+        <Stack spacing={2.5}>
+          {/* Search Field */}
+          <TextField
+            fullWidth
+            placeholder="Search candidates, jobs..."
+            value={tempFilters.searchTerm}
+            onChange={(e) => setTempFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
+            size="small"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+              endAdornment: tempFilters.searchTerm && (
+                <IconButton
+                  edge="end"
+                  onClick={() => setTempFilters(prev => ({ ...prev, searchTerm: '' }))}
+                  size="small"
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              )
+            }}
+          />
+
+          {/* Status Filter */}
+          <FormControl fullWidth size="small">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={tempFilters.statusFilter}
+              onChange={(e) => setTempFilters(prev => ({ ...prev, statusFilter: e.target.value }))}
+              label="Status"
+            >
+              {statusOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Date Picker */}
+          <TextField
+            fullWidth
+            type="date"
+            label="Date"
+            value={tempFilters.selectedDate || ''}
+            onChange={(e) => setTempFilters(prev => ({ ...prev, selectedDate: e.target.value }))}
+            InputLabelProps={{ shrink: true }}
+            size="small"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CalendarTodayIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Stack>
+      </Box>
+
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 1.5, 
+        mt: 3, 
+        pt: 2, 
+        borderTop: `1px solid ${theme.palette.divider}`
+      }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={handleClearFilters}
+          disabled={getFilterBadgeCount() === 0}
+          sx={{ borderRadius: 2 }}
+        >
+          Clear All
+        </Button>
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleApplyMobileFilters}
+          sx={{ borderRadius: 2 }}
+        >
+          Apply Filters
+        </Button>
+      </Box>
+    </Drawer>
+  );
+
+  // Active filters chips for mobile
+  const ActiveFilters = () => {
+    if (getFilterBadgeCount() === 0) return null;
+    
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        flexWrap: 'wrap', 
+        gap: 1, 
+        mb: 2,
+        mt: 1
+      }}>
+        {searchTerm && (
+          <Chip
+            label={`Search: ${searchTerm}`}
+            onDelete={() => setSearchTerm('')}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
+        )}
+        {statusFilter !== 'all' && (
+          <Chip
+            label={`Status: ${statusOptions.find(s => s.value === statusFilter)?.label}`}
+            onDelete={() => setStatusFilter('all')}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
+        )}
+        {selectedDate && (
+          <Chip
+            label={`Date: ${selectedDate}`}
+            onDelete={() => setSelectedDate(null)}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
+        )}
+        <Chip
+          label="Clear All"
+          onClick={handleClearFilters}
+          size="small"
+          color="default"
+          variant="outlined"
+        />
+      </Box>
+    );
+  };
+
+  return (
+
+    <Box 
+      sx={{ 
+        minHeight: '100vh',
+        marginTop:'50px',
+        bgcolor: theme.palette.background.default,
+        // Responsive margin based on sidebar
+        marginLeft: {
+          xs: 0,
+          sm: isDesktop ? `${sidebarWidth+50}px` : 0,
+          md: `${sidebarWidth}px`,
+        },
+        width: {
+          xs: '100%',
+          sm: isDesktop ? `100%` : '100%',
+          md: `120%`,
+        },
+        transition: 'margin-left 0.3s ease, width 0.3s ease',
+        p: {
+          xs: 1,
+          sm: 2,
+          md: 3,
+        },
+      }}
+    >
+<Box sx={{ mb: isMobile ? 1 : 2 }}>
+  <Button
+    startIcon={<ArrowBackIcon />}
+    onClick={handleBack}
+    sx={{
+      // Text and icon color - blue
+      color: '#1976d2',
+      
+      // Hover effect - blue text with light grey background
+      '&:hover': {
+        backgroundColor: '#f5f5f5',  // Light grey background on hover
+        color: '#1565C0',  // Slightly darker blue on hover
+      },
+      
+      // Responsive styles
+      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontWeight: 500,
+      textTransform: 'none',
+      px: isMobile ? 1 : 2,
+      py: isMobile ? 0.5 : 1,
+      
+      // Optional: smooth transition for hover effect
+      transition: 'all 0.2s ease',
+      
+      // Remove default background
+      backgroundColor: 'transparent',
+    }}
+  >
+    Back  
+  </Button>
+</Box>
       <Paper
-        elevation={0}
+        elevation={isMobile ? 0 : 1}
         sx={{
           width: '100%',
           minHeight: '100vh',
-          borderRadius: 0, // no rounded corners for full page layout
-          p: 4,
+          borderRadius: {
+            xs: 0,
+            sm: 2,
+            md: 3,
+          },
+          p: {
+            xs: 1.5,
+            sm: 2.5,
+            md: 3,
+          },
           backgroundColor: theme.palette.background.paper,
-          boxSizing: 'border-box',
-          overflowX: 'hidden' // prevent right scroll issue
         }}
       >
+       
+      
+
         {/* Header Section */}
         <Box 
           sx={{ 
             display: 'flex', 
+            flexDirection: {
+              xs: 'column',
+              sm: 'row',
+            },
             justifyContent: 'space-between', 
-            alignItems: 'center', 
-            mb: 2,
+            alignItems: {
+              xs: 'flex-start',
+              sm: 'center',
+            },
+            mb: {
+              xs: 2,
+              sm: 2.5,
+              md: 3,
+            },
             gap: 2,
-            flexWrap: 'wrap',
-            width: '100%'
           }}
         >
-          <Typography variant="h5" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+          <Typography 
+            variant={isMobile ? "h6" : "h5"}
+            sx={{ 
+              fontWeight: 700,
+              fontSize: {
+                xs: '1.1rem',
+                sm: '1.25rem',
+                md: '1.5rem',
+              }
+            }}
+          >
             Total Interviews 
           </Typography>
           
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Badge 
-              badgeContent={getFilterBadgeCount()} 
-              color="primary"
-              overlap="circular"
-            >
-              <Button
-                variant="outlined"
-                startIcon={<TuneIcon />}
-                endIcon={filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                onClick={() => {
-                  setShowFilters(!showFilters);
-                  setFilterExpanded(!filterExpanded);
-                }}
-                sx={{
-                  borderRadius: 2,
-                  px: 2,
-                  py: 1,
-                }}
-              >
-                Filters
-              </Button>
-            </Badge>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: {
+              xs: 'flex-start',
+              sm: 'flex-end',
+            },
+            width: {
+              xs: '100%',
+              sm: 'auto',
+            }
+          }}>
+            {isMobile ? (
+              <Badge badgeContent={getFilterBadgeCount()} color="primary">
+                <Button
+                  variant="outlined"
+                  startIcon={<FilterListIcon />}
+                  onClick={handleOpenMobileFilters}
+                  fullWidth
+                  sx={{
+                    borderRadius: 2,
+                    py: 1,
+                  }}
+                >
+                  Filters
+                </Button>
+              </Badge>
+            ) : (
+              <Badge badgeContent={getFilterBadgeCount()} color="primary">
+                <Button
+                  variant="outlined"
+                  startIcon={<TuneIcon />}
+                  endIcon={filterExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                  onClick={() => {
+                    setShowFilters(!showFilters);
+                    setFilterExpanded(!filterExpanded);
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    px: {
+                      xs: 2,
+                      sm: 2.5,
+                      md: 3,
+                    },
+                  }}
+                >
+                  Filters
+                </Button>
+              </Badge>
+            )}
           </Box>
         </Box>
 
-        {/* Filter Panel */}
-        <Collapse in={showFilters} timeout="auto" unmountOnExit>
-          <Paper
-            elevation={0}
-            sx={{
-              mb: 3,
-              p: 2,
-              borderRadius: 2,
-              backgroundColor: theme.palette.background.default,
-              border: `1px solid ${theme.palette.divider}`,
-            }}
-          >
-            <Stack spacing={2}>
-              {/* Search Field */}
-              <TextField
-                fullWidth
-                variant="outlined"
-                placeholder="Search candidates, interviewers, emails, job titles, job names"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: searchTerm && (
-                    <IconButton
-                      edge="end"
-                      onClick={() => setSearchTerm('')}
+        {/* Active Filters Chips (Mobile) */}
+        {isMobile && <ActiveFilters />}
+
+        {/* Filter Panel - Desktop/Tablet */}
+        {!isMobile && (
+          <Collapse in={showFilters}>
+            <Paper
+              sx={{
+                p: {
+                  sm: 2,
+                  md: 3,
+                },
+                mb: 3,
+                backgroundColor: theme.palette.background.default,
+                borderRadius: 2,
+              }}
+            >
+              <Stack spacing={2.5}>
+                {/* Search */}
+                <TextField
+                  fullWidth
+                  placeholder="Search candidates, interviewers, emails, job titles, job names"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                    endAdornment: searchTerm && (
+                      <IconButton
+                        edge="end"
+                        onClick={() => setSearchTerm('')}
+                        size="small"
+                      >
+                        <ClearIcon fontSize="small" />
+                      </IconButton>
+                    )
+                  }}
+                />
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth size="small">
+                      <InputLabel>Status</InputLabel>
+                      <Select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        label="Status"
+                      >
+                        {statusOptions.map((option) => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Select Interview Date"
+                      value={selectedDate || ''}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      InputLabelProps={{ shrink: true }}
                       size="small"
-                      sx={{ color: theme.palette.text.secondary }}
-                    >
-                      <ClearIcon fontSize="small" />
-                    </IconButton>
-                  )
-                }}
-              />
-
-              <Grid container spacing={2}>
-                {/* Status Filter */}
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Status</InputLabel>
-                    <Select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value)}
-                      label="Status"
-                    >
-                      {statusOptions.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarTodayIcon />
+                          </InputAdornment>
+                        ),
+                        endAdornment: selectedDate && (
+                          <IconButton
+                            edge="end"
+                            onClick={() => setSelectedDate(null)}
+                            size="small"
+                          >
+                            <ClearIcon fontSize="small" />
+                          </IconButton>
+                        )
+                      }}
+                    />
+                  </Grid>
                 </Grid>
 
-                {/* Date Picker */}
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label="Select Interview Date"
-                    value={selectedDate || ''}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    InputLabelProps={{ shrink: true }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <CalendarTodayIcon color="action" />
-                        </InputAdornment>
-                      ),
-                      endAdornment: selectedDate && (
-                        <IconButton
-                          edge="end"
-                          onClick={() => setSelectedDate(null)}
-                          size="small"
-                          sx={{ color: theme.palette.text.secondary }}
-                        >
-                          <ClearIcon fontSize="small" />
-                        </IconButton>
-                      ),
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: {
+                    xs: 'column',
+                    sm: 'row',
+                  },
+                  justifyContent: 'flex-end',
+                  gap: 1.5,
+                }}>
+                  <Button
+                    onClick={handleClearFilters}
+                    disabled={getFilterBadgeCount() === 0}
+                    sx={{ textTransform: 'none' }}
+                  >
+                    Clear all
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={() => setShowFilters(false)}
+                    sx={{ 
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      px: 3
                     }}
-                  />
-                </Grid>
-              </Grid>
+                  >
+                    Apply Filters
+                  </Button>
+                </Box>
+              </Stack>
+            </Paper>
+          </Collapse>
+        )}
 
-              {/* Filter Actions */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                <Button
-                  variant="text"
-                  color="inherit"
-                  onClick={handleClearFilters}
-                  startIcon={<ClearIcon />}
-                  disabled={getFilterBadgeCount() === 0}
-                >
-                  Clear all
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => setFilterExpanded(false)}
-                  sx={{ borderRadius: 2, px: 3 }}
-                >
-                  Apply Filters
-                </Button>
-              </Box>
-            </Stack>
-          </Paper>
-        </Collapse>
-
-        {/* Tabs Section */}
+        {/* Tabs */}
         <Tabs 
           value={tabValue} 
-          onChange={handleTabChange} 
-          variant="fullWidth"
-          sx={{ mb: 2 }}
+          onChange={handleTabChange}
+          variant={isMobile ? "scrollable" : "fullWidth"}
+          scrollButtons={isMobile ? "auto" : false}
+          allowScrollButtonsMobile
+          sx={{ 
+            mb: {
+              xs: 2,
+              sm: 2.5,
+              md: 3,
+            },
+            borderBottom: 1,
+            borderColor: 'divider',
+            '& .MuiTab-root': {
+              fontSize: {
+                xs: '0.75rem',
+                sm: '0.875rem',
+                md: '0.9375rem',
+              },
+              minHeight: {
+                xs: 48,
+                sm: 48,
+                md: 48,
+              },
+              py: {
+                xs: 1,
+                sm: 1,
+                md: 1.5,
+              }
+            }
+          }}
         >
-          <Tab icon={<VideoCameraFrontIcon />} iconPosition="start" label="Online Interviews" />
-          <Tab icon={<MeetingRoomIcon />} iconPosition="start" label="Offline Interviews" />
-          <Tab icon={<CancelIcon />} iconPosition="start" label="Rejected Interviews" />
+          <Tab 
+            icon={<VideoCameraFrontIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />} 
+            iconPosition="start"
+            label="Online" 
+          />
+          <Tab 
+            icon={<MeetingRoomIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />} 
+            iconPosition="start"
+            label="Offline" 
+          />
+          <Tab 
+            icon={<CancelIcon sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }} />} 
+            iconPosition="start"
+            label="Rejected" 
+          />
         </Tabs>
 
-        {/* Content Section */}
-        <Box sx={{ mt: 2, width: '100%' }}>
+        {/* Content */}
+        <Box sx={{ 
+          mt: {
+            xs: 2,
+            sm: 2.5,
+            md: 3,
+          }
+        }}>
           {tabValue === 0 && (
             <OnlineInterviews 
               searchTerm={searchTerm}
@@ -701,6 +662,9 @@ const TotalInterviews = () => {
             />
           )}
         </Box>
+
+        {/* Mobile Filter Drawer */}
+        <MobileFilterDrawer />
       </Paper>
     </Box>
   );

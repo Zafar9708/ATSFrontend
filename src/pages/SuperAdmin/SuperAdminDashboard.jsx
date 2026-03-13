@@ -989,7 +989,7 @@ const StatCard = ({ title, value, icon, from, to, sub }) => (
     '&:hover': { transform: 'translateY(-3px)', boxShadow: `0 14px 36px ${from}77` },
   }}>
     <Box sx={{ position:'absolute', top:-28, right:-28, width:100, height:100, borderRadius:'50%', background:'rgba(255,255,255,0.10)' }} />
-    <Box sx={{ position:'relative', zIndex:1 }}>
+    <Box sx={{ position:'relative', zIndex:1 , width:"250px"}}>
       <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:1.5 }}>
         <Typography sx={{ fontSize:11, fontWeight:700, opacity:.8, letterSpacing:.8, textTransform:'uppercase' }}>{title}</Typography>
         <Box sx={{ p:.7, borderRadius:'8px', background:'rgba(255,255,255,0.18)', display:'flex' }}>
@@ -1277,21 +1277,21 @@ const SuperAdminDashboard = () => {
      RENDER
   ════════════════════════════════════════════════════════════════════ */
   return (
-    <Box sx={{ minHeight:'100vh', background:T.bg, p:{ xs:1.5, sm:2.5, md:3 } }}>
+    <Box sx={{ minHeight:'100vh', background:T.bg, p:{ xs:1.5, sm:2.5, md:3  }, ml:"190px", mt:"60px" }}>
 
       {/* ── Header ─────────────────────────────────────────────────── */}
       <Box sx={{
         display:'flex', justifyContent:'space-between', alignItems:'center',
-        mb:3, flexWrap:'wrap', gap:1.5
+        mb:3, flexWrap:'wrap', gap:1.5, width:"1300px"
       }}>
-        <Box sx={{ display:'flex', alignItems:'center', gap:1.5 }}>
+        <Box sx={{ display:'flex', alignItems:'center', gap:1.5,ml:4 }}>
           <Box sx={{ p:1, borderRadius:'12px', background:T.indigo, display:'flex', flexShrink:0 }}>
             <BusinessIcon sx={{ color:'#fff', fontSize:22 }} />
           </Box>
           <Box>
             <Typography sx={{
               fontSize:{ xs:16, sm:20, md:23 }, fontWeight:800,
-              color:T.navy, lineHeight:1.2, letterSpacing:-.4
+              color:T.navy, lineHeight:1.2, letterSpacing:-.4, 
             }}>
               Organization Management
             </Typography>
@@ -1328,18 +1328,20 @@ const SuperAdminDashboard = () => {
       </Box>
 
       {/* ── Stat Cards ─────────────────────────────────────────────── */}
-      <Grid container spacing={{ xs:1.5, sm:2 }} sx={{ mb:2.5 }}>
-        {[
-          { title:'Total Tenants',    value:total,        icon:<PeopleIcon />,   from:'#4F46E5', to:'#7C3AED', sub:'All registered' },
-          { title:'Active Tenants',   value:activeCount,  icon:<ActiveIcon />,   from:'#059669', to:'#10B981', sub:`${Math.round((activeCount/Math.max(total,1))*100)}% of total` },
-          { title:'Inactive',         value:inactiveCount,icon:<InactiveIcon />, from:'#E11D48', to:'#F43F5E', sub:`${Math.round((inactiveCount/Math.max(total,1))*100)}% of total` },
-          { title:'Growth Rate',      value:'+22%',       icon:<BarChartIcon />, from:'#D97706', to:'#F59E0B', sub:'Quarterly increase' },
-        ].map((s,i) => (
-          <Grid key={i} item xs={6} sm={6} md={3}>
-            <StatCard {...s} />
-          </Grid>
-        ))}
+  <Box sx={{  pl: 4, pr: 0, mb: 2.5 }}> 
+  <Grid container spacing={2} >
+    {[
+      { title: 'Total Tenants', value: total, icon: <PeopleIcon />, from: '#4F46E5', to: '#7C3AED', sub: 'All registered' },
+      { title: 'Active Tenants', value: activeCount, icon: <ActiveIcon />, from: '#059669', to: '#10B981', sub: `${Math.round((activeCount / Math.max(total, 1)) * 100)}% of total` },
+      { title: 'Inactive', value: inactiveCount, icon: <InactiveIcon />, from: '#E11D48', to: '#F43F5E', sub: `${Math.round((inactiveCount / Math.max(total, 1)) * 100)}% of total` },
+      { title: 'Growth Rate', value: '+22%', icon: <BarChartIcon />, from: '#D97706', to: '#F59E0B', sub: 'Quarterly increase' },
+    ].map((s, i) => (
+      <Grid item key={i} xs={12} sm={6} md={3}>
+        <StatCard {...s} sx={{ height: '100%', width: '100%' }} />
       </Grid>
+    ))}
+  </Grid>
+</Box>
 
       {/* ── Main two-column grid ────────────────────────────────────── */}
       <Grid container spacing={{ xs:2, sm:2.5 }}>
@@ -1352,11 +1354,11 @@ const SuperAdminDashboard = () => {
             <Grid item xs={12} md={7}>
               <Card sx={{
                 p:2.5, borderRadius:'20px', border:`1px solid ${T.border}`,
-                boxShadow:'none', height:280
+                boxShadow:'none', height:280, ml:4
               }}>
-                <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:1.5 }}>
+                <Box sx={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', mb:1.5,width:"350px" }}>
                   <Box>
-                    <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Tenant Activity</Typography>
+                    <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy, }}>Tenant Activity</Typography>
                     <Typography sx={{ fontSize:11, color:T.muted }}>Monthly active vs inactive</Typography>
                   </Box>
                   <Chip label="6 months" size="small"
@@ -1389,7 +1391,7 @@ const SuperAdminDashboard = () => {
                 p:2.5, borderRadius:'20px', border:`1px solid ${T.border}`,
                 boxShadow:'none', height:280
               }}>
-                <Box sx={{ mb:1 }}>
+                <Box sx={{ mb:1, width:"350px" }}>
                   <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Status Distribution</Typography>
                   <Typography sx={{ fontSize:11, color:T.muted }}>Current tenant states</Typography>
                 </Box>
@@ -1421,7 +1423,7 @@ const SuperAdminDashboard = () => {
           </Grid>
 
           {/* Search & filter */}
-          <Card sx={{ p:2, mb:2, borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none' }}>
+          <Card sx={{ p:2, mb:2, borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none' , ml:4}}>
             <Grid container spacing={1.5} alignItems="center">
               <Grid item xs={12} sm={6}>
                 <TextField fullWidth size="small" placeholder="Search by name or domain…"
@@ -1434,9 +1436,9 @@ const SuperAdminDashboard = () => {
               </Grid>
               <Grid item xs={6} sm={4}>
                 <FormControl fullWidth size="small">
-                  <InputLabel sx={{ fontSize:13 }}>Status</InputLabel>
+                  <InputLabel sx={{ fontSize:13 , ml:"400px"}}>Status</InputLabel>
                   <Select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-                    label="Status" sx={{ borderRadius:'10px', fontSize:13, background:T.bg }}>
+                    label="Status" sx={{ borderRadius:'10px', fontSize:13, background:T.bg, ml:"400px" }}>
                     <MenuItem value="all">All Status</MenuItem>
                     <MenuItem value="active">Active</MenuItem>
                     <MenuItem value="inactive">Inactive</MenuItem>
@@ -1452,7 +1454,7 @@ const SuperAdminDashboard = () => {
           </Card>
 
           {/* Table */}
-          <Card sx={{ borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none', overflow:'hidden' }}>
+          <Card sx={{ borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none', overflow:'hidden', ml:4, width:"800px" }}>
             <Box sx={{ px:2.5, py:1.8, borderBottom:`1px solid ${T.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
               <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Tenant List</Typography>
               <Chip label={`${filtered.length} results`} size="small"
@@ -1618,7 +1620,7 @@ const SuperAdminDashboard = () => {
             </Card>
 
             {/* Quick Actions */}
-            <Card sx={{ borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none', overflow:'hidden' }}>
+            <Card sx={{ borderRadius:'20px', border:`1px solid ${T.border}`, boxShadow:'none', overflow:'hidden', width:"400px" }}>
               <Box sx={{ px:2.5, py:1.8, borderBottom:`1px solid ${T.border}` }}>
                 <Typography sx={{ fontWeight:700, fontSize:14, color:T.navy }}>Quick Actions</Typography>
               </Box>
