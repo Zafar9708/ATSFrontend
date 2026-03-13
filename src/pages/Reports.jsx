@@ -189,7 +189,7 @@ const ReportsPage = () => {
     { value: 'department', label: 'Department Metrics' },
     { value: 'source', label: 'Source Analysis' },
     { value: 'cost', label: 'Cost Analysis' },
-    { value: 'performance', label: 'Recruiter Performance' }
+    
   ];
 
   useEffect(() => {

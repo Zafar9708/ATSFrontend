@@ -649,7 +649,7 @@ const AdminDashboard = () => {
         </Box>
 
         {/* ── STAT CARDS ──────────────────────────────────────────────────── */}
-        <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: { xs: 2, sm: 2.5, md: 2.5 } }}>
+        <Grid container spacing={{ xs: 1, sm: 1.5, md: 2 }} sx={{ mb: { xs: 2, sm: 2.5, md: 2.5,} }}>
           {[
             {
               label: { xs: 'Recruiters', sm: 'Total Recruiters', md: 'Total Recruiters' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],
@@ -657,7 +657,8 @@ const AdminDashboard = () => {
               sub: `+${Math.floor(recruiters.length * 0.12)} from last month`,
               icon: <PeopleIcon sx={{ fontSize: { xs: 18, sm: 19, md: 20 } }} />,
               color: T.primaryMid,
-              bg: T.primaryLight
+              bg: T.primaryLight,
+            
             },
             {
               label: { xs: 'Jobs', sm: 'Total Jobs', md: 'Total Jobs' }[isMobile ? 'xs' : isTablet ? 'sm' : 'md'],

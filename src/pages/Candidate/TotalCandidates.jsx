@@ -31,14 +31,12 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
-    Divider,
     Snackbar,
     Alert,
     Tooltip,
     useMediaQuery,
     useTheme,
     Drawer,
-    Fab,
     Badge,
     Stack,
     Grid,
@@ -58,13 +56,9 @@ import {
     Search as SearchIcon,
     Close as CloseIcon,
     Person as PersonIcon,
-    Business as BusinessIcon,
-    Work as WorkIcon,
-    CalendarToday as CalendarIcon,
-    ArrowBack as ArrowBackIcon, // Added back icon
+    ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-
 
 import CandidateDetailsPage from "./CandidateDetailsPage";
 import CandidateResumeAnalysis from "../../pages/Candidate/CandidateResumeAnalysis";
@@ -78,9 +72,8 @@ export const CandidatesTab = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
-    const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
     
-    // Sidebar state - connect to your actual sidebar state
+    // Sidebar state
     const [sidebarOpen, setSidebarOpen] = useState(true);
     
     const [viewMode, setViewMode] = useState("table");
@@ -124,23 +117,31 @@ export const CandidatesTab = () => {
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
     const [tempFilters, setTempFilters] = useState({});
 
-    // Filter state
+    // Filter state - Updated with new fields
     const [filters, setFilters] = useState({
+        status: '',
+        businessUnit: '',
+        department: '',
+        recruiter: '',
+        location: '',
+        searchQuery: '',
         source: '',
         experience: '',
-        availableToJoin: '',
-        status: '',
-        searchQuery: ''
+        availableToJoin: ''
     });
+
+    // Mock data for filter options (replace with actual API data)
+    const businessUnits = ['Technology', 'Sales', 'Marketing', 'Operations', 'HR'];
+    const departments = ['Engineering', 'Product', 'Design', 'Finance', 'Legal'];
+    const recruiters = ['John Smith', 'Sarah Johnson', 'Mike Brown', 'Lisa Davis'];
+    const locations = ['New York', 'San Francisco', 'London', 'Singapore', 'Mumbai'];
 
     // Calculate main content width based on sidebar state
     const getMainContentWidth = () => {
         if (isMobile) return '100%';
-        // Tablet now shows sidebar, so calculate width accordingly
         if (isTablet) {
             return sidebarOpen ? 'calc(100vw - 240px)' : 'calc(100vw - 65px)';
         }
-        // Desktop
         return sidebarOpen ? 'calc(100vw - 240px)' : 'calc(100vw - 65px)';
     };
 
@@ -148,10 +149,8 @@ export const CandidatesTab = () => {
     const getCardGridColumns = () => {
         if (isMobile) return '1fr';
         if (isTablet) {
-            // Tablet with sidebar open: 2 columns, with sidebar closed: 3 columns
             return sidebarOpen ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)';
         }
-        // Desktop
         if (sidebarOpen) {
             return {
                 md: 'repeat(2, 1fr)',
@@ -180,8 +179,7 @@ export const CandidatesTab = () => {
 
     // Handle back navigation
     const handleBack = () => {
-        navigate(-1); // Navigate to the previous page in history
-        // Alternative: navigate('/some-path') to go to a specific route
+        navigate(-1);
     };
 
     // Fetch all candidates and related data
@@ -190,11 +188,8 @@ export const CandidatesTab = () => {
             try {
                 setLoading(true);
                 
-                // Fetch all candidates
                 const candidatesResponse = await candidateService.fetchCandidates();
-                console.log("Candidates API response:", candidatesResponse);
                 
-                // Fix: Check if the response is an array directly or has a candidates property
                 let candidatesData = [];
                 if (Array.isArray(candidatesResponse)) {
                     candidatesData = candidatesResponse;
@@ -204,10 +199,8 @@ export const CandidatesTab = () => {
                     candidatesData = candidatesResponse.data;
                 }
                 
-                console.log("Candidates data:", candidatesData);
                 setCandidates(candidatesData);
 
-                // Fetch other data
                 try {
                     const stagesData = await stageService.fetchStages();
                     setStages(stagesData);
@@ -275,7 +268,6 @@ export const CandidatesTab = () => {
         }
         
         if (typeof owner === 'object') {
-            // Extract email and get the username part before @
             if (owner.email) {
                 return owner.email.split('@')[0];
             }
@@ -289,8 +281,6 @@ export const CandidatesTab = () => {
 
     // Helper function to get vendor name
     const getVendorName = (candidate) => {
-        // This is a placeholder - you'll need to adjust based on your API structure
-        // If your API doesn't provide vendor information, you might need to fetch it separately
         return candidate.vendor || 'Not Specified';
     };
 
@@ -348,6 +338,29 @@ export const CandidatesTab = () => {
                         return false;
                     }
                 }
+            }
+
+            // Business Unit filter (mock - replace with actual logic)
+            if (filters.businessUnit && candidate.businessUnit !== filters.businessUnit) {
+                return false;
+            }
+
+            // Department filter (mock - replace with actual logic)
+            if (filters.department && candidate.department !== filters.department) {
+                return false;
+            }
+
+            // Recruiter filter (mock - replace with actual logic)
+            if (filters.recruiter) {
+                const recruiterName = getRecruiterName(candidate.owner);
+                if (recruiterName !== filters.recruiter && recruiterName !== 'Not assigned') {
+                    return false;
+                }
+            }
+
+            // Location filter (mock - replace with actual logic)
+            if (filters.location && candidate.location !== filters.location) {
+                return false;
             }
 
             // Source filter
@@ -491,7 +504,6 @@ export const CandidatesTab = () => {
     const handleStageMove = async (formData) => {
         try {
             await candidateService.updateCandidate(currentCandidate, formData);
-            // Refresh the candidates list
             const candidatesResponse = await candidateService.fetchCandidates();
             let refreshedCandidates = [];
             
@@ -519,7 +531,6 @@ export const CandidatesTab = () => {
             );
 
             await Promise.all(updatePromises);
-            // Refresh the candidates list
             const candidatesResponse = await candidateService.fetchCandidates();
             let refreshedCandidates = [];
             
@@ -591,7 +602,6 @@ export const CandidatesTab = () => {
                     candidateService.deleteCandidate(id)
                 );
                 await Promise.all(deletePromises);
-                // Refresh the candidates list
                 const candidatesResponse = await candidateService.fetchCandidates();
                 let refreshedCandidates = [];
                 
@@ -664,7 +674,6 @@ export const CandidatesTab = () => {
                 candidateId: currentCandidate
             });
 
-            // Refresh the candidates list
             const candidatesResponse = await candidateService.fetchCandidates();
             let refreshedCandidates = [];
             
@@ -720,18 +729,21 @@ export const CandidatesTab = () => {
 
     const handleResetFilters = () => {
         setFilters({
+            status: '',
+            businessUnit: '',
+            department: '',
+            recruiter: '',
+            location: '',
+            searchQuery: '',
             source: '',
             experience: '',
-            availableToJoin: '',
-            status: '',
-            searchQuery: ''
+            availableToJoin: ''
         });
         setTempFilters({});
         setRejectedFilter('');
     };
 
     const handleBulkUploadComplete = () => {
-        // Refresh the candidates list after bulk upload
         const fetchData = async () => {
             try {
                 setLoading(true);
@@ -759,7 +771,7 @@ export const CandidatesTab = () => {
         fetchData();
     };
 
-    // Mobile Filter Drawer Component
+    // Mobile Filter Drawer Component - With labels in border left corner
     const MobileFilterDrawer = () => (
         <Drawer
             anchor="bottom"
@@ -811,82 +823,196 @@ export const CandidatesTab = () => {
                 },
             }}>
                 <Stack spacing={2.5}>
-                    <FormControl fullWidth size="small">
-                        <InputLabel sx={{ fontSize: '0.95rem' }}>Source</InputLabel>
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Status
+                        </InputLabel>
                         <Select
-                            value={tempFilters.source || ""}
-                            onChange={(e) => setTempFilters(prev => ({ ...prev, source: e.target.value }))}
-                            label="Source"
-                            sx={{ '& .MuiSelect-select': { fontSize: '0.95rem', py: 1.5 } }}
+                            value={tempFilters.status || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
+                            label="Status"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
                         >
                             <MenuItem value="">
-                                <em style={{ fontSize: '0.95rem' }}>All Sources</em>
+                                <em style={{ fontSize: '0.95rem' }}>Select Status </em>
                             </MenuItem>
-                            {Array.from(new Set(candidates
-                                .map(c => {
-                                    if (!c) return null;
-                                    if (typeof c.source === 'string') return c.source;
-                                    if (c.source && typeof c.source === 'object') return c.source.name;
-                                    return null;
-                                })
-                                .filter(Boolean)
-                            )).map(source => (
-                                <MenuItem key={source} value={source}>
-                                    <span style={{ fontSize: '0.95rem' }}>{source}</span>
+                            {stageOptions.map(option => (
+                                <MenuItem key={option._id || option} value={option.name || option}>
+                                    {option.name || option}
                                 </MenuItem>
                             ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl fullWidth size="small">
-                        <InputLabel sx={{ fontSize: '0.95rem' }}>Experience</InputLabel>
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Business Unit
+                        </InputLabel>
                         <Select
-                            value={tempFilters.experience || ""}
-                            onChange={(e) => setTempFilters(prev => ({ ...prev, experience: e.target.value }))}
-                            label="Experience"
-                            sx={{ '& .MuiSelect-select': { fontSize: '0.95rem', py: 1.5 } }}
+                            value={tempFilters.businessUnit || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, businessUnit: e.target.value }))}
+                            label="Business Unit"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
                         >
                             <MenuItem value="">
-                                <em style={{ fontSize: '0.95rem' }}>All Experience</em>
+                                <em style={{ fontSize: '0.95rem' }}>Select Business Unit </em>
                             </MenuItem>
-                            <MenuItem value="0-2">0-2 years</MenuItem>
-                            <MenuItem value="3-5">3-5 years</MenuItem>
-                            <MenuItem value="5+">5+ years</MenuItem>
+                            {businessUnits.map(unit => (
+                                <MenuItem key={unit} value={unit}>
+                                    {unit}
+                                </MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl fullWidth size="small">
-                        <InputLabel sx={{ fontSize: '0.95rem' }}>Available to join (Days)</InputLabel>
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Department
+                        </InputLabel>
                         <Select
-                            value={tempFilters.availableToJoin || ""}
-                            onChange={(e) => setTempFilters(prev => ({ ...prev, availableToJoin: e.target.value }))}
-                            label="Available to join (Days)"
-                            sx={{ '& .MuiSelect-select': { fontSize: '0.95rem', py: 1.5 } }}
+                            value={tempFilters.department || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, department: e.target.value }))}
+                            label="Department"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
                         >
                             <MenuItem value="">
-                                <em style={{ fontSize: '0.95rem' }}>Any Availability</em>
+                                <em style={{ fontSize: '0.95rem' }}>Select Department </em>
                             </MenuItem>
-                            <MenuItem value="7">Within 7 days</MenuItem>
-                            <MenuItem value="15">Within 15 days</MenuItem>
-                            <MenuItem value="30">Within 30 days</MenuItem>
-                            <MenuItem value="60">Within 60 days</MenuItem>
+                            {departments.map(dept => (
+                                <MenuItem key={dept} value={dept}>
+                                    {dept}
+                                </MenuItem>
+                            ))}
                         </Select>
                     </FormControl>
 
-                    <FormControl fullWidth size="small">
-                        <InputLabel sx={{ fontSize: '0.95rem' }}>Status</InputLabel>
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Recruiter
+                        </InputLabel>
                         <Select
-                            value={tempFilters.status || ""}
-                            onChange={(e) => setTempFilters(prev => ({ ...prev, status: e.target.value }))}
-                            label="Status"
-                            sx={{ '& .MuiSelect-select': { fontSize: '0.95rem', py: 1.5 } }}
+                            value={tempFilters.recruiter || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, recruiter: e.target.value }))}
+                            label="Recruiter"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
                         >
                             <MenuItem value="">
-                                <em style={{ fontSize: '0.95rem' }}>All Statuses</em>
+                                <em style={{ fontSize: '0.95rem' }}>Select Recruiter </em>
                             </MenuItem>
-                            {stageOptions.map(option => (
-                                <MenuItem key={option._id || option} value={option.name || option}>
-                                    {option.name || option}
+                            {recruiters.map(recruiter => (
+                                <MenuItem key={recruiter} value={recruiter}>
+                                    {recruiter}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+
+                    <FormControl fullWidth variant="outlined" size="small">
+                        <InputLabel 
+                            sx={{ 
+                                fontSize: '0.95rem',
+                                fontWeight: 500,
+                                backgroundColor: 'white',
+                                px: 0.5,
+                                transform: 'translate(14px, -9px) scale(0.75)',
+                                '&.Mui-focused': {
+                                    transform: 'translate(14px, -9px) scale(0.75)',
+                                }
+                            }}
+                            shrink
+                        >
+                            Location
+                        </InputLabel>
+                        <Select
+                            value={tempFilters.location || ""}
+                            onChange={(e) => setTempFilters(prev => ({ ...prev, location: e.target.value }))}
+                            label="Location"
+                            sx={{ 
+                                '& .MuiSelect-select': { 
+                                    fontSize: '0.95rem', 
+                                    py: 1.5 
+                                } 
+                            }}
+                            displayEmpty
+                        >
+                            <MenuItem value="">
+                                <em style={{ fontSize: '0.95rem' }}>Select Location </em>
+                            </MenuItem>
+                            {locations.map(location => (
+                                <MenuItem key={location} value={location}>
+                                    {location}
                                 </MenuItem>
                             ))}
                         </Select>
@@ -961,7 +1087,7 @@ export const CandidatesTab = () => {
             p: getContainerPadding(),
             ml: { 
                 xs: 0, 
-                sm: sidebarOpen ? '200px' : '65px', // Tablet now shows sidebar
+                sm: sidebarOpen ? '200px' : '65px',
                 md: sidebarOpen ? '200px' : '65px' 
             },
             transition: 'margin-left 0.3s ease, width 0.3s ease',
@@ -978,8 +1104,40 @@ export const CandidatesTab = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+            
+        <Box sx={{ mb: isMobile ? 1 : 2 }}>
+  <Button
+    startIcon={<ArrowBackIcon />}
+    onClick={handleBack}
+    sx={{
+      // Text and icon color - blue
+      color: '#1976d2',
+      
+      // Hover effect - blue text with light grey background
+      '&:hover': {
+        backgroundColor: '#f5f5f5',  // Light grey background on hover
+        color: '#1565C0',  // Slightly darker blue on hover
+      },
+      
+      // Responsive styles
+      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontWeight: 500,
+      textTransform: 'none',
+      px: isMobile ? 1 : 2,
+      py: isMobile ? 0.5 : 1,
+      
+      // Optional: smooth transition for hover effect
+      transition: 'all 0.2s ease',
+      
+      // Remove default background
+      backgroundColor: 'transparent',
+    }}
+  >
+    Back  
+  </Button>
+</Box>
 
-            {/* Header with Back Button */}
+            {/* Header */}
             <Box sx={{
                 display: "flex",
                 flexDirection: { xs: 'column', sm: 'row' },
@@ -989,20 +1147,6 @@ export const CandidatesTab = () => {
                 mb: 3
             }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <IconButton
-                        onClick={handleBack}
-                        sx={{
-                            backgroundColor: '#f5f5f5',
-                            '&:hover': {
-                                backgroundColor: '#e0e0e0',
-                            },
-                            width: { xs: 32, sm: 40 },
-                            height: { xs: 32, sm: 40 },
-                        }}
-                        size={isMobile ? "small" : "medium"}
-                    >
-                        <ArrowBackIcon fontSize={isMobile ? "small" : "medium"} />
-                    </IconButton>
                     <Typography variant={isMobile ? "h6" : "h5"} sx={{ fontWeight: 600 }}>
                         All Candidates ({candidates.length})
                     </Typography>
@@ -1038,8 +1182,7 @@ export const CandidatesTab = () => {
                 </Box>
             </Box>
 
-            {/* Rest of your component remains exactly the same from here */}
-            {/* Stages Summary - Responsive Cards */}
+            {/* Stages Summary */}
             <Card sx={{ mb: 2, overflow: "hidden" }}>
                 <CardContent sx={{ p: { xs: 1.5, sm: 2 } }}>
                     <Box sx={{
@@ -1125,7 +1268,7 @@ export const CandidatesTab = () => {
                 </Box>
             )}
 
-            {/* Filters - Responsive */}
+            {/* Filters - With labels in border left corner - WIDER VERSION */}
             {isMobile ? (
                 // Mobile Filter Bar
                 <Card sx={{ mb: 2 }}>
@@ -1134,7 +1277,7 @@ export const CandidatesTab = () => {
                             <TextField
                                 fullWidth
                                 size="small"
-                                placeholder="Search candidates..."
+                                placeholder="Search jobs..."
                                 value={filters.searchQuery}
                                 onChange={handleFilterChange('searchQuery')}
                                 InputProps={{
@@ -1161,92 +1304,43 @@ export const CandidatesTab = () => {
                     </CardContent>
                 </Card>
             ) : (
-                // Desktop/Tablet Filters
+                // Desktop/Tablet Filters - WIDER VERSION with better space utilization
                 <Card sx={{ mb: 2 }}>
-                    <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-                        <Typography variant="subtitle1" fontWeight={600} mb={2}>
-                            Filters
-                        </Typography>
-                        <Grid container spacing={2}>
+                    <CardContent sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+                        {/* Filter Row - 6 equal width items (5 filters + reset button) */}
+                        <Grid container spacing={2} alignItems="center">
+                            {/* Status Filter - Full width */}
                             <Grid item xs={12} sm={6} md={4} lg={2.4}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>Source</InputLabel>
-                                    <Select
-                                        label="Source"
-                                        value={filters.source}
-                                        onChange={handleFilterChange('source')}
-                                        sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
                                     >
-                                        <MenuItem value="">
-                                            <em style={{ fontSize: '0.85rem' }}>All Sources</em>
-                                        </MenuItem>
-                                        {Array.from(new Set(candidates
-                                            .map(c => {
-                                                if (!c) return null;
-                                                if (typeof c.source === 'string') return c.source;
-                                                if (c.source && typeof c.source === 'object') return c.source.name;
-                                                return null;
-                                            })
-                                            .filter(Boolean)
-                                        )).map(source => (
-                                            <MenuItem key={source} value={source}>
-                                                <span style={{ fontSize: '0.85rem' }}>{source}</span>
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-
-                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>Experience</InputLabel>
-                                    <Select
-                                        label="Experience"
-                                        value={filters.experience}
-                                        onChange={handleFilterChange('experience')}
-                                        sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}
-                                    >
-                                        <MenuItem value="">
-                                            <em style={{ fontSize: '0.85rem' }}>All Experience</em>
-                                        </MenuItem>
-                                        <MenuItem value="0-2">0-2 years</MenuItem>
-                                        <MenuItem value="3-5">3-5 years</MenuItem>
-                                        <MenuItem value="5+">5+ years</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-
-                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>Available to join (Days)</InputLabel>
-                                    <Select
-                                        label="Available to join (In Days)"
-                                        value={filters.availableToJoin}
-                                        onChange={handleFilterChange('availableToJoin')}
-                                        sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}
-                                    >
-                                        <MenuItem value="">
-                                            <em style={{ fontSize: '0.85rem' }}>Any Availability</em>
-                                        </MenuItem>
-                                        <MenuItem value="7">Within 7 days</MenuItem>
-                                        <MenuItem value="15">Within 15 days</MenuItem>
-                                        <MenuItem value="30">Within 30 days</MenuItem>
-                                        <MenuItem value="60">Within 60 days</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-
-                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>Status</InputLabel>
+                                        Status
+                                    </InputLabel>
                                     <Select
                                         label="Status"
                                         value={filters.status}
                                         onChange={handleFilterChange('status')}
-                                        sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
                                     >
                                         <MenuItem value="">
-                                            <em style={{ fontSize: '0.85rem' }}>All Statuses</em>
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Status </em>
                                         </MenuItem>
                                         {stageOptions.map(option => (
                                             <MenuItem key={option._id || option} value={option.name || option}>
@@ -1257,6 +1351,175 @@ export const CandidatesTab = () => {
                                 </FormControl>
                             </Grid>
 
+                            {/* Business Unit Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Business Unit
+                                    </InputLabel>
+                                    <Select
+                                        label="Business Unit"
+                                        value={filters.businessUnit || ""}
+                                        onChange={handleFilterChange('businessUnit')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Business Unit </em>
+                                        </MenuItem>
+                                        {businessUnits.map(unit => (
+                                            <MenuItem key={unit} value={unit}>
+                                                {unit}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Department Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Department
+                                    </InputLabel>
+                                    <Select
+                                        label="Department"
+                                        value={filters.department || ""}
+                                        onChange={handleFilterChange('department')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Department </em>
+                                        </MenuItem>
+                                        {departments.map(dept => (
+                                            <MenuItem key={dept} value={dept}>
+                                                {dept}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Recruiter Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Recruiter
+                                    </InputLabel>
+                                    <Select
+                                        label="Recruiter"
+                                        value={filters.recruiter || ""}
+                                        onChange={handleFilterChange('recruiter')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Recruiter</em>
+                                        </MenuItem>
+                                        {recruiters.map(recruiter => (
+                                            <MenuItem key={recruiter} value={recruiter}>
+                                                {recruiter}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Location Filter - Full width */}
+                            <Grid item xs={12} sm={6} md={4} lg={2.4}>
+                                <FormControl fullWidth variant="outlined" size="small">
+                                    <InputLabel 
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            fontWeight: 500,
+                                            backgroundColor: 'white',
+                                            px: 0.5,
+                                            transform: 'translate(14px, -9px) scale(0.75)',
+                                            '&.Mui-focused': {
+                                                transform: 'translate(14px, -9px) scale(0.75)',
+                                            }
+                                        }}
+                                        shrink
+                                    >
+                                        Location
+                                    </InputLabel>
+                                    <Select
+                                        label="Location"
+                                        value={filters.location || ""}
+                                        onChange={handleFilterChange('location')}
+                                        sx={{ 
+                                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                            '& .MuiSelect-select': {
+                                                py: { xs: 1.2, sm: 1.4, md: 1.6 }
+                                            }
+                                        }}
+                                        displayEmpty
+                                    >
+                                        <MenuItem value="">
+                                            <em style={{ fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' } }}>Select Location </em>
+                                        </MenuItem>
+                                        {locations.map(location => (
+                                            <MenuItem key={location} value={location}>
+                                                {location}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            {/* Reset Button - Full width */}
                             <Grid item xs={12} sm={6} md={4} lg={2.4}>
                                 <Button
                                     variant="outlined"
@@ -1264,22 +1527,31 @@ export const CandidatesTab = () => {
                                     fullWidth
                                     size="medium"
                                     sx={{
-                                        height: '40px',
-                                        fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                                        whiteSpace: 'nowrap'
+                                        height: { xs: '44px', sm: '48px', md: '52px' },
+                                        ml:"70px",
+                                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                        fontWeight: 500,
+                                        whiteSpace: 'nowrap',
+                                        borderColor: '#d32f2f',
+                                        color: '#d32f2f',
+                                        '&:hover': {
+                                            borderColor: '#b71c1c',
+                                            backgroundColor: '#ffebee',
+                                        }
                                     }}
                                     disabled={Object.keys(filters).filter(k => filters[k]).length === 0}
                                 >
-                                    Reset Filters
+                                    RESET ALL FILTERS
                                 </Button>
                             </Grid>
                         </Grid>
 
+                        {/* Search Row - Full width */}
                         <Box sx={{ mt: 2 }}>
                             <TextField
                                 fullWidth
                                 size="small"
-                                placeholder="Search candidates..."
+                                placeholder="Search by name, email, phone, skills..."
                                 value={filters.searchQuery}
                                 onChange={handleFilterChange('searchQuery')}
                                 InputProps={{
@@ -1288,7 +1560,10 @@ export const CandidatesTab = () => {
                                             <SearchIcon fontSize="small" />
                                         </InputAdornment>
                                     ),
-                                    sx: { fontSize: '0.9rem' }
+                                    sx: { 
+                                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                                        py: { xs: 0.5, sm: 0.8, md: 1 }
+                                    }
                                 }}
                             />
                         </Box>
@@ -1299,7 +1574,7 @@ export const CandidatesTab = () => {
             {/* Mobile Filter Drawer */}
             <MobileFilterDrawer />
 
-            {/* Bulk Actions - Responsive */}
+            {/* Bulk Actions */}
             {selectedCandidates.length > 0 && (
                 <Box sx={{
                     mb: 2,

@@ -294,6 +294,7 @@ const TotalInterviews = () => {
   };
 
   return (
+
     <Box 
       sx={{ 
         minHeight: '100vh',
@@ -318,6 +319,37 @@ const TotalInterviews = () => {
         },
       }}
     >
+<Box sx={{ mb: isMobile ? 1 : 2 }}>
+  <Button
+    startIcon={<ArrowBackIcon />}
+    onClick={handleBack}
+    sx={{
+      // Text and icon color - blue
+      color: '#1976d2',
+      
+      // Hover effect - blue text with light grey background
+      '&:hover': {
+        backgroundColor: '#f5f5f5',  // Light grey background on hover
+        color: '#1565C0',  // Slightly darker blue on hover
+      },
+      
+      // Responsive styles
+      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontWeight: 500,
+      textTransform: 'none',
+      px: isMobile ? 1 : 2,
+      py: isMobile ? 0.5 : 1,
+      
+      // Optional: smooth transition for hover effect
+      transition: 'all 0.2s ease',
+      
+      // Remove default background
+      backgroundColor: 'transparent',
+    }}
+  >
+    Back  
+  </Button>
+</Box>
       <Paper
         elevation={isMobile ? 0 : 1}
         sx={{
@@ -336,26 +368,8 @@ const TotalInterviews = () => {
           backgroundColor: theme.palette.background.paper,
         }}
       >
-        {/* Back Button */}
-        <Box sx={{ mb: isMobile ? 1 : 2 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={handleBack}
-            sx={{
-              color: 'text.primary',
-              '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)',
-              },
-              fontSize: isMobile ? '0.9rem' : '1rem',
-              fontWeight: 500,
-              textTransform: 'none',
-              px: isMobile ? 1 : 2,
-              py: isMobile ? 0.5 : 1,
-              borderRadius:"50%"
-            }}
-          >
-          </Button>
-        </Box>
+       
+      
 
         {/* Header Section */}
         <Box 

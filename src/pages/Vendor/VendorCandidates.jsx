@@ -35,17 +35,11 @@ import {
     Grid,
     InputAdornment,
     LinearProgress,
-    Rating,
     Tooltip,
-    AvatarGroup,
     Menu,
     ListItemIcon,
     ListItemText,
     CircularProgress,
-    ToggleButton,
-    ToggleButtonGroup,
-    InputBase,
-    Paper as SearchPaper,
 } from "@mui/material";
 import {
     Search as SearchIcon,
@@ -63,18 +57,18 @@ import {
     Work as WorkIcon,
     CalendarToday as CalendarIcon,
     Star as StarIcon,
-    StarBorder as StarBorderIcon,
     MoreVert as MoreIcon,
     Download as DownloadIcon,
     PictureAsPdf as PdfIcon,
-    Description as DocIcon,
-    InsertDriveFile as FileIcon,
+    Description as DescriptionIcon,
     Clear as ClearIcon,
-    FilterAlt as FilterAltIcon,
+    Add as AddIcon,
+    Delete as DeleteIcon,
+    Edit as EditIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
-// Color palette - Updated pink to blue
+// Color palette
 const colors = {
     primary: {
         main: '#6366F1',
@@ -84,11 +78,11 @@ const colors = {
         bg: '#EEF2FF',
     },
     secondary: {
-        main: '#3B82F6', // Changed from pink to blue
+        main: '#3B82F6',
         light: '#60A5FA',
         dark: '#2563EB',
-        gradient: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)', // Updated gradient
-        bg: '#EFF6FF', // Light blue background
+        gradient: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
+        bg: '#EFF6FF',
     },
     success: {
         main: '#10B981',
@@ -128,7 +122,500 @@ const colors = {
     }
 };
 
-// Stat Card Component - Updated secondary color references
+// Add Candidate Dialog Component
+const AddCandidateDialog = ({ open, onClose, onAdd, vendors, jobs }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        vendor: '',
+        vendorContact: '',
+        jobTitle: '',
+        matchScore: 85,
+        status: 'Pending',
+        skills: '',
+        experience: '',
+        relevantExperience: '',
+    });
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(Boolean);
+            
+            const newCandidate = {
+                id: Date.now(),
+                ...formData,
+                skills: skillsArray,
+                submissionDate: new Date().toISOString(),
+                resume: 'resume.pdf',
+                coverLetter: 'cover-letter.doc',
+                matchScore: Number(formData.matchScore),
+            };
+            
+            await onAdd(newCandidate);
+            onClose();
+            setFormData({
+                name: '',
+                email: '',
+                vendor: '',
+                vendorContact: '',
+                jobTitle: '',
+                matchScore: 85,
+                status: 'Pending',
+                skills: '',
+                experience: '',
+                relevantExperience: '',
+            });
+        } catch (error) {
+            console.error('Error adding candidate:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="md"
+            fullWidth
+            fullScreen={isMobile}
+            PaperProps={{
+                sx: {
+                    borderRadius: { xs: 0, sm: 3 },
+                    maxHeight: '90vh',
+                }
+            }}
+        >
+            <DialogTitle sx={{
+                background: colors.primary.gradient,
+                color: 'white',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+            }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                    <AddIcon />
+                    <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                        Add New Candidate
+                    </Typography>
+                </Box>
+                <IconButton edge="end" color="inherit" onClick={onClose}>
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+            <DialogContent dividers sx={{ p: isMobile ? 2 : 3, bgcolor: colors.neutral[50] }}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Full Name"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            required
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            required
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth size="small" required>
+                            <InputLabel>Vendor</InputLabel>
+                            <Select
+                                value={formData.vendor}
+                                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                                label="Vendor"
+                            >
+                                {vendors.map(v => (
+                                    <MenuItem key={v} value={v}>{v}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Vendor Contact Email"
+                            value={formData.vendorContact}
+                            onChange={(e) => setFormData({ ...formData, vendorContact: e.target.value })}
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth size="small" required>
+                            <InputLabel>Job Title</InputLabel>
+                            <Select
+                                value={formData.jobTitle}
+                                onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                                label="Job Title"
+                            >
+                                {jobs.map(j => (
+                                    <MenuItem key={j} value={j}>{j}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Match Score (%)"
+                            type="number"
+                            value={formData.matchScore}
+                            onChange={(e) => setFormData({ ...formData, matchScore: e.target.value })}
+                            InputProps={{ inputProps: { min: 0, max: 100 } }}
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Skills (comma separated)"
+                            value={formData.skills}
+                            onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                            size="small"
+                            helperText="Enter skills separated by commas"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Total Experience"
+                            value={formData.experience}
+                            onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                            placeholder="e.g., 5 years"
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Relevant Experience"
+                            value={formData.relevantExperience}
+                            onChange={(e) => setFormData({ ...formData, relevantExperience: e.target.value })}
+                            placeholder="e.g., 3 years"
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Status</InputLabel>
+                            <Select
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                label="Status"
+                            >
+                                <MenuItem value="Pending">Pending</MenuItem>
+                                <MenuItem value="Reviewing">Reviewing</MenuItem>
+                                <MenuItem value="Approved">Approved</MenuItem>
+                                <MenuItem value="Rejected">Rejected</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                </Grid>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, bgcolor: colors.neutral[50] }}>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button
+                    onClick={handleSubmit}
+                    variant="contained"
+                    disabled={loading || !formData.name || !formData.email || !formData.vendor || !formData.jobTitle}
+                    sx={{
+                        background: colors.primary.gradient,
+                        color: 'white',
+                    }}
+                >
+                    {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Add Candidate'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
+// Delete Confirmation Dialog
+const DeleteConfirmationDialog = ({ open, onClose, onConfirm, candidateName, loading }) => {
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="xs"
+            fullWidth
+            PaperProps={{
+                sx: {
+                    borderRadius: 3,
+                }
+            }}
+        >
+            <DialogTitle sx={{ 
+                background: colors.error.bg,
+                color: colors.error.dark,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                borderBottom: `1px solid ${colors.error.light}`,
+            }}>
+                <DeleteIcon />
+                <Typography variant="h6">Delete Candidate</Typography>
+            </DialogTitle>
+            <DialogContent sx={{ mt: 2 }}>
+                <Typography variant="body1" sx={{ color: colors.neutral[700] }}>
+                    Are you sure you want to delete <strong>{candidateName}</strong>?
+                </Typography>
+                <Typography variant="body2" sx={{ color: colors.neutral[500], mt: 1 }}>
+                    This action cannot be undone.
+                </Typography>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, justifyContent: 'flex-end', gap: 1 }}>
+                <Button onClick={onClose} disabled={loading}>Cancel</Button>
+                <Button
+                    onClick={onConfirm}
+                    variant="contained"
+                    color="error"
+                    disabled={loading}
+                >
+                    {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Delete'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
+// Edit Candidate Dialog
+const EditCandidateDialog = ({ open, onClose, onEdit, candidate, vendors, jobs }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        vendor: '',
+        vendorContact: '',
+        jobTitle: '',
+        matchScore: 85,
+        status: 'Pending',
+        skills: '',
+        experience: '',
+        relevantExperience: '',
+    });
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (candidate) {
+            setFormData({
+                name: candidate.name || '',
+                email: candidate.email || '',
+                vendor: candidate.vendor || '',
+                vendorContact: candidate.vendorContact || '',
+                jobTitle: candidate.jobTitle || '',
+                matchScore: candidate.matchScore || 85,
+                status: candidate.status || 'Pending',
+                skills: candidate.skills ? candidate.skills.join(', ') : '',
+                experience: candidate.experience || '',
+                relevantExperience: candidate.relevantExperience || '',
+            });
+        }
+    }, [candidate]);
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        try {
+            const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(Boolean);
+            
+            const updatedCandidate = {
+                ...candidate,
+                ...formData,
+                skills: skillsArray,
+                matchScore: Number(formData.matchScore),
+            };
+            
+            await onEdit(candidate.id, updatedCandidate);
+            onClose();
+        } catch (error) {
+            console.error('Error editing candidate:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!candidate) return null;
+
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="md"
+            fullWidth
+            fullScreen={isMobile}
+            PaperProps={{
+                sx: {
+                    borderRadius: { xs: 0, sm: 3 },
+                    maxHeight: '90vh',
+                }
+            }}
+        >
+            <DialogTitle sx={{
+                background: colors.primary.gradient,
+                color: 'white',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+            }}>
+                <Box display="flex" alignItems="center" gap={1}>
+                    <EditIcon />
+                    <Typography variant={isMobile ? "subtitle1" : "h6"}>
+                        Edit Candidate
+                    </Typography>
+                </Box>
+                <IconButton edge="end" color="inherit" onClick={onClose}>
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+            <DialogContent dividers sx={{ p: isMobile ? 2 : 3, bgcolor: colors.neutral[50] }}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Full Name"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            required
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            required
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth size="small" required>
+                            <InputLabel>Vendor</InputLabel>
+                            <Select
+                                value={formData.vendor}
+                                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                                label="Vendor"
+                            >
+                                {vendors.map(v => (
+                                    <MenuItem key={v} value={v}>{v}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Vendor Contact Email"
+                            value={formData.vendorContact}
+                            onChange={(e) => setFormData({ ...formData, vendorContact: e.target.value })}
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth size="small" required>
+                            <InputLabel>Job Title</InputLabel>
+                            <Select
+                                value={formData.jobTitle}
+                                onChange={(e) => setFormData({ ...formData, jobTitle: e.target.value })}
+                                label="Job Title"
+                            >
+                                {jobs.map(j => (
+                                    <MenuItem key={j} value={j}>{j}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Match Score (%)"
+                            type="number"
+                            value={formData.matchScore}
+                            onChange={(e) => setFormData({ ...formData, matchScore: e.target.value })}
+                            InputProps={{ inputProps: { min: 0, max: 100 } }}
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Skills (comma separated)"
+                            value={formData.skills}
+                            onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Total Experience"
+                            value={formData.experience}
+                            onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                            placeholder="e.g., 5 years"
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            fullWidth
+                            label="Relevant Experience"
+                            value={formData.relevantExperience}
+                            onChange={(e) => setFormData({ ...formData, relevantExperience: e.target.value })}
+                            placeholder="e.g., 3 years"
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Status</InputLabel>
+                            <Select
+                                value={formData.status}
+                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                label="Status"
+                            >
+                                <MenuItem value="Pending">Pending</MenuItem>
+                                <MenuItem value="Reviewing">Reviewing</MenuItem>
+                                <MenuItem value="Approved">Approved</MenuItem>
+                                <MenuItem value="Rejected">Rejected</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                </Grid>
+            </DialogContent>
+            <DialogActions sx={{ p: 2, bgcolor: colors.neutral[50] }}>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button
+                    onClick={handleSubmit}
+                    variant="contained"
+                    disabled={loading || !formData.name || !formData.email || !formData.vendor || !formData.jobTitle}
+                    sx={{
+                        background: colors.primary.gradient,
+                        color: 'white',
+                    }}
+                >
+                    {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Save Changes'}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
+// Stat Card Component
 const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
     <Card sx={{ 
         borderRadius: 2, 
@@ -149,11 +636,6 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
                     <Typography variant="h5" sx={{ color: colors.neutral[800], fontWeight: 700, mt: 0.5 }}>
                         {value}
                     </Typography>
-                    {subtitle && (
-                        <Typography variant="caption" sx={{ color: colors.neutral[500] }}>
-                            {subtitle}
-                        </Typography>
-                    )}
                 </Box>
                 <Box sx={{
                     width: 48,
@@ -171,7 +653,7 @@ const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
     </Card>
 );
 
-// Candidate Details Dialog - Updated pink to blue
+// Candidate Details Dialog
 const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -212,7 +694,6 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
             </DialogTitle>
             <DialogContent dividers sx={{ p: isMobile ? 2 : 3, bgcolor: colors.neutral[50] }}>
                 <Grid container spacing={3}>
-                    {/* Profile Section - Updated avatar gradient */}
                     <Grid item xs={12} display="flex" alignItems="center" gap={2}>
                         <Avatar
                             sx={{
@@ -220,7 +701,6 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                                 height: isMobile ? 60 : 80,
                                 background: colors.secondary.gradient,
                                 fontSize: isMobile ? '1.5rem' : '2rem',
-                                boxShadow: '0 4px 14px rgba(59, 130, 246, 0.3)', // Updated shadow color
                             }}
                         >
                             {candidate.name?.charAt(0)}
@@ -247,13 +727,6 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                                             candidate.status === 'Pending' ? colors.warning.dark :
                                             candidate.status === 'Rejected' ? colors.error.dark :
                                             colors.info.dark,
-                                        fontWeight: 500,
-                                        border: '1px solid',
-                                        borderColor:
-                                            candidate.status === 'Approved' ? colors.success.light :
-                                            candidate.status === 'Pending' ? colors.warning.light :
-                                            candidate.status === 'Rejected' ? colors.error.light :
-                                            colors.info.light,
                                     }}
                                 />
                                 <Chip
@@ -262,20 +735,16 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                                     sx={{
                                         background: colors.primary.bg,
                                         color: colors.primary.dark,
-                                        fontWeight: 500,
-                                        border: `1px solid ${colors.primary.light}`,
                                     }}
                                 />
                             </Box>
                         </Box>
                     </Grid>
 
-                    {/* Rest of the dialog content remains the same */}
                     <Grid item xs={12}>
-                        <Divider sx={{ borderColor: colors.neutral[200] }} />
+                        <Divider />
                     </Grid>
 
-                    {/* Vendor & Job Info */}
                     <Grid item xs={12} sm={6}>
                         <Typography variant="subtitle2" sx={{ color: colors.primary.main, fontWeight: 600, mb: 2 }}>
                             Vendor Information
@@ -317,17 +786,16 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                     </Grid>
 
                     <Grid item xs={12}>
-                        <Divider sx={{ borderColor: colors.neutral[200] }} />
+                        <Divider />
                     </Grid>
 
-                    {/* Skills & Experience */}
                     <Grid item xs={12}>
                         <Typography variant="subtitle2" sx={{ color: colors.primary.main, fontWeight: 600, mb: 2 }}>
                             Skills & Experience
                         </Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6}>
-                                <Box sx={{ mb: 2 }}>
+                                <Box>
                                     <Typography variant="body2" sx={{ color: colors.neutral[600], mb: 1 }}>
                                         Technical Skills
                                     </Typography>
@@ -340,8 +808,6 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                                                 sx={{
                                                     background: colors.primary.light + '15',
                                                     color: colors.primary.dark,
-                                                    border: `1px solid ${colors.primary.light}`,
-                                                    fontWeight: 500,
                                                 }}
                                             />
                                         ))}
@@ -354,20 +820,20 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                                         Experience
                                     </Typography>
                                     <Typography variant="body1" sx={{ color: colors.neutral[800], fontWeight: 500 }}>
-                                        {candidate.experience || '5'} years total
+                                        {candidate.experience || '5 years total'}
                                     </Typography>
                                     <Typography variant="caption" sx={{ color: colors.neutral[500] }}>
-                                        Relevant: {candidate.relevantExperience || '3'} years
+                                        Relevant: {candidate.relevantExperience || '3 years'}
                                     </Typography>
                                 </Box>
                             </Grid>
                         </Grid>
                     </Grid>
 
-                    {/* Match Analysis */}
                     <Grid item xs={12}>
-                        <Divider sx={{ borderColor: colors.neutral[200] }} />
+                        <Divider />
                     </Grid>
+                    
                     <Grid item xs={12}>
                         <Typography variant="subtitle2" sx={{ color: colors.primary.main, fontWeight: 600, mb: 2 }}>
                             Match Analysis
@@ -393,38 +859,12 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                                 }}
                             />
                         </Box>
-                        <Grid container spacing={2} sx={{ mt: 1 }}>
-                            <Grid item xs={4}>
-                                <Typography variant="caption" sx={{ color: colors.neutral[500], display: 'block' }}>
-                                    Skills Match
-                                </Typography>
-                                <Typography variant="body2" sx={{ color: colors.success.dark, fontWeight: 600 }}>
-                                    85%
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={4}>
-                                <Typography variant="caption" sx={{ color: colors.neutral[500], display: 'block' }}>
-                                    Experience Match
-                                </Typography>
-                                <Typography variant="body2" sx={{ color: colors.warning.dark, fontWeight: 600 }}>
-                                    70%
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={4}>
-                                <Typography variant="caption" sx={{ color: colors.neutral[500], display: 'block' }}>
-                                    Location Match
-                                </Typography>
-                                <Typography variant="body2" sx={{ color: colors.info.dark, fontWeight: 600 }}>
-                                    90%
-                                </Typography>
-                            </Grid>
-                        </Grid>
                     </Grid>
 
-                    {/* Resume/Documents */}
                     <Grid item xs={12}>
-                        <Divider sx={{ borderColor: colors.neutral[200] }} />
+                        <Divider />
                     </Grid>
+                    
                     <Grid item xs={12}>
                         <Typography variant="subtitle2" sx={{ color: colors.primary.main, fontWeight: 600, mb: 2 }}>
                             Documents
@@ -437,10 +877,6 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                                 sx={{
                                     borderColor: colors.error.light,
                                     color: colors.error.dark,
-                                    '&:hover': {
-                                        borderColor: colors.error.main,
-                                        backgroundColor: colors.error.bg,
-                                    }
                                 }}
                             >
                                 Resume.pdf
@@ -452,10 +888,6 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                                 sx={{
                                     borderColor: colors.info.light,
                                     color: colors.info.dark,
-                                    '&:hover': {
-                                        borderColor: colors.info.main,
-                                        backgroundColor: colors.info.bg,
-                                    }
                                 }}
                             >
                                 Cover Letter.doc
@@ -465,22 +897,12 @@ const CandidateDetailsDialog = ({ open, onClose, candidate }) => {
                 </Grid>
             </DialogContent>
             <DialogActions sx={{ p: 2, justifyContent: 'flex-end', bgcolor: colors.neutral[50] }}>
-                <Button 
-                    onClick={onClose}
-                    variant="outlined"
-                    sx={{ 
-                        borderColor: colors.neutral[300],
-                        color: colors.neutral[700],
-                    }}
-                >
-                    Close
-                </Button>
+                <Button onClick={onClose}>Close</Button>
                 <Button
                     variant="contained"
                     sx={{
                         background: colors.primary.gradient,
                         color: 'white',
-                        boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)',
                     }}
                 >
                     View Full Profile
@@ -496,10 +918,9 @@ const VendorCandidatesPage = () => {
     const theme = useTheme();
     
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
     
-    // Sidebar state
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    // Sidebar state - assume sidebar is 240px wide when open, 65px when collapsed
+    const [sidebarOpen] = useState(true); // This would come from your app's state
     
     // Data states
     const [loading, setLoading] = useState(true);
@@ -511,9 +932,8 @@ const VendorCandidatesPage = () => {
     const [vendorFilter, setVendorFilter] = useState('all');
     const [jobFilter, setJobFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
-    const [dateRange, setDateRange] = useState('all'); // New filter
+    const [dateRange, setDateRange] = useState('all');
     const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-    const [showAdvancedFilters, setShowAdvancedFilters] = useState(false); // New state for advanced filters
     const [tempFilters, setTempFilters] = useState({
         vendor: 'all',
         job: 'all',
@@ -524,19 +944,23 @@ const VendorCandidatesPage = () => {
     // Dialog states
     const [selectedCandidate, setSelectedCandidate] = useState(null);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+    const [addDialogOpen, setAddDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-    // Get main content width
-    const getMainContentWidth = () => {
-        if (isMobile) return '100%';
-        return sidebarOpen ? 'calc(100vw - 240px)' : 'calc(100vw - 65px)';
+    // Calculate sidebar offset
+    const getSidebarOffset = () => {
+        if (isMobile) return 0;
+        return sidebarOpen ? '240px' : '65px';
     };
 
-    // Get container padding
-    const getContainerPadding = () => {
-        if (isMobile) return 1.5;
-        return 3;
+    // Get container width
+    const getMainWidth = () => {
+        if (isMobile) return '100%';
+        return `calc(100% - ${sidebarOpen ? '240px' : '65px'})`;
     };
 
     // Handle back navigation
@@ -562,7 +986,7 @@ const VendorCandidatesPage = () => {
         return Array.from({ length: 25 }, (_, i) => {
             const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
             const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-            const matchScore = Math.floor(Math.random() * 30) + 70; // 70-100
+            const matchScore = Math.floor(Math.random() * 30) + 70;
             const status = statuses[Math.floor(Math.random() * statuses.length)];
             const vendor = vendors[Math.floor(Math.random() * vendors.length)];
             const job = jobs[Math.floor(Math.random() * jobs.length)];
@@ -591,7 +1015,6 @@ const VendorCandidatesPage = () => {
     useEffect(() => {
         let result = [...candidates];
 
-        // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             result = result.filter(c => 
@@ -602,22 +1025,18 @@ const VendorCandidatesPage = () => {
             );
         }
 
-        // Vendor filter
         if (vendorFilter !== 'all') {
             result = result.filter(c => c.vendor === vendorFilter);
         }
 
-        // Job filter
         if (jobFilter !== 'all') {
             result = result.filter(c => c.jobTitle === jobFilter);
         }
 
-        // Status filter
         if (statusFilter !== 'all') {
             result = result.filter(c => c.status === statusFilter);
         }
 
-        // Date range filter
         if (dateRange !== 'all') {
             const now = new Date();
             const daysMap = {
@@ -669,12 +1088,53 @@ const VendorCandidatesPage = () => {
 
     const handleExport = () => {
         showSnackbar('Exporting data...', 'info');
-        // Implement export logic here
     };
 
     const handleViewDetails = (candidate) => {
         setSelectedCandidate(candidate);
         setDetailsDialogOpen(true);
+    };
+
+    const handleAddCandidate = (newCandidate) => {
+        setCandidates(prev => [newCandidate, ...prev]);
+        showSnackbar('Candidate added successfully!');
+    };
+
+    const handleEditCandidate = (id, updatedCandidate) => {
+        setCandidates(prev => prev.map(c => 
+            c.id === id ? updatedCandidate : c
+        ));
+        showSnackbar('Candidate updated successfully!');
+    };
+
+    const handleOpenEdit = (candidate, event) => {
+        if (event) event.stopPropagation();
+        setSelectedCandidate(candidate);
+        setEditDialogOpen(true);
+        setAnchorEl(null);
+    };
+
+    const handleOpenDelete = (candidate, event) => {
+        if (event) event.stopPropagation();
+        setSelectedCandidate(candidate);
+        setDeleteDialogOpen(true);
+        setAnchorEl(null);
+    };
+
+    const handleDeleteCandidate = async () => {
+        if (!selectedCandidate) return;
+        
+        setDeleteLoading(true);
+        try {
+            setCandidates(prev => prev.filter(c => c.id !== selectedCandidate.id));
+            showSnackbar('Candidate deleted successfully!');
+            setDeleteDialogOpen(false);
+            setSelectedCandidate(null);
+        } catch (error) {
+            showSnackbar(error.message, 'error');
+        } finally {
+            setDeleteLoading(false);
+        }
     };
 
     const handleStatusChange = (candidateId, newStatus) => {
@@ -714,7 +1174,6 @@ const VendorCandidatesPage = () => {
             status: 'all',
             dateRange: 'all',
         });
-        setShowAdvancedFilters(false);
     };
 
     const handleClearSearch = () => {
@@ -731,7 +1190,7 @@ const VendorCandidatesPage = () => {
         return count;
     };
 
-    // Mobile Filter Drawer - Updated with new filters
+    // Mobile Filter Drawer
     const MobileFilterDrawer = () => (
         <Drawer
             anchor="bottom"
@@ -827,10 +1286,6 @@ const VendorCandidatesPage = () => {
                             dateRange: 'all',
                         });
                     }}
-                    sx={{ 
-                        borderColor: colors.neutral[300],
-                        color: colors.neutral[700],
-                    }}
                 >
                     Reset
                 </Button>
@@ -856,8 +1311,9 @@ const VendorCandidatesPage = () => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 minHeight: '100vh',
-                width: getMainContentWidth(),
-                ml: { xs: 0, sm: sidebarOpen ? '200px' : '65px' },
+                width: getMainWidth(),
+                ml: getSidebarOffset(),
+                bgcolor: colors.neutral[100],
             }}>
                 <CircularProgress sx={{ color: colors.primary.main }} />
             </Box>
@@ -866,14 +1322,48 @@ const VendorCandidatesPage = () => {
 
     return (
         <Box sx={{
-            width: getMainContentWidth(),
+            width: '1200px',
             minHeight: '100vh',
-            p: getContainerPadding(),
-            ml: { xs: 0, sm: sidebarOpen ? '200px' : '65px' },
+            p: isMobile ? 1.5 : 3,
+            ml: getSidebarOffset(),
             transition: 'margin-left 0.3s ease, width 0.3s ease',
             mt: { xs: 7, sm: 8, md: 9 },
-            bgcolor: colors.neutral[100],
+       
         }}>
+            {/* Back Button */}
+          <Box sx={{ mb: isMobile ? 1 : 2 }}>
+  <Button
+    startIcon={<ArrowBackIcon />}
+    onClick={handleBack}
+    sx={{
+      // Text and icon color - blue
+      color: '#1976d2',
+      
+      // Hover effect - blue text with light grey background
+      '&:hover': {
+        backgroundColor: '#f5f5f5',  // Light grey background on hover
+        color: '#1565C0',  // Slightly darker blue on hover
+      },
+      
+      // Responsive styles
+      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontWeight: 500,
+      textTransform: 'none',
+      px: isMobile ? 1 : 2,
+      py: isMobile ? 0.5 : 1,
+      
+      // Optional: smooth transition for hover effect
+      transition: 'all 0.2s ease',
+      
+      // Remove default background
+      backgroundColor: 'transparent',
+    }}
+  >
+    Back  
+  </Button>
+</Box>
+
+            {/* Snackbar */}
             <Snackbar
                 open={snackbar.open}
                 autoHideDuration={4000}
@@ -887,22 +1377,14 @@ const VendorCandidatesPage = () => {
 
             {/* Header */}
             <Box sx={{ 
+
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: 2, 
+                justifyContent: 'space-between',
                 mb: 3,
-                flexWrap: { xs: 'wrap', sm: 'nowrap' }
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                gap: 2
             }}>
-                <IconButton
-                    onClick={handleBack}
-                    sx={{
-                        bgcolor: 'white',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                        '&:hover': { bgcolor: 'white' },
-                    }}
-                >
-                    <ArrowBackIcon sx={{ color: colors.primary.main }} />
-                </IconButton>
                 <Box>
                     <Typography variant="h5" sx={{ fontWeight: 700, color: colors.neutral[800] }}>
                         Vendor Submissions
@@ -911,353 +1393,286 @@ const VendorCandidatesPage = () => {
                         Review and manage candidates submitted by recruitment vendors
                     </Typography>
                 </Box>
+                
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => setAddDialogOpen(true)}
+                    sx={{
+                        background: colors.primary.gradient,
+                        color: 'white',
+                        boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)',
+                        '&:hover': {
+                            background: colors.primary.gradient,
+                            filter: 'brightness(1.1)',
+                        },
+                        borderRadius: 2,
+                        px: 3,
+                    }}
+                >
+                    Add Candidate
+                </Button>
             </Box>
 
-            {/* Stats Cards */}
-            <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={6} sm={3} width={"31%"}>
-                    <StatCard
-                        title="Total Submissions"
-                        value={stats.total}
-                        icon={PersonIcon}
-                        color={{ main: colors.primary.main, bg: colors.primary.bg }}
-                    />
-                </Grid>
-                <Grid item xs={6} sm={3} width={"31%"}>
-                    <StatCard
-                        title="Pending Review"
-                        value={stats.pending}
-                        icon={ScheduleIcon}
-                        color={{ main: colors.warning.main, bg: colors.warning.bg }}
-                    />
-                </Grid>
-                <Grid item xs={6} sm={3} width={"31%"}>
-                    <StatCard
-                        title="Approved"
-                        value={stats.approved}
-                        icon={CheckCircleIcon}
-                        color={{ main: colors.success.main, bg: colors.success.bg }}
-                    />
-                </Grid>
-       
-            </Grid>
-
-            {/* Redesigned Filter Section */}
+        {/* Stats Cards - Increased Width */}
+<Grid container spacing={3} sx={{ mb: 4, }}>
+    <Grid item xs={12} sm={6} md={3} sx={{width:"23%"}}>
+        <StatCard
+            title="Total Submissions"
+            value={stats.total}
+            icon={PersonIcon}
+            color={{ main: colors.primary.main, bg: colors.primary.bg }}
+        />
+    </Grid>
+    <Grid item xs={12} sm={6} md={3} sx={{width:"23%"}}>
+        <StatCard
+            title="Pending Review"
+            value={stats.pending}
+            icon={ScheduleIcon}
+            color={{ main: colors.warning.main, bg: colors.warning.bg }}
+        />
+    </Grid>
+    <Grid item xs={12} sm={6} md={3} sx={{width:"23%"}}>
+        <StatCard
+            title="Approved"
+            value={stats.approved}
+            icon={CheckCircleIcon}
+            color={{ main: colors.success.main, bg: colors.success.bg }}
+        />
+    </Grid>
+    <Grid item xs={12} sm={6} md={3} sx={{width:"23%"}}>
+        <StatCard
+            title="Avg. Match"
+            value={`${stats.avgMatch}%`}
+            icon={StarIcon}
+            color={{ main: colors.secondary.main, bg: colors.secondary.bg }}
+        />
+    </Grid>
+</Grid>
+            {/* Filter Section */}
             <Paper sx={{ 
-                p: 2.5, 
+                p: 2, 
                 mb: 3, 
                 borderRadius: 2,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}>
-                {/* Search Bar - Full width at top */}
-                <Box sx={{ mb: 2.5 }}>
-                    <SearchPaper
-                        component="form"
-                        sx={{
-                            p: '2px 4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            width: '100%',
-                            borderRadius: 2,
-                            boxShadow: 'none',
-                            border: `1px solid ${colors.neutral[200]}`,
-                            '&:hover': {
-                                borderColor: colors.primary.main,
-                            },
-                        }}
-                    >
-                        <IconButton sx={{ p: '10px' }} aria-label="search">
-                            <SearchIcon sx={{ color: colors.neutral[400] }} />
-                        </IconButton>
-                        <InputBase
-                            sx={{ ml: 1, flex: 1 }}
-                            placeholder="Search by name, email, vendor, or job title..."
+                <Grid container spacing={2} alignItems="center">
+                    {/* Search Field */}
+                    <Grid item xs={12} md={4}>
+                        <TextField
+                            fullWidth
+                            size="small"
+                            placeholder="Search candidates..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon sx={{ color: colors.neutral[400] }} />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: searchQuery && (
+                                    <InputAdornment position="end">
+                                        <IconButton size="small" onClick={handleClearSearch}>
+                                            <ClearIcon fontSize="small" sx={{ color: colors.neutral[400] }} />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
                         />
-                        {searchQuery && (
-                            <IconButton sx={{ p: '10px' }} onClick={handleClearSearch}>
-                                <ClearIcon sx={{ color: colors.neutral[400], fontSize: 20 }} />
-                            </IconButton>
-                        )}
-                    </SearchPaper>
-                </Box>
+                    </Grid>
 
-                {/* Filter Chips Row */}
-                <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 1,
-                    flexWrap: 'wrap',
-                    mb: showAdvancedFilters ? 2 : 0,
-                }}>
-                    <Chip
-                        icon={<FilterAltIcon />}
-                        label={`Filters ${getFilterCount() > 0 ? `(${getFilterCount()})` : ''}`}
-                        onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                        color={getFilterCount() > 0 ? "primary" : "default"}
-                        variant={getFilterCount() > 0 ? "filled" : "outlined"}
-                        sx={{ 
-                            fontWeight: 500,
-                            '& .MuiChip-icon': { color: getFilterCount() > 0 ? 'white' : colors.primary.main },
-                        }}
-                    />
-                    
-                    {/* Active filter chips */}
-                    {vendorFilter !== 'all' && (
-                        <Chip
-                            label={`Vendor: ${vendorFilter}`}
-                            onDelete={() => setVendorFilter('all')}
-                            size="small"
-                            sx={{
-                                backgroundColor: colors.primary.bg,
-                                color: colors.primary.dark,
-                                border: `1px solid ${colors.primary.light}`,
-                            }}
-                        />
-                    )}
-                    
-                    {jobFilter !== 'all' && (
-                        <Chip
-                            label={`Job: ${jobFilter}`}
-                            onDelete={() => setJobFilter('all')}
-                            size="small"
-                            sx={{
-                                backgroundColor: colors.primary.bg,
-                                color: colors.primary.dark,
-                                border: `1px solid ${colors.primary.light}`,
-                            }}
-                        />
-                    )}
-                    
-                    {statusFilter !== 'all' && (
-                        <Chip
-                            label={`Status: ${statusFilter}`}
-                            onDelete={() => setStatusFilter('all')}
-                            size="small"
-                            sx={{
-                                backgroundColor: colors.primary.bg,
-                                color: colors.primary.dark,
-                                border: `1px solid ${colors.primary.light}`,
-                            }}
-                        />
-                    )}
+                    {/* Vendor Filter */}
+                    <Grid item xs={12} sm={6} md={2}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Vendor</InputLabel>
+                            <Select
+                                value={vendorFilter}
+                                onChange={(e) => setVendorFilter(e.target.value)}
+                                label="Vendor"
+                            >
+                                <MenuItem value="all">All Vendors</MenuItem>
+                                {vendors.map(v => (
+                                    <MenuItem key={v} value={v}>{v}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
-                    {dateRange !== 'all' && (
-                        <Chip
-                            label={`Date: ${dateRange === 'today' ? 'Today' : 
-                                   dateRange === 'week' ? 'Last 7 days' :
-                                   dateRange === 'month' ? 'Last 30 days' :
-                                   dateRange === 'quarter' ? 'Last 90 days' : ''}`}
-                            onDelete={() => setDateRange('all')}
-                            size="small"
-                            sx={{
-                                backgroundColor: colors.primary.bg,
-                                color: colors.primary.dark,
-                                border: `1px solid ${colors.primary.light}`,
-                            }}
-                        />
-                    )}
+                    {/* Job Filter */}
+                    <Grid item xs={12} sm={6} md={2}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Job Position</InputLabel>
+                            <Select
+                                value={jobFilter}
+                                onChange={(e) => setJobFilter(e.target.value)}
+                                label="Job Position"
+                            >
+                                <MenuItem value="all">All Jobs</MenuItem>
+                                {jobs.map(j => (
+                                    <MenuItem key={j} value={j}>{j}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
-                    {getFilterCount() > 0 && (
-                        <Button 
-                            size="small" 
-                            onClick={handleResetFilters}
-                            sx={{ 
-                                color: colors.neutral[500],
-                                fontSize: '0.75rem',
-                                textTransform: 'none',
-                            }}
-                        >
-                            Clear all
-                        </Button>
-                    )}
-                </Box>
+                    {/* Status Filter */}
+                    <Grid item xs={12} sm={6} md={2}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Status</InputLabel>
+                            <Select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                label="Status"
+                            >
+                                <MenuItem value="all">All Status</MenuItem>
+                                <MenuItem value="Pending">Pending</MenuItem>
+                                <MenuItem value="Approved">Approved</MenuItem>
+                                <MenuItem value="Rejected">Rejected</MenuItem>
+                                <MenuItem value="Reviewing">Reviewing</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
 
-                {/* Advanced Filters Panel */}
-                {showAdvancedFilters && !isMobile && (
-                    <Box sx={{ 
-                        mt: 2.5,
-                        p: 2,
-                        backgroundColor: colors.neutral[50],
-                        borderRadius: 2,
-                        border: `1px solid ${colors.neutral[200]}`,
-                    }}>
-                        <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} sm={6} md={3}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel>Vendor</InputLabel>
-                                    <Select
-                                        value={vendorFilter}
-                                        onChange={(e) => setVendorFilter(e.target.value)}
-                                        label="Vendor"
-                                    >
-                                        <MenuItem value="all">All Vendors</MenuItem>
-                                        {vendors.map(v => (
-                                            <MenuItem key={v} value={v}>{v}</MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel>Job Position</InputLabel>
-                                    <Select
-                                        value={jobFilter}
-                                        onChange={(e) => setJobFilter(e.target.value)}
-                                        label="Job Position"
-                                    >
-                                        <MenuItem value="all">All Jobs</MenuItem>
-                                        {jobs.map(j => (
-                                            <MenuItem key={j} value={j}>{j}</MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel>Date Range</InputLabel>
-                                    <Select
-                                        value={dateRange}
-                                        onChange={(e) => setDateRange(e.target.value)}
-                                        label="Date Range"
-                                    >
-                                        <MenuItem value="all">All Time</MenuItem>
-                                        <MenuItem value="today">Today</MenuItem>
-                                        <MenuItem value="week">Last 7 Days</MenuItem>
-                                        <MenuItem value="month">Last 30 Days</MenuItem>
-                                        <MenuItem value="quarter">Last 90 Days</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                            <Grid item xs={12} sm={6} md={3}>
-                                <Box display="flex" gap={1} justifyContent="flex-end">
-                                    <Button 
-                                        variant="outlined" 
-                                        onClick={handleResetFilters}
-                                        size="small"
-                                        sx={{ 
-                                            borderColor: colors.neutral[300],
-                                            color: colors.neutral[700],
-                                            minWidth: '80px',
+                    {/* Date Range Filter */}
+                    <Grid item xs={12} sm={6} md={2}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Date Range</InputLabel>
+                            <Select
+                                value={dateRange}
+                                onChange={(e) => setDateRange(e.target.value)}
+                                label="Date Range"
+                            >
+                                <MenuItem value="all">All Time</MenuItem>
+                                <MenuItem value="today">Today</MenuItem>
+                                <MenuItem value="week">Last 7 Days</MenuItem>
+                                <MenuItem value="month">Last 30 Days</MenuItem>
+                                <MenuItem value="quarter">Last 90 Days</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    {/* Action Buttons */}
+                    <Grid item xs={12} md={2}>
+                        <Box display="flex" gap={1} ml="140px">
+                            <Tooltip title="Reset Filters">
+                                <IconButton 
+                                    onClick={handleResetFilters}
+                                    size="small"
+                                    sx={{ 
+                                        border: `1px solid ${colors.neutral[200]}`,
+                                        borderRadius: 1,
+                                    }}
+                                >
+                                    <RefreshIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Export Data">
+                                <IconButton 
+                                    onClick={handleExport}
+                                    size="small"
+                                    sx={{ 
+                                        border: `1px solid ${colors.neutral[200]}`,
+                                        borderRadius: 1,
+                                    }}
+                                >
+                                    <ExportIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                            {isMobile ? (
+                                <Badge badgeContent={getFilterCount()} color="primary">
+                                    <Button
+                                        variant="outlined"
+                                        startIcon={<FilterIcon />}
+                                        onClick={() => {
+                                            setTempFilters({ 
+                                                vendor: vendorFilter, 
+                                                job: jobFilter, 
+                                                status: statusFilter,
+                                                dateRange: dateRange,
+                                            });
+                                            setMobileFilterOpen(true);
                                         }}
+                                        fullWidth
                                     >
-                                        Reset
+                                        Filters
                                     </Button>
-                                </Box>
-                            </Grid>
-                        </Grid>
-                    </Box>
-                )}
-
-                {/* Status Toggle Buttons */}
-                {!isMobile && (
-                    <Box sx={{ 
-                        mt: 2, 
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                    }}>
-                        <ToggleButtonGroup
-                            value={statusFilter}
-                            exclusive
-                            onChange={(e, newStatus) => {
-                                if (newStatus !== null) {
-                                    setStatusFilter(newStatus);
-                                }
-                            }}
-                            size="small"
-                            sx={{
-                                '& .MuiToggleButton-root': {
-                                    borderColor: colors.neutral[200],
-                                    color: colors.neutral[600],
-                                    '&.Mui-selected': {
-                                        backgroundColor: colors.primary.bg,
-                                        color: colors.primary.main,
-                                        borderColor: colors.primary.light,
+                                </Badge>
+                            ) : (
+                                <Button
+                                    variant="contained"
+                                    startIcon={<FilterIcon />}
+                                    onClick={handleResetFilters}
+                                    size="small"
+                                    sx={{
+                                        background: colors.neutral[100],
+                                        color: colors.neutral[700],
                                         '&:hover': {
-                                            backgroundColor: colors.primary.bg,
-                                        }
-                                    }
-                                }
-                            }}
-                        >
-                            <ToggleButton value="all">All</ToggleButton>
-                            <ToggleButton value="Pending">
-                                <ScheduleIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                                Pending
-                            </ToggleButton>
-                            <ToggleButton value="Approved">
-                                <CheckCircleIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                                Approved
-                            </ToggleButton>
-                            <ToggleButton value="Rejected">
-                                <CancelIcon sx={{ mr: 0.5, fontSize: 16 }} />
-                                Rejected
-                            </ToggleButton>
-                            <ToggleButton value="Reviewing">
-                                Reviewing
-                            </ToggleButton>
-                        </ToggleButtonGroup>
-
-                        <Box display="flex" gap={1}>
-                            <Button
-                                startIcon={<RefreshIcon />}
-                                onClick={handleRefresh}
-                                size="small"
-                                sx={{ color: colors.neutral[600] }}
-                            >
-                                Refresh
-                            </Button>
-                            <Button
-                                startIcon={<ExportIcon />}
-                                onClick={handleExport}
-                                size="small"
-                                sx={{ color: colors.neutral[600] }}
-                            >
-                                Export
-                            </Button>
+                                            background: colors.neutral[200],
+                                        },
+                                        flex: 1,
+                                    }}
+                                >
+                                    Reset
+                                </Button>
+                            )}
                         </Box>
-                    </Box>
-                )}
+                    </Grid>
+                </Grid>
 
-                {/* Mobile filter button */}
-                {isMobile && (
-                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                        <Badge badgeContent={getFilterCount()} color="primary">
-                            <Button
-                                variant="outlined"
-                                startIcon={<FilterIcon />}
-                                onClick={() => {
-                                    setTempFilters({ 
-                                        vendor: vendorFilter, 
-                                        job: jobFilter, 
-                                        status: statusFilter,
-                                        dateRange: dateRange,
-                                    });
-                                    setMobileFilterOpen(true);
+                {/* Active Filters */}
+                {getFilterCount() > 0 && !isMobile && (
+                    <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <Typography variant="caption" sx={{ color: colors.neutral[500] }}>
+                            Active Filters:
+                        </Typography>
+                        {vendorFilter !== 'all' && (
+                            <Chip
+                                label={`Vendor: ${vendorFilter}`}
+                                onDelete={() => setVendorFilter('all')}
+                                size="small"
+                                sx={{
+                                    backgroundColor: colors.primary.bg,
+                                    color: colors.primary.dark,
                                 }}
-                                fullWidth
-                                sx={{ 
-                                    borderColor: colors.neutral[300],
-                                    color: colors.neutral[700],
+                            />
+                        )}
+                        {jobFilter !== 'all' && (
+                            <Chip
+                                label={`Job: ${jobFilter}`}
+                                onDelete={() => setJobFilter('all')}
+                                size="small"
+                                sx={{
+                                    backgroundColor: colors.primary.bg,
+                                    color: colors.primary.dark,
                                 }}
-                            >
-                                Filters
-                            </Button>
-                        </Badge>
-                        <Button
-                            variant="outlined"
-                            onClick={handleResetFilters}
-                            disabled={getFilterCount() === 0}
-                            sx={{ 
-                                borderColor: colors.neutral[300],
-                                color: colors.neutral[700],
-                                minWidth: '80px',
-                            }}
-                        >
-                            Reset
-                        </Button>
+                            />
+                        )}
+                        {statusFilter !== 'all' && (
+                            <Chip
+                                label={`Status: ${statusFilter}`}
+                                onDelete={() => setStatusFilter('all')}
+                                size="small"
+                                sx={{
+                                    backgroundColor: colors.primary.bg,
+                                    color: colors.primary.dark,
+                                }}
+                            />
+                        )}
+                        {dateRange !== 'all' && (
+                            <Chip
+                                label={`Date: ${dateRange === 'today' ? 'Today' : 
+                                       dateRange === 'week' ? 'Last 7 Days' :
+                                       dateRange === 'month' ? 'Last 30 Days' :
+                                       dateRange === 'quarter' ? 'Last 90 Days' : ''}`}
+                                onDelete={() => setDateRange('all')}
+                                size="small"
+                                sx={{
+                                    backgroundColor: colors.primary.bg,
+                                    color: colors.primary.dark,
+                                }}
+                            />
+                        )}
                     </Box>
                 )}
             </Paper>
@@ -1293,13 +1708,12 @@ const VendorCandidatesPage = () => {
                 <Table>
                     <TableHead>
                         <TableRow sx={{ bgcolor: colors.neutral[50] }}>
-                            <TableCell sx={{ fontWeight: 600, color: colors.neutral[700] }}>Candidate</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: colors.neutral[700] }}>Vendor</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: colors.neutral[700] }}>Job</TableCell>
-                            
-                            <TableCell sx={{ fontWeight: 600, color: colors.neutral[700] }}>Date</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: colors.neutral[700] }}>Status</TableCell>
-                            <TableCell sx={{ fontWeight: 600, color: colors.neutral[700] }}>Actions</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Candidate</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Vendor</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Job</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Date</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1318,7 +1732,7 @@ const VendorCandidatesPage = () => {
                                             {candidate.name.charAt(0)}
                                         </Avatar>
                                         <Box>
-                                            <Typography variant="body2" sx={{ fontWeight: 500, color: colors.neutral[800] }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                                 {candidate.name}
                                             </Typography>
                                             <Typography variant="caption" sx={{ color: colors.neutral[500] }}>
@@ -1329,27 +1743,18 @@ const VendorCandidatesPage = () => {
                                 </TableCell>
                                 <TableCell>
                                     <Box>
-                                        <Typography variant="body2" sx={{ color: colors.neutral[700] }}>
-                                            {candidate.vendor}
-                                        </Typography>
+                                        <Typography variant="body2">{candidate.vendor}</Typography>
                                         <Typography variant="caption" sx={{ color: colors.neutral[500] }}>
                                             {candidate.vendorContact}
                                         </Typography>
                                     </Box>
                                 </TableCell>
                                 <TableCell>
-                                    <Typography variant="body2" sx={{ color: colors.neutral[700] }}>
-                                        {candidate.jobTitle}
-                                    </Typography>
+                                    <Typography variant="body2">{candidate.jobTitle}</Typography>
                                 </TableCell>
-                            
                                 <TableCell>
-                                    <Typography variant="body2" sx={{ color: colors.neutral[600] }}>
-                                        {new Date(candidate.submissionDate).toLocaleDateString('en-US', {
-                                            month: 'numeric',
-                                            day: 'numeric',
-                                            year: 'numeric'
-                                        })}
+                                    <Typography variant="body2">
+                                        {new Date(candidate.submissionDate).toLocaleDateString()}
                                     </Typography>
                                 </TableCell>
                                 <TableCell>
@@ -1367,13 +1772,6 @@ const VendorCandidatesPage = () => {
                                                 candidate.status === 'Pending' ? colors.warning.dark :
                                                 candidate.status === 'Rejected' ? colors.error.dark :
                                                 colors.info.dark,
-                                            fontWeight: 500,
-                                            border: '1px solid',
-                                            borderColor:
-                                                candidate.status === 'Approved' ? colors.success.light :
-                                                candidate.status === 'Pending' ? colors.warning.light :
-                                                candidate.status === 'Rejected' ? colors.error.light :
-                                                colors.info.light,
                                         }}
                                     />
                                 </TableCell>
@@ -1388,11 +1786,28 @@ const VendorCandidatesPage = () => {
                                                 <ViewIcon fontSize="small" />
                                             </IconButton>
                                         </Tooltip>
+                                        <Tooltip title="Edit">
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => handleOpenEdit(candidate, e)}
+                                                sx={{ color: colors.info.main }}
+                                            >
+                                                <EditIcon fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Delete">
+                                            <IconButton
+                                                size="small"
+                                                onClick={(e) => handleOpenDelete(candidate, e)}
+                                                sx={{ color: colors.error.main }}
+                                            >
+                                                <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
                                         <Tooltip title="More Actions">
                                             <IconButton
                                                 size="small"
                                                 onClick={(e) => handleMenuClick(e, candidate)}
-                                                sx={{ color: colors.neutral[500] }}
                                             >
                                                 <MoreIcon fontSize="small" />
                                             </IconButton>
@@ -1470,6 +1885,31 @@ const VendorCandidatesPage = () => {
                 open={detailsDialogOpen}
                 onClose={() => setDetailsDialogOpen(false)}
                 candidate={selectedCandidate}
+            />
+
+            <AddCandidateDialog
+                open={addDialogOpen}
+                onClose={() => setAddDialogOpen(false)}
+                onAdd={handleAddCandidate}
+                vendors={vendors}
+                jobs={jobs}
+            />
+
+            <EditCandidateDialog
+                open={editDialogOpen}
+                onClose={() => setEditDialogOpen(false)}
+                onEdit={handleEditCandidate}
+                candidate={selectedCandidate}
+                vendors={vendors}
+                jobs={jobs}
+            />
+
+            <DeleteConfirmationDialog
+                open={deleteDialogOpen}
+                onClose={() => setDeleteDialogOpen(false)}
+                onConfirm={handleDeleteCandidate}
+                candidateName={selectedCandidate ? selectedCandidate.name : ''}
+                loading={deleteLoading}
             />
 
             {/* Mobile Filter Drawer */}
