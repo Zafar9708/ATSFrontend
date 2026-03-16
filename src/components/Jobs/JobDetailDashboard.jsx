@@ -3004,7 +3004,6 @@
 // export default Dashboard;
 
 
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -3040,7 +3039,6 @@ import {
   Visibility as VisibilityIcon,
   Add as AddIcon,
   ChevronRight as ChevronRightIcon,
-  ArrowBack as ArrowBackIcon,
   BarChart as BarChartIcon,
   Timeline as TimelineIcon,
   Refresh as RefreshIcon,
@@ -3163,8 +3161,7 @@ const SecondaryButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-// Custom label for pie charts
-const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
+const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
   if (percent < 0.05) return null;
   const RADIAN = Math.PI / 180;
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
@@ -3185,450 +3182,236 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [job, setJob] = useState(null);
-  const [stats, setStats] = useState({
-    totalCandidates: 0,
-    interviewsToday: 0,
-    positionsFilled: 0,
-    acceptanceRate: 0
-  });
+  const [stats, setStats] = useState({ totalCandidates: 0, interviewsToday: 0, positionsFilled: 0, acceptanceRate: 0 });
   const [candidates, setCandidates] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [pipelineData, setPipelineData] = useState([]);
   const [weeklyData, setWeeklyData] = useState([]);
-  const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterAnchor, setFilterAnchor] = useState(null);
   const [stageFilter, setStageFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-
-  // Add Candidate dialog state
   const [addCandidateOpen, setAddCandidateOpen] = useState(false);
 
-  useEffect(() => {
-    if (jobId) {
-      fetchAllData();
-    }
-  }, [jobId]);
+  useEffect(() => { if (jobId) fetchAllData(); }, [jobId]);
 
   const fetchAllData = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const [jobResponse, candidatesResponse, interviewsResponse] = await Promise.all([
         apiService.getJobDetails(jobId),
         apiService.getJobCandidates(jobId),
         apiService.getUpcomingInterviews()
       ]);
-
       setJob(jobResponse.job);
-
       const transformedCandidates = transformCandidates(candidatesResponse.candidates || []);
       setCandidates(transformedCandidates);
-
       setInterviews(interviewsResponse.data || []);
-
-      const pipeline = calculatePipelineData(transformedCandidates);
-      setPipelineData(pipeline);
-
-      const weekly = generateWeeklyData(transformedCandidates);
-      setWeeklyData(weekly);
-
+      setPipelineData(calculatePipelineData(transformedCandidates));
+      setWeeklyData(generateWeeklyData(transformedCandidates));
       const totalCandidates = transformedCandidates.length;
-      const interviewsToday = interviewsResponse.data?.filter(i => {
-        const today = new Date().toDateString();
-        const interviewDate = new Date(i.date).toDateString();
-        return interviewDate === today;
-      }).length || 0;
-      
-      const positionsFilled = transformedCandidates.filter(c => 
-        c.stage === 'Hired' || c.status === 'hired'
-      ).length;
-      
-      const acceptanceRate = totalCandidates > 0 
-        ? ((positionsFilled / totalCandidates) * 100).toFixed(1)
-        : 0;
-
-      setStats({
-        totalCandidates,
-        interviewsToday,
-        positionsFilled,
-        acceptanceRate: parseFloat(acceptanceRate)
-      });
-
+      const interviewsToday = interviewsResponse.data?.filter(i => new Date(i.date).toDateString() === new Date().toDateString()).length || 0;
+      const positionsFilled = transformedCandidates.filter(c => c.stage === 'Hired' || c.status === 'hired').length;
+      const acceptanceRate = totalCandidates > 0 ? ((positionsFilled / totalCandidates) * 100).toFixed(1) : 0;
+      setStats({ totalCandidates, interviewsToday, positionsFilled, acceptanceRate: parseFloat(acceptanceRate) });
     } catch (err) {
-      console.error('Error fetching data:', err);
-      setError(err.response?.data?.message || 'Failed to load dashboard data. Please check your connection.');
-    } finally {
-      setLoading(false);
-    }
+      setError(err.response?.data?.message || 'Failed to load dashboard data.');
+    } finally { setLoading(false); }
   };
 
-  const transformCandidates = (apiCandidates) => {
-    return (apiCandidates || []).map(c => ({
-      id: c._id,
-      name: c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
-      firstName: c.firstName,
-      lastName: c.lastName,
-      email: c.email || 'No email',
-      phone: c.mobile || 'No phone',
-      stage: c.stage?.name || 'Sourced',
-      status: c.resume?.status || 'active',
-      appliedDate: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', { 
-        month: 'short', day: 'numeric', year: 'numeric' 
-      }) : 'Unknown',
-      experience: c.experience || 'Not specified',
-      currentLocation: c.currentLocation?.name || 'Not specified',
-      preferredLocation: c.preferredLocation?.name || 'Not specified',
-      avatarColor: getRandomColor(c._id),
-      rating: (c.resume?.matchingScore || 75) / 20,
-      lastActivity: getRelativeTime(c.updatedAt ? new Date(c.updatedAt) : new Date()),
-      currentCTC: c.currentCTC ? `${c.currency || 'INR'} ${c.currentCTC}` : 'Not specified',
-      expectedCTC: c.expectedCTC ? `${c.currency || 'INR'} ${c.expectedCTC}` : 'Not specified',
-      skills: c.skills || [],
-      matchingScore: c.resume?.matchingScore || Math.floor(Math.random() * 30) + 60,
-      source: c.source?.name || 'Direct'
-    }));
-  };
+  const transformCandidates = (apiCandidates) => (apiCandidates || []).map(c => ({
+    id: c._id,
+    name: c.fullName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'Unknown',
+    email: c.email || 'No email',
+    phone: c.mobile || 'No phone',
+    stage: c.stage?.name || 'Sourced',
+    status: c.resume?.status || 'active',
+    appliedDate: c.createdAt ? new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown',
+    experience: c.experience || 'Not specified',
+    avatarColor: getRandomColor(c._id),
+    lastActivity: getRelativeTime(c.updatedAt ? new Date(c.updatedAt) : new Date()),
+    currentCTC: c.currentCTC ? `${c.currency || 'INR'} ${c.currentCTC}` : 'Not specified',
+    expectedCTC: c.expectedCTC ? `${c.currency || 'INR'} ${c.expectedCTC}` : 'Not specified',
+    skills: c.skills || [],
+    matchingScore: c.resume?.matchingScore || Math.floor(Math.random() * 30) + 60,
+  }));
 
   const calculatePipelineData = (candidates) => {
     const stages = ['Sourced', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
     const colors = ['#2196F3', '#FF9800', '#9C27B0', '#4CAF50', '#00C853', '#F44336'];
-    return stages.map((stage, index) => ({
-      name: stage,
-      value: candidates.filter(c => c.stage === stage).length,
-      color: colors[index]
-    })).filter(item => item.value > 0);
+    return stages.map((stage, i) => ({ name: stage, value: candidates.filter(c => c.stage === stage).length, color: colors[i] })).filter(item => item.value > 0);
   };
 
   const generateWeeklyData = (candidates) => {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const today = new Date();
-    const weekData = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(today); date.setDate(date.getDate() - (6 - i));
       const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
-      const applications = candidates.filter(c => {
-        if (!c.createdAt) return false;
-        const appliedDate = new Date(c.createdAt);
-        return appliedDate.toDateString() === date.toDateString();
-      }).length;
-      weekData.push({
-        day: dayName,
-        applications,
-        interviews: Math.floor(applications * 0.3)
-      });
-    }
-    return weekData;
+      const applications = candidates.filter(c => c.createdAt && new Date(c.createdAt).toDateString() === date.toDateString()).length;
+      return { day: dayName, applications, interviews: Math.floor(applications * 0.3) };
+    });
   };
 
   const getRandomColor = (seed) => {
     const colors = ['#2196F3', '#FF9800', '#4CAF50', '#9C27B0', '#F44336', '#009688', '#673AB7'];
-    const index = seed?.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
-    return colors[index || 0];
+    return colors[(seed?.split('').reduce((a, c) => a + c.charCodeAt(0), 0) || 0) % colors.length];
   };
 
   const getRelativeTime = (date) => {
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${diffDays}d ago`;
+    const diff = new Date() - date;
+    const m = Math.floor(diff / 60000), h = Math.floor(diff / 3600000), d = Math.floor(diff / 86400000);
+    if (m < 1) return 'Just now'; if (m < 60) return `${m}m ago`; if (h < 24) return `${h}h ago`; return `${d}d ago`;
   };
 
-  const handleRefresh = () => fetchAllData();
-
-  const handleFilterClick = (event) => setFilterAnchor(event.currentTarget);
-  const handleFilterClose = () => setFilterAnchor(null);
-
-  const handleStageChange = async (candidateId, newStage) => {
-    try {
-      await apiService.updateCandidateStage(candidateId, newStage);
-      fetchAllData();
-    } catch (err) {
-      console.error('Error updating candidate stage:', err);
-      setError('Failed to update candidate stage');
-    }
-  };
-
-  const handleDeleteCandidate = async (candidateId) => {
-    if (window.confirm('Are you sure you want to delete this candidate?')) {
-      try {
-        await apiService.deleteCandidate(candidateId);
-        fetchAllData();
-      } catch (err) {
-        console.error('Error deleting candidate:', err);
-        setError('Failed to delete candidate');
-      }
-    }
-  };
-
-  const getStageColor = (stage) => {
-    const colors = {
-      'Sourced': '#2196F3', 'Screening': '#FF9800', 'Interview': '#9C27B0',
-      'Offer': '#4CAF50', 'Hired': '#00C853', 'Rejected': '#F44336'
-    };
-    return colors[stage] || '#757575';
-  };
-
-  const getStatusColor = (status) => {
-    switch(status?.toLowerCase()) {
-      case 'shortlisted': return 'success';
-      case 'under review': return 'info';
-      case 'rejected': return 'error';
-      case 'on hold': return 'warning';
-      default: return 'default';
-    }
-  };
+  const getStageColor = (stage) => ({ Sourced: '#2196F3', Screening: '#FF9800', Interview: '#9C27B0', Offer: '#4CAF50', Hired: '#00C853', Rejected: '#F44336' }[stage] || '#757575');
+  const getStatusColor = (s) => ({ shortlisted: 'success', 'under review': 'info', rejected: 'error', 'on hold': 'warning' }[s?.toLowerCase()] || 'default');
 
   const filteredCandidates = candidates.filter(c => {
-    const matchesSearch = searchQuery === '' || 
-      c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.skills?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesStage = stageFilter === 'all' || c.stage === stageFilter;
-    const matchesStatus = statusFilter === 'all' || c.status?.toLowerCase() === statusFilter;
-    return matchesSearch && matchesStage && matchesStatus;
+    const matchesSearch = !searchQuery || c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || c.email?.toLowerCase().includes(searchQuery.toLowerCase()) || c.skills?.some(sk => sk.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesSearch && (stageFilter === 'all' || c.stage === stageFilter) && (statusFilter === 'all' || c.status?.toLowerCase() === statusFilter);
   });
 
-  // Weekly pie data derived from weeklyData totals
   const weeklyPieData = [
     { name: 'Applications', value: weeklyData.reduce((s, d) => s + d.applications, 0), color: theme.palette.primary.main },
     { name: 'Interviews',   value: weeklyData.reduce((s, d) => s + d.interviews, 0),   color: theme.palette.secondary.main },
   ].filter(d => d.value > 0);
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: 2 }}>
-        <CircularProgress size={60} thickness={4} />
-        <Typography variant="body1" color="text.secondary">Loading dashboard data...</Typography>
-      </Box>
-    );
-  }
+  if (loading) return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', flexDirection: 'column', gap: 2 }}>
+      <CircularProgress size={60} thickness={4} />
+      <Typography variant="body1" color="text.secondary">Loading dashboard data...</Typography>
+    </Box>
+  );
 
-  if (error) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error" action={<Button color="inherit" size="small" onClick={handleRefresh}>Retry</Button>}>
-          {error}
-        </Alert>
-      </Box>
-    );
-  }
+  if (error) return (
+    <Box sx={{ p: 3 }}>
+      <Alert severity="error" action={<Button color="inherit" size="small" onClick={fetchAllData}>Retry</Button>}>{error}</Alert>
+    </Box>
+  );
 
   return (
-    <Box sx={{ p: 3, maxWidth: '1300', overflowX: 'hidden', marginLeft: 10 }}>
+    /*
+     * ── Layout note ────────────────────────────────────────────────
+     * ml: '240px'  → clears the sidebar (adjust to match your sidebar width)
+     * mt: '64px'   → clears the top navbar (adjust to match your navbar height)
+     * The outer wrapper has no hard maxWidth so it fills the remaining space.
+     * ─────────────────────────────────────────────────────────────── */
+    <Box sx={{ ml: '240px', mt: '64px', p: 3, minHeight: '100vh', overflowX: 'hidden', boxSizing: 'border-box' }}>
 
       {/* ── Header ─────────────────────────────────────────────── */}
       <Box sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box>
-            {/* ── Back button + Title row ── */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-              <IconButton
-                onClick={() => navigate(-1)}
-                size="small"
-                sx={{
-                  border: `1px solid ${alpha(theme.palette.divider, 0.3)}`,
-                  borderRadius: '8px',
-                  p: 0.75,
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.08),
-                    borderColor: theme.palette.primary.main,
-                  },
-                }}
-              >
-                <ArrowBackIcon sx={{ fontSize: 18, color: theme.palette.text.secondary }} />
-              </IconButton>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
-                {job?.jobTitle || 'Job Details'}
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-              <Chip size="small" icon={<BusinessIcon sx={{ fontSize: 14 }} />} label={job?.department || 'Department'} sx={{ fontWeight: 500 }} />
-              <Chip size="small" icon={<LocationIcon sx={{ fontSize: 14 }} />} label={job?.jobFormId?.locations?.[0]?.name || 'Remote'} sx={{ fontWeight: 500 }} />
-              <Chip size="small" icon={<MoneyIcon sx={{ fontSize: 14 }} />} label={`${job?.jobFormId?.currency || 'INR'} ${job?.jobFormId?.amount || 'N/A'}`} sx={{ fontWeight: 500 }} />
-              <Chip size="small" icon={<WorkIcon sx={{ fontSize: 14 }} />} label={job?.jobFormId?.jobType || 'Full-time'} sx={{ fontWeight: 500 }} />
-              <Chip size="small" label={`ID: ${job?.jobName || job?._id?.slice(-6) || 'N/A'}`} variant="outlined" sx={{ fontWeight: 500 }} />
-            </Box>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, color: theme.palette.text.primary }}>
+            {job?.jobTitle || 'Job Details'}
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+            <Chip size="small" icon={<BusinessIcon sx={{ fontSize: 14 }} />} label={job?.department || 'Department'} sx={{ fontWeight: 500 }} />
+            <Chip size="small" icon={<LocationIcon sx={{ fontSize: 14 }} />} label={job?.jobFormId?.locations?.[0]?.name || 'Remote'} sx={{ fontWeight: 500 }} />
+            <Chip size="small" icon={<MoneyIcon sx={{ fontSize: 14 }} />} label={`${job?.jobFormId?.currency || 'INR'} ${job?.jobFormId?.amount || 'N/A'}`} sx={{ fontWeight: 500 }} />
+            <Chip size="small" icon={<WorkIcon sx={{ fontSize: 14 }} />} label={job?.jobFormId?.jobType || 'Full-time'} sx={{ fontWeight: 500 }} />
+            <Chip size="small" label={`ID: ${job?.jobName || job?._id?.slice(-6) || 'N/A'}`} variant="outlined" sx={{ fontWeight: 500 }} />
           </Box>
         </Box>
 
         {/* Search and Filter Bar */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap', alignItems: 'center' }}>
           <TextField
             placeholder="Search candidates by name, email, or skills..."
             size="small"
-            sx={{  flex: 0, width: '50%', minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: theme.palette.background.paper } }}
+            sx={{ width: '40%', minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: theme.palette.background.paper } }}
             InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: 'text.secondary' }} /></InputAdornment> }}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <SecondaryButton startIcon={<FilterIcon />} onClick={handleFilterClick}>Filter</SecondaryButton>
-          <SecondaryButton startIcon={<RefreshIcon />} onClick={handleRefresh}>Refresh</SecondaryButton>
+          <SecondaryButton startIcon={<FilterIcon />} onClick={(e) => setFilterAnchor(e.currentTarget)}>Filter</SecondaryButton>
+          <SecondaryButton startIcon={<RefreshIcon />} onClick={fetchAllData}>Refresh</SecondaryButton>
         </Box>
 
         {/* Filter Menu */}
-        <Menu anchorEl={filterAnchor} open={Boolean(filterAnchor)} onClose={handleFilterClose}
+        <Menu anchorEl={filterAnchor} open={Boolean(filterAnchor)} onClose={() => setFilterAnchor(null)}
           PaperProps={{ sx: { width: 240, p: 2, borderRadius: 2 } }}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Filter by Stage</Typography>
           <Select fullWidth size="small" value={stageFilter} onChange={(e) => setStageFilter(e.target.value)} sx={{ mb: 2 }}>
-            <MenuItem value="all">All Stages</MenuItem>
-            <MenuItem value="Sourced">Sourced</MenuItem>
-            <MenuItem value="Screening">Screening</MenuItem>
-            <MenuItem value="Interview">Interview</MenuItem>
-            <MenuItem value="Offer">Offer</MenuItem>
-            <MenuItem value="Hired">Hired</MenuItem>
-            <MenuItem value="Rejected">Rejected</MenuItem>
+            {['all','Sourced','Screening','Interview','Offer','Hired','Rejected'].map(v => (
+              <MenuItem key={v} value={v}>{v === 'all' ? 'All Stages' : v}</MenuItem>
+            ))}
           </Select>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>Filter by Status</Typography>
           <Select fullWidth size="small" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <MenuItem value="all">All Status</MenuItem>
-            <MenuItem value="shortlisted">Shortlisted</MenuItem>
-            <MenuItem value="under review">Under Review</MenuItem>
-            <MenuItem value="rejected">Rejected</MenuItem>
-            <MenuItem value="on hold">On Hold</MenuItem>
+            {['all','shortlisted','under review','rejected','on hold'].map(v => (
+              <MenuItem key={v} value={v}>{v === 'all' ? 'All Status' : v.charAt(0).toUpperCase() + v.slice(1)}</MenuItem>
+            ))}
           </Select>
         </Menu>
 
         {/* Stats Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard>
-              <CardContent sx={{ p: 2.5 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Total Candidates</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>{stats.totalCandidates}</Typography>
-                    <Typography variant="caption" color="text.secondary">{candidates.filter(c => c.status === 'shortlisted').length} shortlisted</Typography>
+          {[
+            { label: 'Total Candidates',   value: stats.totalCandidates,   sub: `${candidates.filter(c=>c.status==='shortlisted').length} shortlisted`, icon: <PeopleIcon />,    color: theme.palette.primary.main,  bg: alpha(theme.palette.primary.main, 0.1),  progress: (candidates.filter(c=>c.status==='shortlisted').length/(stats.totalCandidates||1))*100 },
+            { label: 'Interviews Today',   value: stats.interviewsToday,   sub: `${interviews.length} total scheduled`,                                  icon: <ScheduleIcon />,  color: theme.palette.info.main,     bg: alpha(theme.palette.info.main, 0.1) },
+            { label: 'Positions Filled',   value: `${stats.positionsFilled}/${job?.jobFormId?.openings||1}`, sub: `${(job?.jobFormId?.openings||1)-stats.positionsFilled} remaining`, icon: <HowToRegIcon />, color: theme.palette.success.main, bg: alpha(theme.palette.success.main,0.1), progress: (stats.positionsFilled/(job?.jobFormId?.openings||1))*100 },
+            { label: 'Acceptance Rate',    value: `${stats.acceptanceRate}%`, sub: 'Above average',                                                      icon: <TrendingUpIcon />, color: theme.palette.warning.main,  bg: alpha(theme.palette.warning.main, 0.1) },
+          ].map((s, i) => (
+            <Grid item xs={12} sm={6} md={3} key={i}>
+              <StatCard>
+                <CardContent sx={{ p: 2.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>{s.label}</Typography>
+                      <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>{s.value}</Typography>
+                      <Typography variant="caption" color="text.secondary">{s.sub}</Typography>
+                    </Box>
+                    <Avatar sx={{ bgcolor: s.bg, color: s.color, width: 48, height: 48 }}>{s.icon}</Avatar>
                   </Box>
-                  <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main, width: 48, height: 48 }}>
-                    <PeopleIcon />
-                  </Avatar>
-                </Box>
-                <LinearProgress variant="determinate"
-                  value={(candidates.filter(c => c.status === 'shortlisted').length / (stats.totalCandidates || 1)) * 100 || 0}
-                  sx={{ mt: 2, height: 4, borderRadius: 2, backgroundColor: alpha(theme.palette.primary.main, 0.1) }} />
-              </CardContent>
-            </StatCard>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard>
-              <CardContent sx={{ p: 2.5 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Interviews Today</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>{stats.interviewsToday}</Typography>
-                    <Typography variant="caption" color="text.secondary">{interviews.length} total scheduled</Typography>
-                  </Box>
-                  <Avatar sx={{ bgcolor: alpha(theme.palette.info.main, 0.1), color: theme.palette.info.main, width: 48, height: 48 }}>
-                    <ScheduleIcon />
-                  </Avatar>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
-                  <Typography variant="caption" color="text.secondary">2 completed</Typography>
-                  <Typography variant="caption" color="text.secondary">{stats.interviewsToday - 2} pending</Typography>
-                </Box>
-              </CardContent>
-            </StatCard>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard>
-              <CardContent sx={{ p: 2.5 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Positions Filled</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>{stats.positionsFilled}/{job?.jobFormId?.openings || 1}</Typography>
-                    <Typography variant="caption" color="text.secondary">{(job?.jobFormId?.openings || 1) - stats.positionsFilled} remaining</Typography>
-                  </Box>
-                  <Avatar sx={{ bgcolor: alpha(theme.palette.success.main, 0.1), color: theme.palette.success.main, width: 48, height: 48 }}>
-                    <HowToRegIcon />
-                  </Avatar>
-                </Box>
-                <LinearProgress variant="determinate"
-                  value={(stats.positionsFilled / (job?.jobFormId?.openings || 1)) * 100}
-                  sx={{ mt: 2, height: 4, borderRadius: 2, backgroundColor: alpha(theme.palette.success.main, 0.1) }} />
-              </CardContent>
-            </StatCard>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard>
-              <CardContent sx={{ p: 2.5 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Acceptance Rate</Typography>
-                    <Typography variant="h4" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>{stats.acceptanceRate}%</Typography>
-                    <Typography variant="caption" color="text.secondary">Above average</Typography>
-                  </Box>
-                  <Avatar sx={{ bgcolor: alpha(theme.palette.warning.main, 0.1), color: theme.palette.warning.main, width: 48, height: 48 }}>
-                    <TrendingUpIcon />
-                  </Avatar>
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
-                  <TrendingUpIcon sx={{ fontSize: 16, color: "success.main", mr: 0.5 }} />
-                  <Typography variant="caption" color="success.main">+5.2% from last month</Typography>
-                </Box>
-              </CardContent>
-            </StatCard>
-          </Grid>
+                  {s.progress !== undefined && (
+                    <LinearProgress variant="determinate" value={s.progress}
+                      sx={{ mt: 2, height: 4, borderRadius: 2, backgroundColor: s.bg }} />
+                  )}
+                  {i === 3 && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                      <TrendingUpIcon sx={{ fontSize: 16, color: 'success.main', mr: 0.5 }} />
+                      <Typography variant="caption" color="success.main">+5.2% from last month</Typography>
+                    </Box>
+                  )}
+                </CardContent>
+              </StatCard>
+            </Grid>
+          ))}
         </Grid>
       </Box>
 
       {/* ── Main Content ──────────────────────────────────────────── */}
       <Grid container spacing={2}>
 
-        {/* ── Candidate Pipeline — Donut Chart ────────────────────── */}
+        {/* Pipeline Donut */}
         <Grid item xs={12} lg={3}>
           <DashboardCard>
             <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>Candidate Pipeline</Typography>
                 <Chip label={`${candidates.length} total`} size="small" sx={{ bgcolor: alpha(theme.palette.primary.main, 0.1) }} />
               </Box>
-
               {pipelineData.length > 0 ? (
                 <>
                   <Box sx={{ height: 220 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie
-                          data={pipelineData}
-                          cx="50%" cy="50%"
-                          innerRadius={55}
-                          outerRadius={85}
-                          paddingAngle={3}
-                          dataKey="value"
-                          labelLine={false}
-                          label={renderCustomLabel}
-                        >
-                          {pipelineData.map((entry, index) => (
-                            <Cell key={index} fill={entry.color} />
-                          ))}
+                        <Pie data={pipelineData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value" labelLine={false} label={renderCustomLabel}>
+                          {pipelineData.map((e, i) => <Cell key={i} fill={e.color} />)}
                         </Pie>
-                        <RechartsTooltip
-                          contentStyle={{ borderRadius: '8px', border: `1px solid ${alpha(theme.palette.divider, 0.2)}` }}
-                          formatter={(value, name) => [`${value} candidates`, name]}
-                        />
+                        <RechartsTooltip contentStyle={{ borderRadius: '8px' }} formatter={(v, n) => [`${v} candidates`, n]} />
                       </PieChart>
                     </ResponsiveContainer>
                   </Box>
-                  {/* Legend */}
                   <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.6 }}>
-                    {pipelineData.map((entry, index) => (
-                      <Box key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    {pipelineData.map((e, i) => (
+                      <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: entry.color, flexShrink: 0 }} />
-                          <Typography variant="caption" color="text.secondary">{entry.name}</Typography>
+                          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: e.color }} />
+                          <Typography variant="caption" color="text.secondary">{e.name}</Typography>
                         </Box>
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: entry.color }}>{entry.value}</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: e.color }}>{e.value}</Typography>
                       </Box>
                     ))}
                   </Box>
@@ -3643,33 +3426,24 @@ const Dashboard = () => {
           </DashboardCard>
         </Grid>
 
-        {/* ── Upcoming Interviews ──────────────────────────────────── */}
+        {/* Upcoming Interviews */}
         <Grid item xs={12} lg={4}>
           <DashboardCard>
             <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>Upcoming Interviews</Typography>
-              </Box>
-
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Upcoming Interviews</Typography>
               {interviews.length > 0 ? (
                 <Stack spacing={2}>
                   {interviews.slice(0, 3).map((interview) => (
                     <Paper key={interview._id} variant="outlined"
-                      sx={{
-                        p: 2, borderRadius: "8px", borderColor: alpha(theme.palette.divider, 0.2),
-                        '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: alpha(theme.palette.primary.main, 0.02) },
-                      }}>
-                      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1.5 }}>
+                      sx={{ p: 2, borderRadius: '8px', borderColor: alpha(theme.palette.divider, 0.2), '&:hover': { borderColor: theme.palette.primary.main, backgroundColor: alpha(theme.palette.primary.main, 0.02) } }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{interview.candidateName}</Typography>
-                        <Chip label={interview.type} size="small"
-                          sx={{ fontWeight: 500, bgcolor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main }} />
+                        <Chip label={interview.type} size="small" sx={{ fontWeight: 500, bgcolor: alpha(theme.palette.primary.main, 0.1), color: theme.palette.primary.main }} />
                       </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
-                        <Box sx={{ display: "flex", alignItems: "center" }}>
-                          <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: "text.secondary" }} />
-                          <Typography variant="caption">
-                            {interview.date ? new Date(interview.date).toLocaleDateString() : 'Date TBD'}, {interview.time || 'Time TBD'}
-                          </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <CalendarIcon sx={{ fontSize: 14, mr: 0.5, color: 'text.secondary' }} />
+                          <Typography variant="caption">{interview.date ? new Date(interview.date).toLocaleDateString() : 'Date TBD'}, {interview.time || 'Time TBD'}</Typography>
                         </Box>
                         <Chip label={interview.platform || 'In Person'} size="small" variant="outlined" />
                       </Box>
@@ -3686,51 +3460,32 @@ const Dashboard = () => {
           </DashboardCard>
         </Grid>
 
-        {/* ── Weekly Activity — Donut Chart ────────────────────────── */}
+        {/* Weekly Activity Donut */}
         <Grid item xs={12} lg={5}>
           <DashboardCard>
             <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>Weekly Activity</Typography>
                 <Typography variant="body2" color="text.secondary">Last 7 days</Typography>
               </Box>
-
               {weeklyPieData.length > 0 ? (
                 <>
                   <Box sx={{ height: 220 }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie
-                          data={weeklyPieData}
-                          cx="50%" cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={4}
-                          dataKey="value"
-                          labelLine={false}
-                          label={renderCustomLabel}
-                        >
-                          {weeklyPieData.map((entry, index) => (
-                            <Cell key={index} fill={entry.color} />
-                          ))}
+                        <Pie data={weeklyPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={4} dataKey="value" labelLine={false} label={renderCustomLabel}>
+                          {weeklyPieData.map((e, i) => <Cell key={i} fill={e.color} />)}
                         </Pie>
-                        <RechartsTooltip
-                          contentStyle={{ borderRadius: '8px', border: `1px solid ${alpha(theme.palette.divider, 0.2)}` }}
-                          formatter={(value, name) => [`${value}`, name]}
-                        />
+                        <RechartsTooltip contentStyle={{ borderRadius: '8px' }} formatter={(v, n) => [`${v}`, n]} />
                       </PieChart>
                     </ResponsiveContainer>
                   </Box>
-                  {/* Summary stats below the donut */}
                   <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
-                    {weeklyPieData.map((entry, index) => (
-                      <Box key={index} sx={{
-                        display: 'flex', flexDirection: 'column', alignItems: 'center',
-                        p: 1.5, borderRadius: '8px', bgcolor: alpha(entry.color, 0.08)
-                      }}>
-                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: entry.color, mb: 0.5 }} />
-                        <Typography variant="h6" sx={{ fontWeight: 700, color: entry.color, lineHeight: 1.2 }}>{entry.value}</Typography>
-                        <Typography variant="caption" color="text.secondary">{entry.name}</Typography>
+                    {weeklyPieData.map((e, i) => (
+                      <Box key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 1.5, borderRadius: '8px', bgcolor: alpha(e.color, 0.08) }}>
+                        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: e.color, mb: 0.5 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: e.color, lineHeight: 1.2 }}>{e.value}</Typography>
+                        <Typography variant="caption" color="text.secondary">{e.name}</Typography>
                       </Box>
                     ))}
                   </Box>
@@ -3745,38 +3500,26 @@ const Dashboard = () => {
           </DashboardCard>
         </Grid>
 
-        {/* ── Candidates Table ─────────────────────────────────────── */}
+        {/* Candidates Table */}
         <Grid item xs={12}>
           <DashboardCard>
             <CardContent sx={{ p: 2.5 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, flexWrap: "wrap", gap: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>Candidates ({filteredCandidates.length})</Typography>
-              </Box>
-
-              <TableContainer sx={{ width: "100%", overflowX: "auto" }}>
-                <Table sx={{ minWidth: 1200 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Candidates ({filteredCandidates.length})</Typography>
+              <TableContainer sx={{ width: '100%', overflowX: 'auto' }}>
+                <Table sx={{ minWidth: 900 }}>
                   <TableHead>
                     <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.02) }}>
-                      <TableCell>Candidate</TableCell>
-                      <TableCell>Contact</TableCell>
-                      <TableCell>Stage</TableCell>
-                      <TableCell>Applied Date</TableCell>
-                      <TableCell>Matching Score</TableCell>
-                      <TableCell>CTC (Current/Expected)</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Last Activity</TableCell>
-                      <TableCell align="right">Actions</TableCell>
+                      {['Candidate','Contact','Stage','Applied Date','Matching Score','CTC (Current/Expected)','Status','Last Activity','Actions'].map((h, i) => (
+                        <TableCell key={h} align={i === 8 ? 'right' : 'left'}>{h}</TableCell>
+                      ))}
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {filteredCandidates.map((candidate) => (
-                      <TableRow key={candidate.id} hover
-                        sx={{ '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.02) } }}>
+                      <TableRow key={candidate.id} hover sx={{ '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.02) } }}>
                         <TableCell>
-                          <Box sx={{ display: "flex", alignItems: "center" }}>
-                            <Avatar sx={{ width: 40, height: 40, mr: 2, bgcolor: candidate.avatarColor }}>
-                              {candidate.name?.charAt(0)}
-                            </Avatar>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar sx={{ width: 40, height: 40, mr: 2, bgcolor: candidate.avatarColor }}>{candidate.name?.charAt(0)}</Avatar>
                             <Box>
                               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{candidate.name}</Typography>
                               <Typography variant="caption" color="text.secondary">{candidate.experience} exp</Typography>
@@ -3784,63 +3527,45 @@ const Dashboard = () => {
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <Box>
-                            <Typography variant="body2">{candidate.email}</Typography>
-                            <Typography variant="caption" color="text.secondary">{candidate.phone}</Typography>
-                          </Box>
+                          <Typography variant="body2">{candidate.email}</Typography>
+                          <Typography variant="caption" color="text.secondary">{candidate.phone}</Typography>
                         </TableCell>
                         <TableCell>
-                          <Chip label={candidate.stage} size="small"
-                            sx={{ bgcolor: alpha(getStageColor(candidate.stage), 0.1), color: getStageColor(candidate.stage), fontWeight: 500 }} />
+                          <Chip label={candidate.stage} size="small" sx={{ bgcolor: alpha(getStageColor(candidate.stage), 0.1), color: getStageColor(candidate.stage), fontWeight: 500 }} />
                         </TableCell>
+                        <TableCell><Typography variant="body2">{candidate.appliedDate}</Typography></TableCell>
                         <TableCell>
-                          <Typography variant="body2">{candidate.appliedDate}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Box sx={{ width: 60 }}>
                               <LinearProgress variant="determinate" value={candidate.matchingScore}
-                                sx={{
-                                  height: 6, borderRadius: 3, bgcolor: alpha(theme.palette.primary.main, 0.1),
-                                  '& .MuiLinearProgress-bar': {
-                                    bgcolor: candidate.matchingScore >= 80 ? 'success.main' : candidate.matchingScore >= 60 ? 'warning.main' : 'error.main'
-                                  }
-                                }} />
+                                sx={{ height: 6, borderRadius: 3, bgcolor: alpha(theme.palette.primary.main, 0.1), '& .MuiLinearProgress-bar': { bgcolor: candidate.matchingScore >= 80 ? 'success.main' : candidate.matchingScore >= 60 ? 'warning.main' : 'error.main' } }} />
                             </Box>
                             <Typography variant="body2" sx={{ fontWeight: 600 }}>{candidate.matchingScore}%</Typography>
                           </Box>
                         </TableCell>
                         <TableCell>
-                          <Box>
-                            <Typography variant="caption" display="block">Current: {candidate.currentCTC}</Typography>
-                            <Typography variant="caption" color="text.secondary">Expected: {candidate.expectedCTC}</Typography>
-                          </Box>
+                          <Typography variant="caption" display="block">Current: {candidate.currentCTC}</Typography>
+                          <Typography variant="caption" color="text.secondary">Expected: {candidate.expectedCTC}</Typography>
                         </TableCell>
                         <TableCell>
                           <Chip label={candidate.status} size="small" color={getStatusColor(candidate.status)} variant="outlined" />
                         </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">{candidate.lastActivity}</Typography>
-                        </TableCell>
+                        <TableCell><Typography variant="body2" color="text.secondary">{candidate.lastActivity}</Typography></TableCell>
                         <TableCell align="right">
-                          <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
-                            <Tooltip title="View Profile">
-                              <IconButton size="small" onClick={() => navigate(`/candidates/${candidate.id}`)}>
-                                <VisibilityIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
+                          <Tooltip title="View Profile">
+                            <IconButton size="small" onClick={() => navigate(`/candidates/${candidate.id}`)}>
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     ))}
-
                     {filteredCandidates.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                           <PeopleIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 2 }} />
                           <Typography variant="body1" color="text.secondary">No candidates found</Typography>
-                          <Button variant="outlined" size="small" sx={{ mt: 2 }}
-                            onClick={() => setAddCandidateOpen(true)}>
+                          <Button variant="outlined" size="small" sx={{ mt: 2 }} onClick={() => setAddCandidateOpen(true)}>
                             Add your first candidate
                           </Button>
                         </TableCell>
@@ -3854,24 +3579,13 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      {/* ── Add Candidate Dialog ─────────────────────────────────── */}
-      <Dialog
-        open={addCandidateOpen}
-        onClose={() => setAddCandidateOpen(false)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: '12px' } }}
-      >
+      {/* Add Candidate Dialog */}
+      <Dialog open={addCandidateOpen} onClose={() => setAddCandidateOpen(false)} maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: '12px' } }}>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 1.5, px: 1.5 }}>
-          <IconButton onClick={() => setAddCandidateOpen(false)} size="small">
-            <CloseIcon fontSize="small" />
-          </IconButton>
+          <IconButton onClick={() => setAddCandidateOpen(false)} size="small"><CloseIcon fontSize="small" /></IconButton>
         </Box>
         <DialogContent sx={{ pt: 0 }}>
-          <AddCandidateForm
-            onClose={() => setAddCandidateOpen(false)}
-            onSubmit={() => { setAddCandidateOpen(false); fetchAllData(); }}
-          />
+          <AddCandidateForm onClose={() => setAddCandidateOpen(false)} onSubmit={() => { setAddCandidateOpen(false); fetchAllData(); }} />
         </DialogContent>
       </Dialog>
 
