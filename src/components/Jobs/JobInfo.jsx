@@ -96,7 +96,7 @@ const JobInfo = () => {
               onClick={() => navigate(-1)}
               sx={{ color: '#64748b', textTransform: 'none', fontWeight: 600, '&:hover': { bgcolor: '#f1f5f9' } }}
             >
-              Back to Pipeline
+              Back
             </Button>
             <Stack direction="row" spacing={2} alignItems="center">
               <ToggleButtonGroup
