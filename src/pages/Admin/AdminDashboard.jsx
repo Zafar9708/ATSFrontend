@@ -1651,8 +1651,6 @@
 
 // export default AdminDashboard;
 
-
-
 import React, { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
 import {
@@ -1790,9 +1788,27 @@ const AdminDashboard = () => {
 
   /* ── Vendor form state ───────────────────────────────────────────── */
   const emptyVendorForm = {
-    firstName: '', lastName: '', email: '', phone: '',
-    designation: '', companyName: '', companyEmail: '',
-    companyPhone: '', companyAddress: '', industry: '',
+    // Company Information
+    companyName: '', vendorType: '', industry: '', website: '',
+    companyEmail: '', companyPhone: '', gstNumber: '', companyPan: '',
+    registrationNumber: '', companyAddress: '',
+    gstCertificate: null, companyPanFile: null,
+    // Contact Person
+    firstName: '', lastName: '', designation: '', email: '', phone: '',
+    aadharNumber: '', panNumber: '',
+    aadharFile: null, panFile: null,
+    // Bank Details
+    bankName: '', accountHolderName: '', accountNumber: '',
+    ifscCode: '', branch: '', cancelledCheque: null,
+    // Billing & Terms
+    billingCycle: '', paymentTerms: '', contractStartDate: '',
+    contractEndDate: '', creditLimit: '', serviceCharge: '',
+    // KYC Documents
+    companyRegistrationFile: null, gstCertificateKyc: null,
+    companyPanKycFile: null, bankProofFile: null,
+    msmeFile: null, otherDocFile: null,
+    // Custom fields
+    customNotes: [],
   };
   const [vendorForm,       setVendorForm]       = useState(emptyVendorForm);
   const [vendorFormErrors, setVendorFormErrors] = useState({});
@@ -1996,12 +2012,41 @@ const AdminDashboard = () => {
 
   const validateVendorForm = () => {
     const errors = {};
-    if (!vendorForm.firstName.trim())  errors.firstName  = 'First name is required';
-    if (!vendorForm.lastName.trim())   errors.lastName   = 'Last name is required';
-    if (!vendorForm.email.trim())      errors.email      = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vendorForm.email)) errors.email = 'Invalid email address';
-    if (!vendorForm.companyName.trim()) errors.companyName = 'Company name is required';
-    if (!vendorForm.industry)          errors.industry   = 'Industry is required';
+    // Company
+    if (!vendorForm.companyName.trim())  errors.companyName  = 'Company name is required';
+    if (!vendorForm.vendorType)          errors.vendorType   = 'Vendor type is required';
+    if (!vendorForm.industry)            errors.industry     = 'Industry is required';
+    if (!vendorForm.companyEmail.trim()) errors.companyEmail = 'Company email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vendorForm.companyEmail)) errors.companyEmail = 'Invalid email';
+    if (!vendorForm.companyPhone.trim()) errors.companyPhone = 'Company phone is required';
+    if (!vendorForm.companyPan.trim())   errors.companyPan   = 'Company PAN is required';
+    if (!vendorForm.companyAddress.trim()) errors.companyAddress = 'Company address is required';
+    if (!vendorForm.companyPanFile)      errors.companyPanFile = 'Company PAN card is required';
+    // Contact Person
+    if (!vendorForm.firstName.trim())    errors.firstName    = 'First name is required';
+    if (!vendorForm.lastName.trim())     errors.lastName     = 'Last name is required';
+    if (!vendorForm.email.trim())        errors.email        = 'Contact email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(vendorForm.email)) errors.email = 'Invalid email';
+    if (!vendorForm.phone.trim())        errors.phone        = 'Contact phone is required';
+    if (!vendorForm.aadharNumber.trim()) errors.aadharNumber = 'Aadhar number is required';
+    if (!vendorForm.panNumber.trim())    errors.panNumber    = 'PAN number is required';
+    if (!vendorForm.aadharFile)          errors.aadharFile   = 'Aadhar card is required';
+    if (!vendorForm.panFile)             errors.panFile      = 'PAN card is required';
+    // Bank
+    if (!vendorForm.bankName.trim())           errors.bankName           = 'Bank name is required';
+    if (!vendorForm.accountHolderName.trim())  errors.accountHolderName  = 'Account holder name is required';
+    if (!vendorForm.accountNumber.trim())      errors.accountNumber      = 'Account number is required';
+    if (!vendorForm.ifscCode.trim())           errors.ifscCode           = 'IFSC code is required';
+    if (!vendorForm.cancelledCheque)           errors.cancelledCheque    = 'Cancelled cheque is required';
+    // Billing
+    if (!vendorForm.billingCycle)        errors.billingCycle   = 'Billing cycle is required';
+    if (!vendorForm.paymentTerms)        errors.paymentTerms   = 'Payment terms is required';
+    if (!vendorForm.contractStartDate)   errors.contractStartDate = 'Contract start date is required';
+    if (!vendorForm.contractEndDate)     errors.contractEndDate   = 'Contract end date is required';
+    // KYC
+    if (!vendorForm.companyRegistrationFile) errors.companyRegistrationFile = 'Company registration certificate is required';
+    if (!vendorForm.companyPanKycFile)       errors.companyPanKycFile       = 'Company PAN (KYC) is required';
+    if (!vendorForm.bankProofFile)           errors.bankProofFile           = 'Bank proof document is required';
     setVendorFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
