@@ -1685,7 +1685,8 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import adminService from '../../services/adminService';
 import { useNavigate } from 'react-router-dom';
 import { inviteVendor } from '../../services/Vendor/vendorService';
-import VendorForm from '../../components/VendorForm';
+// import VendorForm from '../../components/VendorForm';
+import VendorForm from '../../components/Vendorform';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    DESIGN TOKENS
