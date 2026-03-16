@@ -15,13 +15,9 @@ const LayoutContent = ({ children }) => {
   const { currentThemeName } = useAppTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-<<<<<<< HEAD
-  const drawerWidth = width ? width : 65;
-=======
   // Fixed dimensions
   const SIDEBAR_WIDTH = 260; // Fixed sidebar width
   const HEADER_HEIGHT = 70;  // Fixed header height
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

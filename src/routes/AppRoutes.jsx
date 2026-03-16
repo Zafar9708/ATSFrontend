@@ -23,12 +23,9 @@ import NotificationCenter from '../pages/NotificationCenter';
 import VendorUploadPage from '../services/Vendor/VendorUploadPage';
 import VendorCandidatesPage from '../pages/Vendor/VendorCandidates';
 import ReportsPage from '../pages/Reports';
-<<<<<<< HEAD
-import HelpPage from '../pages/Help';
-=======
 import LandingPage from '../pages/LandingPage';
 import RecruitersPage from "../pages/Recruiter/AllRecruiterPage"
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
+import HelpPage from '../pages/Help';
 
 // Layout wrapper component
 const LayoutWrapper = ({ children }) => {

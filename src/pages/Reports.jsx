@@ -1,8 +1,6 @@
 import React from "react";
 
 const ReportsPage = () => {
-<<<<<<< HEAD
-=======
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -238,7 +236,6 @@ const ReportsPage = () => {
     );
   }
 
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
   return (
     <div style={{
       display: "flex",

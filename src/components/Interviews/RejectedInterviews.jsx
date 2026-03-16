@@ -21,13 +21,6 @@ import {
   RestorePageOutlined as ReconsiderIcon,
   MailOutline as EmailIcon,
   SearchOff as NoDataIcon,
-<<<<<<< HEAD
-  ThumbDownOutlined as RejectedIcon
-} from '@mui/icons-material';
-
-const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
-  const [interviews] = useState([]);
-=======
   Work as WorkIcon,
   CalendarToday as CalendarIcon,
   Person as PersonIcon,
@@ -94,20 +87,15 @@ const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
 
   const filteredInterviews = interviews.filter(interview => {
     const searchStr = searchTerm.toLowerCase();
     const matchesSearch =
       interview.candidateName.toLowerCase().includes(searchStr) ||
-<<<<<<< HEAD
-      interview.jobTitle.toLowerCase().includes(searchStr);
-=======
       interview.jobTitle.toLowerCase().includes(searchStr) ||
       interview.interviewer.toLowerCase().includes(searchStr) ||
       interview.candidateEmail.toLowerCase().includes(searchStr);
 
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
     const matchesDate = !selectedDate || interview.rejectionDate === selectedDate;
     return matchesSearch && matchesDate;
   });
@@ -368,40 +356,6 @@ const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
 
   if (filteredInterviews.length === 0) {
     return (
-<<<<<<< HEAD
-      <Paper
-        variant="outlined"
-        sx={{
-          p: 8,
-          textAlign: 'center',
-          borderRadius: 4,
-          borderStyle: 'dashed',
-          borderColor: '#fca5a5',
-          bgcolor: '#fff7f7'
-        }}
-      >
-        <Box
-          sx={{
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            bgcolor: '#fee2e2',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 2
-          }}
-        >
-          <RejectedIcon sx={{ fontSize: 36, color: '#ef4444' }} />
-        </Box>
-        <Typography variant="h6" fontWeight={700} color="#1e293b" sx={{ mb: 1 }}>
-          No Rejected Interviews
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {searchTerm || selectedDate
-            ? 'No rejections match your current filters.'
-            : 'There are no rejected interviews at this time.'}
-=======
       <Paper 
         variant="outlined" 
         sx={{ 
@@ -419,18 +373,12 @@ const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           Try adjusting your search or filter criteria
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
         </Typography>
       </Paper>
     );
   }
 
   return (
-<<<<<<< HEAD
-    <Box sx={{ width: '100%', mt: 2 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-        <Typography variant="h6" fontWeight={700} color="#1e293b">
-=======
     <Box sx={{ width: '100%', mt: { xs: 1, sm: 2, md: 3 } }}>
       {/* Header with count and info */}
       <Stack 
@@ -447,7 +395,6 @@ const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
           fontWeight={700} 
           color="#1e293b"
         >
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
           Rejected Interviews ({filteredInterviews.length})
         </Typography>
         
@@ -456,12 +403,6 @@ const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
         </Typography>
       </Stack>
 
-<<<<<<< HEAD
-      <TableContainer
-        component={Paper}
-        variant="outlined"
-        sx={{ borderRadius: 3, overflow: 'auto', border: '1px solid #e2e8f0' }}
-=======
       {/* Card Grid Layout - Same for Mobile and Tablet */}
       <Grid 
         container 
@@ -469,57 +410,12 @@ const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
         sx={{ 
           px: { xs: 1, sm: 0 }
         }}
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
       >
         {filteredInterviews.map((interview) => (
           <InterviewCard key={interview.id} interview={interview} />
         ))}
       </Grid>
 
-<<<<<<< HEAD
-                <TableCell>
-                  <Typography variant="body2" fontWeight={600}>{interview.jobTitle}</Typography>
-                  <Typography variant="caption" color="text.secondary">{interview.jobCode}</Typography>
-                </TableCell>
-
-                <TableCell>
-                  <Typography variant="body2">{interview.interviewer}</Typography>
-                  <Typography variant="caption" color="text.secondary">{new Date(interview.interviewDate).toLocaleDateString()}</Typography>
-                </TableCell>
-
-                <TableCell>
-                  <Chip
-                    label="Rejected"
-                    size="small"
-                    sx={{ bgcolor: '#fee2e2', color: '#b91c1c', fontWeight: 700, borderRadius: 1 }}
-                  />
-                </TableCell>
-
-                <TableCell align="center">
-                  <Stack direction="row" spacing={1} justifyContent="center">
-                    <Tooltip title="View Details" arrow>
-                      <IconButton size="small" sx={{ bgcolor: alpha('#3b82f6', 0.1), '&:hover': { bgcolor: alpha('#3b82f6', 0.2) }, color: '#2563eb' }}>
-                        <ViewIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Reconsider" arrow>
-                      <IconButton size="small" sx={{ bgcolor: alpha('#8b5cf6', 0.1), '&:hover': { bgcolor: alpha('#8b5cf6', 0.2) }, color: '#7c3aed' }}>
-                        <ReconsiderIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Contact" arrow>
-                      <IconButton size="small" sx={{ bgcolor: alpha('#10b981', 0.1), '&:hover': { bgcolor: alpha('#10b981', 0.2) }, color: '#059669' }}>
-                        <EmailIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-=======
       {/* Show different column layout hint for tablet */}
       {isTablet && (
         <Typography 
@@ -535,7 +431,6 @@ const RejectedInterviews = ({ searchTerm = '', selectedDate = null }) => {
           Showing 2 cards per row for better readability
         </Typography>
       )}
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
     </Box>
   );
 };

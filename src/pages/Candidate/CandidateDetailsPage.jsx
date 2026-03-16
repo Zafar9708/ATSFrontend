@@ -463,7 +463,7 @@ const previewCandidateResume = async (id) => {
   try {
     const token = localStorage.getItem("token");
     const response = await axios.get(
-      `/api/v1/candidates/preview-resume/${id}`,
+      `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -733,7 +733,7 @@ const CandidateDetailsPage = () => {
       return;
     }
 
-    const resumeUrl = `http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`;
+    const resumeUrl = `http://ats-env.eba-qmshqp3j.ap-south-1.elasticbeanstalk.com/api/v1/candidates/preview-resume/${id}`;
 
     try {
       if (method === 'native' && navigator.share) {
@@ -1006,13 +1006,6 @@ const CandidateDetailsPage = () => {
         </Paper>
       )}
 
-<<<<<<< HEAD
-      <Breadcrumbs sx={{ mb: 2,mt:4 }}>
-        {/* <Link color="inherit" onClick={() => navigate('/')} sx={{ cursor: 'pointer' }}>Dashboard</Link>
-        <Link color="inherit" onClick={() => navigate('/candidates')} sx={{ cursor: 'pointer' }}>Candidates</Link> */}
-        {/* <Typography color="text.primary">{candidate.firstName} {candidate.lastName}</Typography> */}
-      </Breadcrumbs>
-=======
       {/* Header with Back Button and Breadcrumbs */}
       <Box sx={{ 
         display: 'flex', 
@@ -1032,7 +1025,6 @@ const CandidateDetailsPage = () => {
           </Typography>
         </Breadcrumbs>
       </Box>
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
 
       <Grid container spacing={getGridSpacing()}>
         {/* Left Column - Main Content */}
@@ -1930,7 +1922,7 @@ const CandidateDetailsPage = () => {
       </Snackbar>
 
       {/* Development Mode Fab */}
-      {/* <Fab 
+      <Fab 
         color="secondary" 
         sx={{ 
           position: 'fixed', 
@@ -1944,7 +1936,7 @@ const CandidateDetailsPage = () => {
         <Tooltip title={useDummyData ? "Switch to Real Data" : "Switch to Dummy Data"}>
           {useDummyData ? <CheckCircleIcon /> : <EditIcon />}
         </Tooltip>
-      </Fab> */}
+      </Fab>
     </Container>
   );
 };

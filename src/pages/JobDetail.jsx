@@ -95,27 +95,9 @@ const JobDetailPage = () => {
   );
 
   return (
-<<<<<<< HEAD
-    <div className="flex flex-col h-screen    ">
-    
-      {/* Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Main Content */}
-        <div className="flex-1 overflow-y-auto bg-gray-100">
-          {/* Tabs */}
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
-            sx={{marginLeft:15,marginTop:5}}
-
-=======
     <Box sx={{ bgcolor: '#f1f5f9', minHeight: '100vh', pb: 8 , ml:"200px", mt:"70px"}}>
       {/* Top Navigation Bar Space */}
     
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
 
       <Container maxWidth="xl">
         {/* Navigation / Actions */}

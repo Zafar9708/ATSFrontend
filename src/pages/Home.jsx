@@ -293,57 +293,7 @@ const Home = () => {
                 </Typography>
               </Box>
 
-<<<<<<< HEAD
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              {/* <Button 
-                variant="outlined" 
-                component={RouterLink}
-                to="/login/vendor"
-                sx={{ borderColor: 'grey.200', color: 'text.primary' }}
-              >
-                Vendor
-              </Button> */}
-              <Button 
-                variant="contained" 
-                component={RouterLink}
-                to="/login"
-                sx={{ bgcolor: 'primary.main' }}
-              >
-                Login
-              </Button>
-            </Box>
-          </Toolbar>
-        </Box>
-      </AppBar>
-
-      {/* Hero Section - Full Width */}
-      <Box sx={{ py: { xs: 6, md: 12 }, bgcolor: 'white', width: '100%' }}>
-        <Box sx={{ px: { xs: 3, md: 6 } }}>
-          <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Typography variant="h1" sx={{ mb: 2, color: 'primary.main' }}>
-                Modern hiring for
-                <Box component="span" sx={{ color: 'secondary.main', display: 'block' }}>
-                  growing companies
-                </Box>
-              </Typography>
-              <Typography variant="body1" sx={{ mb: 4, fontSize: '1.125rem', maxWidth: '500px' }}>
-                Streamline your recruitment process with tools designed for efficiency and better candidate experiences.
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  component={RouterLink}
-                  to="/register"
-                  endIcon={<ArrowForward />}
-                  sx={{ bgcolor: 'primary.main' }}
-                >
-                  Start free trial
-                </Button>
-=======
               <Stack direction="row" spacing={2}>
->>>>>>> 3d0656417305394ad9a0caa8872b012cd849f844
                 <Button
                   variant="outlined"
                   component={RouterLink}
