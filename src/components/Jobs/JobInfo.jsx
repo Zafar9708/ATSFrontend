@@ -61,7 +61,7 @@ const JobInfo = () => {
   const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState("detail"); // 'detail' or 'table'
+  const [viewMode, setViewMode] = useState("detail"); 
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -89,7 +89,7 @@ const JobInfo = () => {
     <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pb: 8 ,ml:12 }}>
       {/* 1. TOP NAVIGATION */}
       <Box sx={{ bgcolor: 'white', borderBottom: '1px solid #e2e8f0', py: 1.5, position: 'sticky', top: 0, zIndex: 10 }}>
-        <Container maxWidth="xl">
+        <Container maxWidth="lg">
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Button
               startIcon={<ArrowBackIosNew sx={{ fontSize: '14px !important' }} />}
