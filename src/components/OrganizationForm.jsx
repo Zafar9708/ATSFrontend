@@ -1,9 +1,10 @@
 // components/OrganizationForm.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box, Typography, TextField, Grid, MenuItem, Button,
-  FormControl, InputLabel, Select, FormHelperText,
-  InputAdornment, Divider
+  FormControl, Select, FormHelperText,
+  InputAdornment, Divider, Paper, Stack,
+  Chip, IconButton, Collapse, Alert
 } from '@mui/material';
 import {
   Business as BusinessIcon,
@@ -19,35 +20,68 @@ import {
   CalendarToday as CalendarIcon,
   CloudUpload as UploadIcon,
   Lock as LockIcon,
-  Home as HomeIcon
+  Home as HomeIcon,
+  Info as InfoIcon,
+  NoteAdd as NoteIcon,
+  ExpandMore as ExpandMoreIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
 
-/* ── Design tokens (matching dashboard) ────────────────────────────── */
+/* ── Design tokens ────────────────────────────────────────────── */
 const T = {
   navy:    '#0F172A',
   slate:   '#334155',
   muted:   '#64748B',
   border:  '#E2E8F0',
-  bg:      '#F1F5F9',
+  bg:      '#F8FAFC',
   card:    '#FFFFFF',
   indigo:  '#4F46E5',
   indigoL: '#818CF8',
+  indigoS: '#EEF2FF',
   emerald: '#10B981',
+  emeraldS: '#D1FAE5',
   rose:    '#F43F5E',
+  roseS:   '#FFE4E6',
   amber:   '#F59E0B',
+  amberS:  '#FEF3C7',
   sky:     '#0EA5E9',
+  skyS:    '#E0F2FE',
 };
 
-const INDUSTRY_OPTIONS = ['IT', 'Finance', 'Healthcare', 'Education', 'Manufacturing', 'Retail', 'Real Estate', 'Logistics', 'Other'];
-const PLAN_OPTIONS = ['Basic', 'Professional', 'Enterprise', 'Custom'];
-const BILLING_CYCLE_OPTIONS = ['Monthly', 'Quarterly', 'Half-Yearly', 'Yearly'];
+const INDUSTRY_OPTIONS = [
+  { value: 'IT', label: 'Information Technology' },
+  { value: 'Finance', label: 'Finance & Banking' },
+  { value: 'Healthcare', label: 'Healthcare & Pharmaceuticals' },
+  { value: 'Education', label: 'Education & Training' },
+  { value: 'Manufacturing', label: 'Manufacturing' },
+  { value: 'Retail', label: 'Retail & E-commerce' },
+  { value: 'RealEstate', label: 'Real Estate' },
+  { value: 'Logistics', label: 'Logistics & Transportation' },
+  { value: 'Other', label: 'Other' }
+];
+
+const PLAN_OPTIONS = [
+  { value: 'Basic', label: 'Basic', price: '$99/month' },
+  { value: 'Professional', label: 'Professional', price: '$199/month' },
+  { value: 'Enterprise', label: 'Enterprise', price: '$399/month' },
+  { value: 'Custom', label: 'Custom', price: 'Contact sales' }
+];
+
+const BILLING_CYCLE_OPTIONS = [
+  { value: 'Monthly', label: 'Monthly' },
+  { value: 'Quarterly', label: 'Quarterly (10% off)' },
+  { value: 'Half-Yearly', label: 'Half-Yearly (15% off)' },
+  { value: 'Yearly', label: 'Yearly (20% off)' }
+];
 
 const OrganizationForm = ({ formData, setFormData, formErrors, setFormErrors, onSubmit, onCancel, submitting }) => {
+  const [showCustomFields, setShowCustomFields] = useState(false);
+  const [customNote, setCustomNote] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error for this field
     if (formErrors[name]) {
       setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -63,49 +97,105 @@ const OrganizationForm = ({ formData, setFormData, formErrors, setFormErrors, on
     }
   };
 
+  const addCustomField = () => {
+    if (customNote.trim()) {
+      const existingNotes = formData.customNotes || [];
+      setFormData(prev => ({
+        ...prev,
+        customNotes: [...existingNotes, { id: Date.now(), text: customNote, date: new Date().toISOString() }]
+      }));
+      setCustomNote('');
+    }
+  };
+
+  const removeCustomField = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      customNotes: (prev.customNotes || []).filter(note => note.id !== id)
+    }));
+  };
+
   const inputSx = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '12px',
-      background: '#F8FAFC',
+      background: '#FFFFFF',
       fontSize: 14,
-      transition: 'all 0.2s',
+      transition: 'all 0.2s ease',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
       '&:hover': {
         '& fieldset': { borderColor: T.indigo }
       },
       '&.Mui-focused fieldset': {
         borderColor: T.indigo,
-        borderWidth: 2
+        borderWidth: 2,
+        boxShadow: `0 0 0 4px ${T.indigoS}`
       }
     },
-    '& .MuiInputLabel-root': { fontSize: 14, fontWeight: 500 },
-    '& .MuiFormHelperText-root': { fontSize: 11, marginLeft: 0.5 }
+    '& .MuiOutlinedInput-root.Mui-error': {
+      '&:hover fieldset': { borderColor: T.rose },
+      '&.Mui-focused fieldset': {
+        borderColor: T.rose,
+        boxShadow: `0 0 0 4px ${T.roseS}`
+      }
+    },
+    '& .MuiInputLabel-root': { fontSize: 14, fontWeight: 500, color: T.slate },
+    '& .MuiFormHelperText-root': { fontSize: 11, marginLeft: 0.5, marginTop: 0.5 }
   };
 
-  const sectionTitle = (icon, title, subtitle, color = T.indigo) => (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5, mt: 1 }}>
-      <Box sx={{ 
-        p: 1, 
-        borderRadius: '12px', 
-        background: `${color}15`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        {React.cloneElement(icon, { sx: { fontSize: 20, color } })}
+  const sectionCard = (icon, title, subtitle, color, children) => (
+    <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        mb: 3,
+        borderRadius: '16px',
+        border: `1px solid ${T.border}`,
+        background: '#FFFFFF',
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          boxShadow: `0 8px 24px rgba(0,0,0,0.05)`,
+          borderColor: color
+        }
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+        <Box sx={{
+          p: 1.2,
+          borderRadius: '12px',
+          background: `${color}10`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          {React.cloneElement(icon, { sx: { fontSize: 22, color } })}
+        </Box>
+        <Box>
+          <Typography sx={{ fontWeight: 700, fontSize: 16, color: T.navy }}>{title}</Typography>
+          <Typography sx={{ fontSize: 13, color: T.muted }}>{subtitle}</Typography>
+        </Box>
+        <Chip
+          label="Required"
+          size="small"
+          sx={{
+            ml: 'auto',
+            background: `${color}10`,
+            color: color,
+            fontSize: 11,
+            fontWeight: 600,
+            borderRadius: '6px'
+          }}
+        />
       </Box>
-      <Box>
-        <Typography sx={{ fontWeight: 700, fontSize: 15, color: T.navy }}>{title}</Typography>
-        <Typography sx={{ fontSize: 12, color: T.muted }}>{subtitle}</Typography>
-      </Box>
-    </Box>
+      {children}
+    </Paper>
   );
 
-  const fileUploadField = (label, fieldName, required = false) => (
+  const fileUploadField = (label, fieldName, required = false, acceptedTypes = ".pdf,.jpg,.jpeg,.png") => (
     <Box>
-      <Typography sx={{ 
-        fontSize: 12, 
-        fontWeight: 600, 
-        color: T.slate, 
+      <Typography sx={{
+        fontSize: 13,
+        fontWeight: 600,
+        color: T.slate,
         mb: 1,
         display: 'flex',
         alignItems: 'center',
@@ -120,716 +210,501 @@ const OrganizationForm = ({ formData, setFormData, formErrors, setFormErrors, on
         fullWidth
         startIcon={<UploadIcon />}
         sx={{
-          borderRadius: '12px',
+          borderRadius: '10px',
           textTransform: 'none',
           fontWeight: 500,
           fontSize: 13,
-          py: 1.5,
+          py: 1.2,
           borderColor: formErrors[fieldName] ? T.rose : T.border,
-          background: formErrors[fieldName] ? '#FFF1F2' : '#F8FAFC',
+          borderWidth: formErrors[fieldName] ? 2 : 1,
+          background: formErrors[fieldName] ? '#FFF1F2' : '#FFFFFF',
           color: formData[fieldName] ? T.indigo : T.slate,
+          justifyContent: 'flex-start',
+          px: 2,
           '&:hover': {
             borderColor: T.indigo,
-            background: '#F8FAFC'
+            background: '#FFFFFF',
+            boxShadow: `0 4px 12px ${T.indigoS}`
           }
         }}
       >
-        {formData[fieldName] ? formData[fieldName].name || 'File selected' : 'Choose file'}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflow: 'hidden' }}>
+          <UploadIcon sx={{ fontSize: 18, color: formData[fieldName] ? T.indigo : T.muted, flexShrink: 0 }} />
+          <Typography sx={{
+            fontSize: 13,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            color: formData[fieldName] ? T.indigo : T.slate
+          }}>
+            {formData[fieldName] ? formData[fieldName].name : `Upload ${label}`}
+          </Typography>
+          {formData[fieldName] && (
+            <CheckCircleIcon sx={{ fontSize: 16, color: T.emerald, ml: 'auto', flexShrink: 0 }} />
+          )}
+        </Box>
         <input
           type="file"
           hidden
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept={acceptedTypes}
           onChange={handleFileUpload(fieldName)}
         />
       </Button>
       {formErrors[fieldName] && (
-        <FormHelperText error sx={{ ml: 0.5, mt: 0.5 }}>
+        <FormHelperText error sx={{ ml: 0.5, mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <WarningIcon sx={{ fontSize: 12 }} />
           {formErrors[fieldName]}
         </FormHelperText>
       )}
     </Box>
   );
 
+  const selectField = (label, name, options, required = false, icon) => (
+    <Box>
+      <Typography sx={{ fontSize: 13, fontWeight: 600, color: T.slate, mb: 1 }}>
+        {label}
+        {required && <span style={{ color: T.rose }}>*</span>}
+      </Typography>
+      <FormControl fullWidth error={!!formErrors[name]}>
+        <Select
+          name={name}
+          value={formData[name] || ''}
+          onChange={handleChange}
+          displayEmpty
+          sx={{
+            borderRadius: '10px',
+            background: '#FFFFFF',
+            fontSize: 14,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+            '& .MuiSelect-select': { py: 1.2, display: 'flex', alignItems: 'center', gap: 1 },
+            '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: T.indigo },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: T.indigo,
+              borderWidth: 2,
+              boxShadow: `0 0 0 4px ${T.indigoS}`
+            }
+          }}
+          startAdornment={
+            icon && (
+              <InputAdornment position="start" sx={{ mr: 0.5 }}>
+                {React.cloneElement(icon, { sx: { fontSize: 18, color: T.muted } })}
+              </InputAdornment>
+            )
+          }
+        >
+          <MenuItem value="" disabled>
+            <span style={{ color: T.muted }}>Select {label}</span>
+          </MenuItem>
+          {options.map(opt => (
+            <MenuItem key={opt.value} value={opt.value} sx={{ py: 1 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                <span>{opt.label}</span>
+                {opt.price && (
+                  <Chip label={opt.price} size="small" sx={{ fontSize: 10, background: T.indigoS, color: T.indigo }} />
+                )}
+              </Box>
+            </MenuItem>
+          ))}
+        </Select>
+        {formErrors[name] && <FormHelperText>{formErrors[name]}</FormHelperText>}
+      </FormControl>
+    </Box>
+  );
+
+  const textField = (label, name, required = false, icon, placeholder = "", type = "text") => (
+    <Box>
+      <Typography sx={{ fontSize: 13, fontWeight: 600, color: T.slate, mb: 1 }}>
+        {label}
+        {required && <span style={{ color: T.rose }}>*</span>}
+      </Typography>
+      <TextField
+        fullWidth
+        name={name}
+        type={type}
+        value={formData[name] || ''}
+        onChange={handleChange}
+        error={!!formErrors[name]}
+        helperText={formErrors[name]}
+        placeholder={placeholder}
+        InputProps={{
+          startAdornment: icon && (
+            <InputAdornment position="start">
+              {React.cloneElement(icon, {
+                sx: {
+                  fontSize: 18,
+                  color: formErrors[name] ? T.rose : (formData[name] ? T.indigo : T.muted)
+                }
+              })}
+            </InputAdornment>
+          ),
+        }}
+        sx={inputSx}
+      />
+    </Box>
+  );
+
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+    <Box sx={{
+      maxWidth: '1200px',
+      margin: '0 auto',
+      p: { xs: 2, sm: 3 },
+      background: '#FFFFFF'
+    }}>
       
-      {/* Section 1: Company Information */}
-      {sectionTitle(<BusinessIcon />, 'Company Information', 'Basic company details and documents')}
+      {/* Header with progress */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          mb: 3,
+          borderRadius: '16px',
+          background: `linear-gradient(135deg, ${T.indigo} 0%, #6366F1 100%)`,
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}
+      >
+        <Box sx={{ position: 'absolute', top: -20, right: -20, width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+        <Box sx={{ position: 'absolute', bottom: -30, left: -30, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+        
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Box sx={{
+              p: 1.5,
+              borderRadius: '14px',
+              background: 'rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <BusinessIcon sx={{ fontSize: 28 }} />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: 24, letterSpacing: -0.5 }}>
+                Register New Organisation
+              </Typography>
+              <Typography sx={{ fontSize: 14, opacity: 0.9 }}>
+                Complete all sections to create a new tenant account
+              </Typography>
+            </Box>
+          </Box>
+          
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            {['Company Info', 'Owner Details', 'Bank Info', 'Plan', 'Admin'].map((step, index) => (
+              <Grid item key={step}>
+                <Chip
+                  label={step}
+                  icon={index < 2 ? <CheckCircleIcon /> : undefined}
+                  sx={{
+                    background: 'rgba(255,255,255,0.15)',
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: 12,
+                    '& .MuiChip-icon': { color: 'white' }
+                  }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      </Paper>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Organisation Name <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="name"
-            value={formData.name || ''}
-            onChange={handleChange}
-            error={!!formErrors.name}
-            helperText={formErrors.name}
-            placeholder="e.g. Acme Corporation"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <BusinessIcon sx={{ fontSize: 18, color: formErrors.name ? T.rose : T.indigo }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
+      {/* Company Information Section */}
+      {sectionCard(
+        <BusinessIcon />,
+        'Company Information',
+        'Basic company details and legal documents',
+        T.indigo,
+        <>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12} md={6}>
+              {textField('Organisation Name', 'name', true, <BusinessIcon />, 'e.g. Acme Corporation')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {selectField('Industry', 'industry', INDUSTRY_OPTIONS, true, <BusinessIcon />)}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Website', 'website', false, <LanguageIcon />, 'https://www.example.com')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Phone', 'companyPhone', true, <PhoneIcon />, '+1 234 567 8900')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Email', 'email', true, <EmailIcon />, 'company@example.com', 'email')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('GST Number', 'gstNumber', false, <ReceiptIcon />, '22AAAAA0000A1Z5')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Company PAN', 'companyPan', true, <BadgeIcon />, 'AAAAA0000A')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Registration Number', 'registrationNumber', false, <FingerprintIcon />, 'U12345DL2023PTC123456')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {fileUploadField('GST Certificate', 'gstCertificate', true)}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {fileUploadField('Company PAN', 'companyPanFile', true)}
+            </Grid>
+          </Grid>
+        </>
+      )}
 
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Industry <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <FormControl fullWidth error={!!formErrors.industry}>
-            <Select
-              name="industry"
-              value={formData.industry || ''}
-              onChange={handleChange}
-              displayEmpty
-              renderValue={(value) => value || <span style={{ color: T.muted }}>Select industry</span>}
-              sx={{
-                borderRadius: '12px',
-                background: '#F8FAFC',
-                fontSize: 14,
-                '& .MuiSelect-select': { py: 1.5 }
-              }}
-            >
-              <MenuItem value="" disabled>Select industry</MenuItem>
-              {INDUSTRY_OPTIONS.map(opt => (
-                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-              ))}
-            </Select>
-            {formErrors.industry && <FormHelperText>{formErrors.industry}</FormHelperText>}
-          </FormControl>
-        </Grid>
+      {/* Owner Information Section */}
+      {sectionCard(
+        <PersonIcon />,
+        'Owner Information',
+        'Primary owner/contact person details',
+        T.emerald,
+        <>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12} md={6}>
+              {textField('Owner Name', 'ownerName', true, <PersonIcon />, 'John Doe')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Owner Email', 'ownerEmail', true, <EmailIcon />, 'owner@example.com', 'email')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Owner Phone', 'ownerPhone', true, <PhoneIcon />, '+1 234 567 8900')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Owner Aadhar', 'ownerAadhar', true, <FingerprintIcon />, '1234 5678 9012')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Owner PAN', 'ownerPan', true, <BadgeIcon />, 'AAAAA0000A')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {fileUploadField('Aadhar Card', 'aadharFile', true, '.pdf,.jpg,.jpeg,.png')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {fileUploadField('PAN Card', 'panFile', true, '.pdf,.jpg,.jpeg,.png')}
+            </Grid>
+          </Grid>
+        </>
+      )}
 
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Website
-          </Typography>
-          <TextField
-            fullWidth
-            name="website"
-            value={formData.website || ''}
-            onChange={handleChange}
-            placeholder="https://www.example.com"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LanguageIcon sx={{ fontSize: 18, color: T.muted }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
+      {/* Bank Information Section */}
+      {sectionCard(
+        <AccountIcon />,
+        'Bank Information',
+        'Bank account details for transactions',
+        T.amber,
+        <>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12} md={6}>
+              {textField('Bank Name', 'bankName', true, <AccountIcon />, 'State Bank of India')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Account Holder', 'accountHolderName', true, <PersonIcon />, 'John Doe')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Account Number', 'accountNumber', true, <MoneyIcon />, '12345678901')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('IFSC Code', 'ifscCode', true, <FingerprintIcon />, 'SBIN0001234')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Branch', 'branch', false, <HomeIcon />, 'Connaught Place')}
+            </Grid>
+            <Grid item xs={12}>
+              {fileUploadField('Cancelled Cheque', 'cancelledCheque', true, '.pdf,.jpg,.jpeg,.png')}
+            </Grid>
+          </Grid>
+        </>
+      )}
 
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Phone <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="companyPhone"
-            value={formData.companyPhone || ''}
-            onChange={handleChange}
-            error={!!formErrors.companyPhone}
-            helperText={formErrors.companyPhone}
-            placeholder="+1 234 567 8900"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PhoneIcon sx={{ fontSize: 18, color: formErrors.companyPhone ? T.rose : T.indigo }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
+      {/* Plan & Subscription Section */}
+      {sectionCard(
+        <AttachMoneyIcon />,
+        'Plan & Subscription',
+        'Billing and subscription details',
+        T.sky,
+        <>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12} md={6}>
+              {selectField('Plan', 'plan', PLAN_OPTIONS, true, <AttachMoneyIcon />)}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {selectField('Billing Cycle', 'billingCycle', BILLING_CYCLE_OPTIONS, true, <CalendarIcon />)}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Start Date', 'startDate', true, <CalendarIcon />, '', 'date')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('End Date', 'endDate', true, <CalendarIcon />, '', 'date')}
+            </Grid>
+          </Grid>
+        </>
+      )}
 
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Email <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="email"
-            type="email"
-            value={formData.email || ''}
-            onChange={handleChange}
-            error={!!formErrors.email}
-            helperText={formErrors.email}
-            placeholder="company@example.com"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon sx={{ fontSize: 18, color: formErrors.email ? T.rose : T.indigo }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
+      {/* Admin Information Section */}
+      {sectionCard(
+        <BadgeIcon />,
+        'Admin Information',
+        'Primary administrator account credentials',
+        T.rose,
+        <>
+          <Grid container spacing={2.5}>
+            <Grid item xs={12} md={6}>
+              {textField('First Name', 'adminFirstName', true, <PersonIcon />, 'John')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Last Name', 'adminLastName', true, <PersonIcon />, 'Doe')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Admin Email', 'adminEmail', true, <EmailIcon />, 'admin@company.com', 'email')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Admin Phone', 'adminPhone', true, <PhoneIcon />, '+1 234 567 8900')}
+            </Grid>
+            <Grid item xs={12} md={6}>
+              {textField('Password', 'adminPassword', true, <LockIcon />, '••••••••', 'password')}
+            </Grid>
+          </Grid>
+        </>
+      )}
 
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            GST Number
-          </Typography>
-          <TextField
-            fullWidth
-            name="gstNumber"
-            value={formData.gstNumber || ''}
-            onChange={handleChange}
-            placeholder="22AAAAA0000A1Z5"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <ReceiptIcon sx={{ fontSize: 18, color: T.muted }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
+      {/* Custom Fields Section */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          mb: 3,
+          borderRadius: '16px',
+          border: `1px solid ${T.border}`,
+          background: '#FFFFFF',
+          transition: 'all 0.2s ease'
+        }}
+      >
+        <Box
+          onClick={() => setShowCustomFields(!showCustomFields)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            cursor: 'pointer',
+            '&:hover': { opacity: 0.8 }
+          }}
+        >
+          <Box sx={{
+            p: 1.2,
+            borderRadius: '12px',
+            background: `${T.indigo}10`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <NoteIcon sx={{ fontSize: 22, color: T.indigo }} />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: 16, color: T.navy }}>
+              Additional Information
+            </Typography>
+            <Typography sx={{ fontSize: 13, color: T.muted }}>
+              Add any custom notes or special requirements
+            </Typography>
+          </Box>
+          <IconButton>
+            <ExpandMoreIcon sx={{ transform: showCustomFields ? 'rotate(180deg)' : 'none', transition: '0.3s' }} />
+          </IconButton>
+        </Box>
 
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Company PAN Number <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="companyPan"
-            value={formData.companyPan || ''}
-            onChange={handleChange}
-            error={!!formErrors.companyPan}
-            helperText={formErrors.companyPan}
-            placeholder="AAAAA0000A"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <BadgeIcon sx={{ fontSize: 18, color: formErrors.companyPan ? T.rose : T.indigo }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
+        <Collapse in={showCustomFields}>
+          <Box sx={{ mt: 3 }}>
+            <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Enter custom note or requirement..."
+                value={customNote}
+                onChange={(e) => setCustomNote(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '10px',
+                    background: '#FFFFFF',
+                    fontSize: 14
+                  }
+                }}
+              />
+              <Button
+                variant="contained"
+                onClick={addCustomField}
+                disabled={!customNote.trim()}
+                sx={{
+                  borderRadius: '10px',
+                  textTransform: 'none',
+                  background: T.indigo,
+                  '&:hover': { background: T.indigoL },
+                  '&:disabled': { background: T.indigoS }
+                }}
+              >
+                Add
+              </Button>
+            </Stack>
 
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Company Registration Number
-          </Typography>
-          <TextField
-            fullWidth
-            name="registrationNumber"
-            value={formData.registrationNumber || ''}
-            onChange={handleChange}
-            placeholder="U12345DL2023PTC123456"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FingerprintIcon sx={{ fontSize: 18, color: T.muted }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          {fileUploadField('Upload GST Certificate', 'gstCertificate', true)}
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          {fileUploadField('Upload Company PAN', 'companyPanFile', true)}
-        </Grid>
-      </Grid>
-
-      {/* Section 2: Owner Information */}
-      <Divider sx={{ my: 3 }} />
-      {sectionTitle(<PersonIcon />, 'Owner Information', 'Primary owner/contact person details', T.emerald)}
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Owner Name <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="ownerName"
-            value={formData.ownerName || ''}
-            onChange={handleChange}
-            error={!!formErrors.ownerName}
-            helperText={formErrors.ownerName}
-            placeholder="John Doe"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonIcon sx={{ fontSize: 18, color: formErrors.ownerName ? T.rose : T.emerald }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Owner Email <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="ownerEmail"
-            type="email"
-            value={formData.ownerEmail || ''}
-            onChange={handleChange}
-            error={!!formErrors.ownerEmail}
-            helperText={formErrors.ownerEmail}
-            placeholder="owner@example.com"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon sx={{ fontSize: 18, color: formErrors.ownerEmail ? T.rose : T.emerald }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Owner Phone <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="ownerPhone"
-            value={formData.ownerPhone || ''}
-            onChange={handleChange}
-            error={!!formErrors.ownerPhone}
-            helperText={formErrors.ownerPhone}
-            placeholder="+1 234 567 8900"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PhoneIcon sx={{ fontSize: 18, color: formErrors.ownerPhone ? T.rose : T.emerald }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Owner Aadhar Number <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="ownerAadhar"
-            value={formData.ownerAadhar || ''}
-            onChange={handleChange}
-            error={!!formErrors.ownerAadhar}
-            helperText={formErrors.ownerAadhar}
-            placeholder="1234 5678 9012"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FingerprintIcon sx={{ fontSize: 18, color: formErrors.ownerAadhar ? T.rose : T.emerald }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Owner PAN Number <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="ownerPan"
-            value={formData.ownerPan || ''}
-            onChange={handleChange}
-            error={!!formErrors.ownerPan}
-            helperText={formErrors.ownerPan}
-            placeholder="AAAAA0000A"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <BadgeIcon sx={{ fontSize: 18, color: formErrors.ownerPan ? T.rose : T.emerald }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          {fileUploadField('Upload Aadhar', 'aadharFile', true)}
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          {fileUploadField('Upload PAN', 'panFile', true)}
-        </Grid>
-      </Grid>
-
-      {/* Section 3: Bank Information */}
-      <Divider sx={{ my: 3 }} />
-      {sectionTitle(<AccountIcon />, 'Bank Information', 'Bank account details for transactions', T.amber)}
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Bank Name <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="bankName"
-            value={formData.bankName || ''}
-            onChange={handleChange}
-            error={!!formErrors.bankName}
-            helperText={formErrors.bankName}
-            placeholder="State Bank of India"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <AccountIcon sx={{ fontSize: 18, color: formErrors.bankName ? T.rose : T.amber }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Account Holder Name <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="accountHolderName"
-            value={formData.accountHolderName || ''}
-            onChange={handleChange}
-            error={!!formErrors.accountHolderName}
-            helperText={formErrors.accountHolderName}
-            placeholder="John Doe"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonIcon sx={{ fontSize: 18, color: formErrors.accountHolderName ? T.rose : T.amber }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Bank Account Number <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="accountNumber"
-            value={formData.accountNumber || ''}
-            onChange={handleChange}
-            error={!!formErrors.accountNumber}
-            helperText={formErrors.accountNumber}
-            placeholder="12345678901"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <MoneyIcon sx={{ fontSize: 18, color: formErrors.accountNumber ? T.rose : T.amber }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            IFSC Code <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="ifscCode"
-            value={formData.ifscCode || ''}
-            onChange={handleChange}
-            error={!!formErrors.ifscCode}
-            helperText={formErrors.ifscCode}
-            placeholder="SBIN0001234"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FingerprintIcon sx={{ fontSize: 18, color: formErrors.ifscCode ? T.rose : T.amber }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Branch
-          </Typography>
-          <TextField
-            fullWidth
-            name="branch"
-            value={formData.branch || ''}
-            onChange={handleChange}
-            placeholder="Connaught Place"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <HomeIcon sx={{ fontSize: 18, color: T.muted }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12}>
-          {fileUploadField('Upload Cancelled Cheque', 'cancelledCheque', true)}
-        </Grid>
-      </Grid>
-
-      {/* Section 4: Plan & Subscription */}
-      <Divider sx={{ my: 3 }} />
-      {sectionTitle(<MoneyIcon />, 'Plan & Subscription', 'Billing and subscription details', T.sky)}
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Plan <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <FormControl fullWidth error={!!formErrors.plan}>
-            <Select
-              name="plan"
-              value={formData.plan || ''}
-              onChange={handleChange}
-              displayEmpty
-              sx={{
-                borderRadius: '12px',
-                background: '#F8FAFC',
-                fontSize: 14,
-                '& .MuiSelect-select': { py: 1.5 }
-              }}
-            >
-              <MenuItem value="" disabled>Select plan</MenuItem>
-              {PLAN_OPTIONS.map(opt => (
-                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-              ))}
-            </Select>
-            {formErrors.plan && <FormHelperText>{formErrors.plan}</FormHelperText>}
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Billing Cycle <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <FormControl fullWidth error={!!formErrors.billingCycle}>
-            <Select
-              name="billingCycle"
-              value={formData.billingCycle || ''}
-              onChange={handleChange}
-              displayEmpty
-              sx={{
-                borderRadius: '12px',
-                background: '#F8FAFC',
-                fontSize: 14,
-                '& .MuiSelect-select': { py: 1.5 }
-              }}
-            >
-              <MenuItem value="" disabled>Select billing cycle</MenuItem>
-              {BILLING_CYCLE_OPTIONS.map(opt => (
-                <MenuItem key={opt} value={opt}>{opt}</MenuItem>
-              ))}
-            </Select>
-            {formErrors.billingCycle && <FormHelperText>{formErrors.billingCycle}</FormHelperText>}
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Start Date <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="startDate"
-            type="date"
-            value={formData.startDate || ''}
-            onChange={handleChange}
-            error={!!formErrors.startDate}
-            helperText={formErrors.startDate}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarIcon sx={{ fontSize: 18, color: formErrors.startDate ? T.rose : T.sky }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            End Date <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="endDate"
-            type="date"
-            value={formData.endDate || ''}
-            onChange={handleChange}
-            error={!!formErrors.endDate}
-            helperText={formErrors.endDate}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <CalendarIcon sx={{ fontSize: 18, color: formErrors.endDate ? T.rose : T.sky }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-      </Grid>
-
-      {/* Section 5: Admin Information */}
-      <Divider sx={{ my: 3 }} />
-      {sectionTitle(<BadgeIcon />, 'Admin Information', 'Primary administrator account', T.rose)}
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Admin First Name <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="adminFirstName"
-            value={formData.adminFirstName || ''}
-            onChange={handleChange}
-            error={!!formErrors.adminFirstName}
-            helperText={formErrors.adminFirstName}
-            placeholder="John"
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Admin Last Name <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="adminLastName"
-            value={formData.adminLastName || ''}
-            onChange={handleChange}
-            error={!!formErrors.adminLastName}
-            helperText={formErrors.adminLastName}
-            placeholder="Doe"
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Admin Email <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="adminEmail"
-            type="email"
-            value={formData.adminEmail || ''}
-            onChange={handleChange}
-            error={!!formErrors.adminEmail}
-            helperText={formErrors.adminEmail}
-            placeholder="admin@company.com"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <EmailIcon sx={{ fontSize: 18, color: formErrors.adminEmail ? T.rose : T.indigo }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Admin Phone <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="adminPhone"
-            value={formData.adminPhone || ''}
-            onChange={handleChange}
-            error={!!formErrors.adminPhone}
-            helperText={formErrors.adminPhone}
-            placeholder="+1 234 567 8900"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PhoneIcon sx={{ fontSize: 18, color: formErrors.adminPhone ? T.rose : T.indigo }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: T.slate, mb: 1 }}>
-            Admin Password <span style={{ color: T.rose }}>*</span>
-          </Typography>
-          <TextField
-            fullWidth
-            name="adminPassword"
-            type="password"
-            value={formData.adminPassword || ''}
-            onChange={handleChange}
-            error={!!formErrors.adminPassword}
-            helperText={formErrors.adminPassword || 'Minimum 8 characters'}
-            placeholder="••••••••"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LockIcon sx={{ fontSize: 18, color: formErrors.adminPassword ? T.rose : T.indigo }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={inputSx}
-          />
-        </Grid>
-      </Grid>
+            {(formData.customNotes || []).length > 0 ? (
+              <Stack spacing={1}>
+                {(formData.customNotes || []).map((note) => (
+                  <Paper
+                    key={note.id}
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: '10px',
+                      borderColor: T.border,
+                      background: T.bg,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start'
+                    }}
+                  >
+                    <Box>
+                      <Typography sx={{ fontSize: 14, color: T.navy }}>{note.text}</Typography>
+                      <Typography sx={{ fontSize: 11, color: T.muted, mt: 0.5 }}>
+                        Added: {new Date(note.date).toLocaleString()}
+                      </Typography>
+                    </Box>
+                    <IconButton size="small" onClick={() => removeCustomField(note.id)}>
+                      <DeleteIcon sx={{ fontSize: 16, color: T.muted }} />
+                    </IconButton>
+                  </Paper>
+                ))}
+              </Stack>
+            ) : (
+              <Alert
+                severity="info"
+                sx={{
+                  borderRadius: '10px',
+                  background: T.skyS,
+                  color: T.sky,
+                  '& .MuiAlert-icon': { color: T.sky }
+                }}
+              >
+                No custom notes added yet. Add any special requirements or additional information.
+              </Alert>
+            )}
+          </Box>
+        </Collapse>
+      </Paper>
 
       {/* Form Actions */}
       <Box sx={{
-        mt: 4,
-        pt: 3,
-        borderTop: `1px solid ${T.border}`,
         display: 'flex',
         gap: 2,
         justifyContent: 'flex-end',
-        flexDirection: { xs: 'column', sm: 'row' }
+        flexDirection: { xs: 'column', sm: 'row' },
+        position: 'sticky',
+        bottom: 16,
+        zIndex: 10,
+        background: '#FFFFFF',
+        p: 2,
+        borderRadius: '12px',
+        boxShadow: '0 -4px 12px rgba(0,0,0,0.05)'
       }}>
         <Button
           onClick={onCancel}
           variant="outlined"
           sx={{
-            borderRadius: '12px',
+            borderRadius: '10px',
             textTransform: 'none',
             fontWeight: 600,
             py: 1.5,
@@ -848,21 +723,24 @@ const OrganizationForm = ({ formData, setFormData, formErrors, setFormErrors, on
           onClick={onSubmit}
           variant="contained"
           disabled={submitting}
+          startIcon={submitting ? null : <CheckCircleIcon />}
           sx={{
-            borderRadius: '12px',
+            borderRadius: '10px',
             textTransform: 'none',
             fontWeight: 700,
             py: 1.5,
             px: 4,
             background: `linear-gradient(135deg, ${T.indigo}, ${T.indigoL})`,
-            boxShadow: `0 4px 16px ${T.indigo}50`,
+            boxShadow: `0 8px 16px ${T.indigo}40`,
             '&:hover': {
               background: T.indigo,
-              boxShadow: `0 6px 20px ${T.indigo}70`
+              boxShadow: `0 12px 24px ${T.indigo}60`,
+              transform: 'translateY(-2px)'
             },
             '&:disabled': {
-              background: `${T.indigo}55`
-            }
+              background: `${T.indigo}40`
+            },
+            transition: 'all 0.2s ease'
           }}
         >
           {submitting ? 'Creating Organisation...' : 'Register Organisation'}
