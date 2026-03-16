@@ -3464,7 +3464,7 @@ const Dashboard = () => {
           <TextField
             placeholder="Search candidates by name, email, or skills..."
             size="small"
-            sx={{ flex: 1, minWidth: 300, '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: theme.palette.background.paper } }}
+            sx={{  flex: 0, width: '50%', minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: '8px', backgroundColor: theme.palette.background.paper } }}
             InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: 'text.secondary' }} /></InputAdornment> }}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

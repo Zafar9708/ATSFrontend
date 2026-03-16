@@ -3699,7 +3699,7 @@ const CandidatesTab = () => {
     }
 
     return (
-        <Box sx={{ p: 1, mt: 0, marginLeft: 10 }}>
+        <Box sx={{ p: 1, mt: 0, marginLeft: 20 }}>
 
             <Snackbar
                 open={snackbar.open}
