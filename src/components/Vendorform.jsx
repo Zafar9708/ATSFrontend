@@ -462,24 +462,6 @@ const VendorForm = ({
       )}
 
       {/* ══════════════════════════════════════════════════════════
-          5. KYC DOCUMENTS
-      ══════════════════════════════════════════════════════════ */}
-      {sectionCard(
-        <DescriptionIcon />,
-        'KYC Documents',
-        'Compliance and verification documents',
-        T.teal,
-        <TwoCol>
-          {fileUploadField('Company Registration Certificate', 'companyRegistrationFile', true,  T.teal)}
-          {fileUploadField('GST Certificate',                   'gstCertificateKyc',       false, T.teal)}
-          {fileUploadField('Company PAN Card',                  'companyPanKycFile',        true,  T.teal)}
-          {fileUploadField('Cancelled Cheque / Bank Letter',    'bankProofFile',            true,  T.teal)}
-          {fileUploadField('MSME / Udyam Certificate',          'msmeFile',                false, T.teal)}
-          {fileUploadField('Other Supporting Document',         'otherDocFile',            false, T.teal)}
-        </TwoCol>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════
           6. ADDITIONAL / CUSTOM FIELDS
       ══════════════════════════════════════════════════════════ */}
       <Card elevation={0} sx={{

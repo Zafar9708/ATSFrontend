@@ -1,0 +1,547 @@
+import React, { useState } from 'react';
+import {
+  Box, Typography, TextField, Button,
+  FormControl, Select, FormHelperText,
+  InputAdornment, Paper, Stack,
+  Chip, IconButton, Collapse, Alert,
+  Card, CardContent, Tooltip, Fade, Avatar, MenuItem,
+} from '@mui/material';
+import {
+  Person as PersonIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  Badge as BadgeIcon,
+  Lock as LockIcon,
+  WorkHistory as ExperienceIcon,
+  Business as BusinessIcon,
+  Work as WorkIcon,
+  NoteAdd as NoteIcon,
+  ExpandMore as ExpandMoreIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Save as SaveIcon,
+  Close as CloseIcon,
+  Add as AddIcon,
+  CloudUpload as UploadIcon,
+  LinkedIn as LinkedInIcon,
+  Star as StarIcon,
+  LocationOn as LocationIcon,
+} from '@mui/icons-material';
+
+/* ── Design tokens ────────────────────────────────────────────── */
+const T = {
+  navy:     '#0F172A',
+  slate:    '#334155',
+  muted:    '#64748B',
+  border:   '#E2E8F0',
+  bg:       '#F8FAFC',
+  card:     '#FFFFFF',
+  indigo:   '#4F46E5',
+  indigoL:  '#818CF8',
+  indigoS:  '#EEF2FF',
+  emerald:  '#10B981',
+  emeraldS: '#D1FAE5',
+  rose:     '#F43F5E',
+  roseS:    '#FFE4E6',
+  amber:    '#F59E0B',
+  amberS:   '#FEF3C7',
+  sky:      '#0EA5E9',
+  skyS:     '#E0F2FE',
+  purple:   '#8B5CF6',
+  purpleS:  '#EDE9FE',
+  primary:  '#1e40af',
+  primaryM: '#2563eb',
+  primaryL: '#eff6ff',
+};
+
+const DEPARTMENT_OPTIONS = [
+  'Engineering', 'Product', 'Design', 'Marketing', 'Sales',
+  'Finance', 'Human Resources', 'Operations', 'Legal',
+  'Customer Success', 'Data & Analytics', 'IT & Infrastructure',
+  'Research & Development', 'Administration', 'Other',
+];
+
+const EMPLOYMENT_TYPE_OPTIONS = [
+  { value: 'FullTime',   label: 'Full Time'   },
+  { value: 'PartTime',   label: 'Part Time'   },
+  { value: 'Contract',   label: 'Contract'    },
+  { value: 'Freelance',  label: 'Freelance'   },
+  { value: 'Intern',     label: 'Intern'      },
+];
+
+const SKILL_OPTIONS = [
+  'Technical Recruiting', 'IT Staffing', 'Non-IT Recruiting',
+  'Executive Search', 'Campus Hiring', 'Lateral Hiring',
+  'Volume Hiring', 'Contract Staffing', 'RPO',
+];
+
+/* ── Shared input styles ──────────────────────────────────────── */
+const mkInputSx = (accent, accentL) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '10px', background: '#FFFFFF', fontSize: 14,
+    transition: 'all 0.2s ease',
+    '&:hover fieldset':       { borderColor: accent },
+    '&.Mui-focused fieldset': { borderColor: accent, borderWidth: 2, boxShadow: `0 0 0 4px ${accentL}` },
+  },
+  '& .MuiOutlinedInput-root.Mui-error': {
+    '&:hover fieldset':       { borderColor: T.rose },
+    '&.Mui-focused fieldset': { borderColor: T.rose, boxShadow: `0 0 0 4px ${T.roseS}` },
+  },
+  '& .MuiInputLabel-root':     { fontSize: 14, fontWeight: 500, color: T.slate },
+  '& .MuiFormHelperText-root': { fontSize: 11, marginLeft: 0.5, marginTop: 0.5 },
+});
+
+/* ── TwoCol — pure CSS grid, always 2 equal columns ──────────── */
+const TwoCol = ({ children }) => (
+  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+    {children}
+  </Box>
+);
+
+/* ════════════════════════════════════════════════════════════════
+   RecruiterForm
+═══════════════════════════════════════════════════════════════ */
+const RecruiterForm = ({
+  formData,
+  setFormData,
+  formErrors,
+  setFormErrors,
+  onSubmit,
+  onCancel,
+  submitting,
+  isEditing = false,
+}) => {
+  const [showCustomFields, setShowCustomFields] = useState(false);
+  const [editingNote,      setEditingNote]      = useState(null);
+  const [noteLabel,        setNoteLabel]        = useState('');
+  const [noteValue,        setNoteValue]        = useState('');
+  const [profilePreview,   setProfilePreview]   = useState(formData.profilePreviewUrl || null);
+
+  /* ── Handlers ─────────────────────────────────────────────── */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (formErrors[name]) setFormErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const handleProfileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFormData(prev => ({ ...prev, profilePicture: file }));
+    const reader = new FileReader();
+    reader.onloadend = () => setProfilePreview(reader.result);
+    reader.readAsDataURL(file);
+    if (formErrors.profilePicture) setFormErrors(prev => ({ ...prev, profilePicture: '' }));
+  };
+
+  /* ── Custom-field CRUD ─────────────────────────────────────── */
+  const addCustomField = () => {
+    if (!noteLabel.trim() || !noteValue.trim()) return;
+    setFormData(prev => ({
+      ...prev,
+      customNotes: [
+        ...(prev.customNotes || []),
+        { id: Date.now(), label: noteLabel, value: noteValue, date: new Date().toISOString() },
+      ],
+    }));
+    setNoteLabel(''); setNoteValue('');
+  };
+
+  const editCustomField = (note) => {
+    setEditingNote(note); setNoteLabel(note.label); setNoteValue(note.value);
+  };
+
+  const updateCustomField = () => {
+    if (!noteLabel.trim() || !noteValue.trim() || !editingNote) return;
+    setFormData(prev => ({
+      ...prev,
+      customNotes: (prev.customNotes || []).map(n =>
+        n.id === editingNote.id
+          ? { ...n, label: noteLabel, value: noteValue, updatedAt: new Date().toISOString() }
+          : n
+      ),
+    }));
+    cancelEdit();
+  };
+
+  const deleteCustomField = (id) =>
+    setFormData(prev => ({ ...prev, customNotes: (prev.customNotes || []).filter(n => n.id !== id) }));
+
+  const cancelEdit = () => { setEditingNote(null); setNoteLabel(''); setNoteValue(''); };
+
+  /* ── Reusable field builders ───────────────────────────────── */
+  const textField = (label, name, required = false, icon, placeholder = '', type = 'text', accent = T.primaryM, accentL = T.primaryL) => (
+    <Box>
+      <Typography sx={{ fontSize: 13, fontWeight: 600, color: T.slate, mb: 1 }}>
+        {label}{required && <span style={{ color: T.rose }}> *</span>}
+      </Typography>
+      <TextField
+        fullWidth name={name} type={type}
+        value={formData[name] || ''}
+        onChange={handleChange}
+        error={!!formErrors[name]}
+        helperText={formErrors[name]}
+        placeholder={placeholder}
+        InputProps={{
+          startAdornment: icon && (
+            <InputAdornment position="start">
+              {React.cloneElement(icon, {
+                sx: { fontSize: 18, color: formErrors[name] ? T.rose : (formData[name] ? accent : T.muted) },
+              })}
+            </InputAdornment>
+          ),
+        }}
+        sx={mkInputSx(accent, accentL)}
+      />
+    </Box>
+  );
+
+  const selectField = (label, name, options, required = false, icon, accent = T.primaryM, accentL = T.primaryL) => (
+    <Box>
+      <Typography sx={{ fontSize: 13, fontWeight: 600, color: T.slate, mb: 1 }}>
+        {label}{required && <span style={{ color: T.rose }}> *</span>}
+      </Typography>
+      <FormControl fullWidth error={!!formErrors[name]}>
+        <Select
+          name={name} value={formData[name] || ''} onChange={handleChange} displayEmpty
+          MenuProps={{ PaperProps: { sx: { maxHeight: 280, borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)' } } }}
+          sx={{
+            borderRadius: '10px', background: '#FFFFFF', fontSize: 14,
+            '& .MuiSelect-select': { py: 1.55, display: 'flex', alignItems: 'center', gap: 1 },
+            '&:hover .MuiOutlinedInput-notchedOutline':       { borderColor: accent },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: accent, borderWidth: 2, boxShadow: `0 0 0 4px ${accentL}` },
+          }}
+          startAdornment={icon && (
+            <InputAdornment position="start" sx={{ mr: 0.5 }}>
+              {React.cloneElement(icon, { sx: { fontSize: 18, color: T.muted } })}
+            </InputAdornment>
+          )}
+          renderValue={(selected) => {
+            if (!selected) return <span style={{ color: T.muted }}>Select {label}</span>;
+            const isObj = options.length && typeof options[0] === 'object';
+            const opt = isObj ? options.find(o => o.value === selected) : null;
+            return <span>{opt ? opt.label : selected}</span>;
+          }}
+        >
+          <MenuItem value="" disabled><span style={{ color: T.muted }}>Select {label}</span></MenuItem>
+          {options.map(opt => {
+            const isObj = typeof opt === 'object';
+            return (
+              <MenuItem key={isObj ? opt.value : opt} value={isObj ? opt.value : opt} sx={{ fontSize: 13, py: 1 }}>
+                {isObj ? opt.label : opt}
+              </MenuItem>
+            );
+          })}
+        </Select>
+        {formErrors[name] && <FormHelperText>{formErrors[name]}</FormHelperText>}
+      </FormControl>
+    </Box>
+  );
+
+  /* ── Section card wrapper ──────────────────────────────────── */
+  const sectionCard = (icon, title, subtitle, color, accentLight, children) => (
+    <Card elevation={0} sx={{
+      mb: 3, borderRadius: '20px', border: `1px solid ${T.border}`,
+      overflow: 'hidden', transition: 'all 0.3s ease',
+      '&:hover': { boxShadow: '0 12px 32px rgba(0,0,0,0.08)', borderColor: color },
+    }}>
+      <Box sx={{
+        p: 2.5,
+        background: `linear-gradient(90deg, ${color}08, transparent)`,
+        borderBottom: `1px solid ${T.border}`,
+        display: 'flex', alignItems: 'center', gap: 1.5,
+      }}>
+        <Box sx={{ p: 1, borderRadius: '12px', background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {React.cloneElement(icon, { sx: { fontSize: 22, color } })}
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 16, color: T.navy }}>{title}</Typography>
+          <Typography sx={{ fontSize: 13, color: T.muted }}>{subtitle}</Typography>
+        </Box>
+        <Chip label="Required Fields" size="small"
+          sx={{ background: `${color}10`, color, fontSize: 11, fontWeight: 600, borderRadius: '8px', border: `1px solid ${color}30` }} />
+      </Box>
+      <CardContent sx={{ p: 3 }}>{children}</CardContent>
+    </Card>
+  );
+
+  /* ── Render ───────────────────────────────────────────────── */
+  return (
+    <Box sx={{ maxWidth: '820px', margin: '0 auto', p: { xs: 2, sm: 3 }, background: '#FFFFFF' }}>
+
+      {/* ── Page header ─────────────────────────────────────── */}
+      <Paper elevation={0} sx={{
+        p: 3, mb: 4, borderRadius: '20px',
+        background: `linear-gradient(135deg, ${T.primaryM} 0%, ${T.primary} 100%)`,
+        color: 'white', position: 'relative', overflow: 'hidden',
+      }}>
+        <Box sx={{ position: 'absolute', top: -20,   right: -20, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.10)' }} />
+        <Box sx={{ position: 'absolute', bottom: -30, left: -30, width: 250, height: 250, borderRadius: '50%', background: 'rgba(255,255,255,0.05)' }} />
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            {/* Profile preview in header */}
+            <Box sx={{ position: 'relative', flexShrink: 0 }}>
+              <Avatar
+                src={profilePreview}
+                sx={{
+                  width: 64, height: 64, fontSize: 24, fontWeight: 900,
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  border: '3px solid rgba(255,255,255,0.4)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+                }}
+              >
+                {!profilePreview && <PersonIcon sx={{ fontSize: 34 }} />}
+              </Avatar>
+              <Button
+                component="label"
+                sx={{
+                  position: 'absolute', bottom: -4, right: -4,
+                  minWidth: 0, p: 0.4, borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.9)',
+                  '&:hover': { background: '#fff' },
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                }}
+              >
+                <UploadIcon sx={{ fontSize: 14, color: T.primaryM }} />
+                <input type="file" hidden accept="image/*" onChange={handleProfileUpload} />
+              </Button>
+            </Box>
+
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: 26, letterSpacing: -0.5 }}>
+                {isEditing ? 'Edit Recruiter' : 'Add New Recruiter'}
+              </Typography>
+              <Typography sx={{ fontSize: 14, opacity: 0.9, mt: 0.5 }}>
+                {isEditing ? 'Update recruiter profile and credentials' : 'Register a new recruiter account'}
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {['Personal Info', 'Work Details', 'Account Credentials', 'Additional Info'].map(step => (
+              <Chip key={step} label={step} size="small"
+                sx={{ background: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: 600, fontSize: 11, '&:hover': { background: 'rgba(255,255,255,0.25)' } }} />
+            ))}
+          </Box>
+        </Box>
+      </Paper>
+
+      {/* ══════════════════════════════════════════════════════════
+          1. PERSONAL INFORMATION
+      ══════════════════════════════════════════════════════════ */}
+      {sectionCard(
+        <PersonIcon />,
+        'Personal Information',
+        'Basic personal and contact details',
+        T.primaryM, T.primaryL,
+        <TwoCol>
+          {textField('First Name',     'firstName',   true,  <PersonIcon />,  'John')}
+          {textField('Last Name',      'lastName',    true,  <PersonIcon />,  'Doe')}
+          {textField('Email Address',  'email',       true,  <EmailIcon />,   'john.doe@company.com', 'email')}
+          {textField('Phone Number',   'phoneNumber', true,  <PhoneIcon />,   '+91 98765 43210', 'tel')}
+          {textField('Username',       'username',    true,  <BadgeIcon />,   'john.doe')}
+          {textField('Location',       'location',    false, <LocationIcon />, 'e.g. Mumbai, India')}
+          {textField('LinkedIn Profile','linkedIn',   false, <LinkedInIcon />, 'https://linkedin.com/in/johndoe')}
+          <Box /> {/* spacer */}
+        </TwoCol>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════
+          2. WORK DETAILS
+      ══════════════════════════════════════════════════════════ */}
+      {sectionCard(
+        <WorkIcon />,
+        'Work Details',
+        'Department, designation and professional info',
+        T.emerald, T.emeraldS,
+        <TwoCol>
+          {textField('Designation',    'designation',    false, <BadgeIcon />,       'e.g. Senior Recruiter',   'text', T.emerald, T.emeraldS)}
+          {selectField('Department',   'department',     DEPARTMENT_OPTIONS, false, <BusinessIcon />, T.emerald, T.emeraldS)}
+          {selectField('Employment Type', 'employmentType', EMPLOYMENT_TYPE_OPTIONS, false, <WorkIcon />, T.emerald, T.emeraldS)}
+          {textField('Experience (years)', 'experience', false, <ExperienceIcon />,  '0', 'number', T.emerald, T.emeraldS)}
+          {selectField('Specialisation',  'specialisation', SKILL_OPTIONS, false, <StarIcon />, T.emerald, T.emeraldS)}
+          {textField('Secondary Skill',    'secondarySkill', false, <StarIcon />,    'e.g. Campus Hiring',       'text', T.emerald, T.emeraldS)}
+          {textField('Joining Date',        'joiningDate',   false, <WorkIcon />,    '', 'date', T.emerald, T.emeraldS)}
+          <Box />
+        </TwoCol>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════
+          3. ACCOUNT CREDENTIALS
+      ══════════════════════════════════════════════════════════ */}
+      {sectionCard(
+        <LockIcon />,
+        'Account Credentials',
+        'Login password — credentials will be emailed automatically',
+        T.purple, T.purpleS,
+        <TwoCol>
+          {textField('Password', 'password', !isEditing, <LockIcon />, isEditing ? 'Leave blank to keep current' : '••••••••', 'password', T.purple, T.purpleS)}
+          {textField('Confirm Password', 'confirmPassword', !isEditing, <LockIcon />, '••••••••', 'password', T.purple, T.purpleS)}
+        </TwoCol>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════
+          4. ADDITIONAL / CUSTOM FIELDS
+      ══════════════════════════════════════════════════════════ */}
+      <Card elevation={0} sx={{
+        mb: 3, borderRadius: '20px', border: `1px solid ${T.border}`,
+        overflow: 'hidden', transition: 'all 0.3s ease',
+        '&:hover': { boxShadow: '0 12px 32px rgba(0,0,0,0.08)', borderColor: T.amber },
+      }}>
+        <Box
+          onClick={() => setShowCustomFields(v => !v)}
+          sx={{
+            p: 2.5, background: `linear-gradient(90deg, ${T.amber}08, transparent)`,
+            borderBottom: showCustomFields ? `1px solid ${T.border}` : 'none',
+            display: 'flex', alignItems: 'center', gap: 1.5,
+            cursor: 'pointer', transition: 'all 0.2s ease',
+            '&:hover': { background: `${T.amber}12` },
+          }}
+        >
+          <Box sx={{ p: 1, borderRadius: '12px', background: `${T.amber}15`, display: 'flex' }}>
+            <NoteIcon sx={{ fontSize: 22, color: T.amber }} />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: 16, color: T.navy }}>Additional Information</Typography>
+            <Typography sx={{ fontSize: 13, color: T.muted }}>Add custom fields with labels and values</Typography>
+          </Box>
+          <Chip
+            label={`${formData.customNotes?.length || 0} fields`}
+            size="small"
+            sx={{ background: T.amberS, color: T.amber, fontSize: 11, fontWeight: 600, borderRadius: '8px' }}
+          />
+          <IconButton size="small">
+            <ExpandMoreIcon sx={{ transform: showCustomFields ? 'rotate(180deg)' : 'none', transition: '0.3s', color: T.amber }} />
+          </IconButton>
+        </Box>
+
+        <Collapse in={showCustomFields}>
+          <CardContent sx={{ p: 3 }}>
+            <Paper elevation={0} sx={{ p: 2.5, mb: 3, borderRadius: '12px', background: T.bg, border: `1px solid ${T.border}` }}>
+              <Typography sx={{ fontWeight: 600, fontSize: 14, color: T.navy, mb: 2 }}>
+                {editingNote ? 'Edit Custom Field' : 'Add New Custom Field'}
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', alignItems: 'flex-end' }}>
+                <TextField fullWidth size="small" label="Field Label"
+                  placeholder="e.g. Employee ID, Team"
+                  value={noteLabel} onChange={e => setNoteLabel(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', background: '#FFFFFF', fontSize: 14 } }} />
+                <TextField fullWidth size="small" label="Field Value"
+                  placeholder="Enter value…"
+                  value={noteValue} onChange={e => setNoteValue(e.target.value)}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', background: '#FFFFFF', fontSize: 14 } }} />
+                <Stack direction="row" spacing={1}>
+                  {editingNote ? (
+                    <>
+                      <Tooltip title="Save changes">
+                        <Button variant="contained" onClick={updateCustomField}
+                          disabled={!noteLabel.trim() || !noteValue.trim()}
+                          sx={{ borderRadius: '10px', textTransform: 'none', background: T.emerald, minWidth: 40, '&:hover': { background: '#0ea571' } }}>
+                          <SaveIcon />
+                        </Button>
+                      </Tooltip>
+                      <Tooltip title="Cancel">
+                        <IconButton onClick={cancelEdit}
+                          sx={{ borderRadius: '10px', background: T.roseS, color: T.rose, '&:hover': { background: '#fecdd3' } }}>
+                          <CloseIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  ) : (
+                    <Tooltip title="Add field">
+                      <Button variant="contained" onClick={addCustomField}
+                        disabled={!noteLabel.trim() || !noteValue.trim()}
+                        startIcon={<AddIcon />}
+                        sx={{ borderRadius: '10px', textTransform: 'none', whiteSpace: 'nowrap', background: T.amber, '&:hover': { background: '#d97706' }, '&:disabled': { background: T.amberS } }}>
+                        Add
+                      </Button>
+                    </Tooltip>
+                  )}
+                </Stack>
+              </Box>
+            </Paper>
+
+            {(formData.customNotes || []).length > 0 ? (
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                {(formData.customNotes || []).map(note => (
+                  <Paper key={note.id} variant="outlined" sx={{
+                    p: 2, borderRadius: '12px', borderColor: T.border, background: '#FFFFFF',
+                    transition: 'all 0.2s ease',
+                    '&:hover': { borderColor: T.amber, boxShadow: `0 4px 12px ${T.amberS}` },
+                  }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ fontSize: 11, fontWeight: 600, color: T.amber, textTransform: 'uppercase', letterSpacing: 0.5, mb: 0.5 }}>
+                          {note.label}
+                        </Typography>
+                        <Typography sx={{ fontSize: 15, color: T.navy, fontWeight: 500 }}>{note.value}</Typography>
+                        <Typography sx={{ fontSize: 11, color: T.muted, mt: 1 }}>
+                          Added: {new Date(note.date).toLocaleDateString()}
+                          {note.updatedAt && ` · Updated: ${new Date(note.updatedAt).toLocaleDateString()}`}
+                        </Typography>
+                      </Box>
+                      <Stack direction="row" spacing={0.5}>
+                        <Tooltip title="Edit">
+                          <IconButton size="small" onClick={() => editCustomField(note)} sx={{ color: T.sky, '&:hover': { background: T.skyS } }}>
+                            <EditIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete">
+                          <IconButton size="small" onClick={() => deleteCustomField(note.id)} sx={{ color: T.rose, '&:hover': { background: T.roseS } }}>
+                            <DeleteIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </Box>
+                  </Paper>
+                ))}
+              </Box>
+            ) : (
+              <Alert severity="info" icon={<NoteIcon />}
+                sx={{ borderRadius: '12px', background: T.amberS, color: T.amber, '& .MuiAlert-icon': { color: T.amber } }}>
+                No custom fields added yet. Add labels and values for any additional recruiter information.
+              </Alert>
+            )}
+          </CardContent>
+        </Collapse>
+      </Card>
+
+      {/* ── Form actions — scrolls naturally with the form ──── */}
+      <Box sx={{
+        display: 'flex', flexDirection: 'row', gap: 2, justifyContent: 'flex-end',
+        mt: 1, mb: 3, p: 2.5, borderRadius: '16px',
+        background: '#FFFFFF', boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+        border: `1px solid ${T.border}`,
+      }}>
+        <Button onClick={onCancel} variant="outlined" size="large"
+          sx={{
+            borderRadius: '12px', textTransform: 'none', fontWeight: 600,
+            py: 1.5, px: 5, borderColor: T.border, color: T.slate,
+            '&:hover': { borderColor: T.slate, background: T.bg },
+          }}>
+          Cancel
+        </Button>
+        <Button onClick={onSubmit} variant="contained" size="large"
+          disabled={submitting}
+          startIcon={submitting ? null : <CheckCircleIcon />}
+          sx={{
+            borderRadius: '12px', textTransform: 'none', fontWeight: 700,
+            py: 1.5, px: 5,
+            background: `linear-gradient(135deg, ${T.primaryM}, ${T.primary})`,
+            boxShadow: `0 8px 20px ${T.primaryM}40`,
+            '&:hover': { background: T.primaryM, boxShadow: `0 12px 28px ${T.primaryM}60`, transform: 'translateY(-2px)' },
+            '&:disabled': { background: `${T.primaryM}40` },
+            transition: 'all 0.2s ease',
+          }}>
+          {submitting
+            ? (isEditing ? 'Updating…' : 'Adding Recruiter…')
+            : (isEditing ? 'Update Recruiter' : 'Add Recruiter')}
+        </Button>
+      </Box>
+
+    </Box>
+  );
+};
+
+export default RecruiterForm;
