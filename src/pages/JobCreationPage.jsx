@@ -368,7 +368,6 @@ const JobCreationPage = () => {
       // Text and icon color - blue
       color: '#1976d2',
       
-      // Hover effect - blue text with light grey background
       '&:hover': {
         backgroundColor: '#f5f5f5',  // Light grey background on hover
         color: '#1565C0',  // Slightly darker blue on hover
