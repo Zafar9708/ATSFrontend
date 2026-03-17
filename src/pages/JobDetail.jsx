@@ -389,7 +389,7 @@ const JobDetail = () => {
             variant="scrollable"
             scrollButtons="auto"
             allowScrollButtonsMobile
-            sx={{marginLeft:15,marginTop:10}}
+            sx={{marginLeft:35,marginTop:10}}
 
 
           >
