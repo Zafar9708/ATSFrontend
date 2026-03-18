@@ -1967,9 +1967,9 @@ const RecruitersPage = () => {
                     Recruiters <span style={{ color: colors.primary.main }}>({recruiters.length})</span>
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenAddDialog(true)}>
+                    {/* <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpenAddDialog(true)}>
                         Add Recruiter
-                    </Button>
+                    </Button> */}
                     <ToggleButtonGroup value={viewMode} exclusive onChange={(e, newMode) => newMode && setViewMode(newMode)} size="small">
                         <ToggleButton value="table">
                             <TableViewIcon fontSize="small" />
