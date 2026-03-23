@@ -38,6 +38,7 @@ import adminService from '../../services/adminService';
 import { inviteVendor } from '../../services/Vendor/vendorService';
 import VendorForm from '../../components/Vendorform';
 import RecruiterForm from '../../components/RecruiterForm';
+import RecruitmentDashboard from '../../components/Admin/CandidatePie';
 
 /* ── Tokens ─────────────────────────────────────────────────────── */
 const T = {
@@ -853,10 +854,24 @@ const AdminDashboard = () => {
   const sidebarOpen = true;
   const ML = isMobile ? 0 : isTablet ? 0 : sidebarOpen ? '200px' : '65px';
 
-  if (loading && !refreshing) return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', ml: ML }}>
-      <CircularProgress size={48} sx={{ color: T.primaryM, mb: 2 }} />
-      <Typography sx={{ color: T.textSub, fontSize: 14, fontWeight: 700 }}>Loading Dashboard…</Typography>
+if (loading && !refreshing) return (
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      position: 'fixed',
+      inset: 0,
+      gap: 2 
+    }}>
+      <Box sx={{ position: 'relative', width: { xs: 48, sm: 56, md: 64 }, height: { xs: 48, sm: 56, md: 64 } }}>
+        <CircularProgress size={isMobile ? 48 : isTablet ? 56 : 64} thickness={2} sx={{ color: T.primaryLight, position: 'absolute' }} variant="determinate" value={100} />
+        <CircularProgress size={isMobile ? 48 : isTablet ? 56 : 64} thickness={2} sx={{ color: T.primaryMid, position: 'absolute', animationDuration: '900ms' }} />
+        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <DashboardIcon sx={{ fontSize: { xs: 18, sm: 20, md: 22 }, color: T.primaryMid }} />
+        </Box>
+      </Box>
+      <Typography sx={{ color: T.textSub, fontSize: { xs: 12, sm: 13, md: 14 }, fontWeight: 700 }}>Loading Dashboard…</Typography>
     </Box>
   );
 
@@ -918,11 +933,13 @@ const AdminDashboard = () => {
           ].map((s, i) => <Grid item key={i} xs={6} sm={4} md={2.4}><StatCard {...s} /></Grid>)}
         </Grid>
 
+      < RecruitmentDashboard/>
+
         {/* ── 4-Chart Analytics Row ──────────────────────────────── */}
-        <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 2.5 }}>
+        {/* <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: 2.5 }}> */}
 
           {/* Chart 1 — Recruiter Activity (Bar) */}
-          <Grid item xs={12} md={3}>
+          {/* <Grid item xs={12} md={3}>
             <Card sx={{ borderRadius: '16px', border: `1px solid ${T.border}`, background: T.surface, p: { xs: 2, sm: 2.5 }, height: 260, overflow: 'hidden' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                 <Box>
@@ -942,10 +959,10 @@ const AdminDashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </Card>
-          </Grid>
+          </Grid> */}
 
           {/* Chart 2 — Jobs Trend (Area) — uses status field */}
-          <Grid item xs={12} md={3}>
+         {/*  <Grid item xs={12} md={3}>
             <Card sx={{ borderRadius: '16px', border: `1px solid ${T.border}`, background: T.surface, p: { xs: 2, sm: 2.5 }, height: 260, overflow: 'hidden' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                 <Box>
@@ -975,10 +992,10 @@ const AdminDashboard = () => {
                 </AreaChart>
               </ResponsiveContainer>
             </Card>
-          </Grid>
+          </Grid> */}
 
           {/* Chart 3 — Jobs by Department (Bar) */}
-          <Grid item xs={12} md={3}>
+        {/*   <Grid item xs={12} md={3}>
             <Card sx={{ borderRadius: '16px', border: `1px solid ${T.border}`, background: T.surface, p: { xs: 2, sm: 2.5 }, height: 260, overflow: 'hidden' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                 <Box>
@@ -1008,10 +1025,10 @@ const AdminDashboard = () => {
                 );
               })()}
             </Card>
-          </Grid>
+          </Grid> */}
 
           {/* Chart 4 — Vendor Industry Breakdown (Donut Pie) */}
-          <Grid item xs={12} md={3}>
+       {/*    <Grid item xs={12} md={3}>
             <Card sx={{ borderRadius: '16px', border: `1px solid ${T.border}`, background: T.surface, p: { xs: 2, sm: 2.5 }, height: 260, overflow: 'hidden' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
                 <Box>
@@ -1048,11 +1065,11 @@ const AdminDashboard = () => {
                 </>
               )}
             </Card>
-          </Grid>
-        </Grid>
+          </Grid> */}
+        {/* </Grid> */}
 
         {/* Tabs */}
-        <Box sx={{ borderBottom: `1px solid ${T.border}`, mb: 2 }}>
+        {/* <Box sx={{ borderBottom: `1px solid ${T.border}`, mb: 2 }}>
           <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} variant="scrollable" scrollButtons="auto"
             sx={{ '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, fontSize: 13, minWidth: 0, px: { xs: 1.5, sm: 2.5 } }, '& .MuiTabs-indicator': { background: T.primaryM, height: 3, borderRadius: '3px 3px 0 0' } }}>
             <Tab label={<Box sx={{ display: 'flex', alignItems: 'center', gap: .8 }}><PeopleIcon sx={{ fontSize: 16 }} />{!isMobile && 'Recruiters'}<Chip label={recruiters.length} size="small" sx={{ fontSize: 9, fontWeight: 700, background: T.primaryL, color: T.primaryM, height: 18, ml: .5 }} /></Box>} />
@@ -1061,10 +1078,10 @@ const AdminDashboard = () => {
             <Tab label={<Box sx={{ display: 'flex', alignItems: 'center', gap: .8 }}><VendorIcon sx={{ fontSize: 16 }} />{!isMobile && 'Vendors'}<Chip label={vendors.length} size="small" sx={{ fontSize: 9, fontWeight: 700, background: T.purpleBg, color: T.purple, height: 18, ml: .5 }} /></Box>} />
             <Tab label={<Box sx={{ display: 'flex', alignItems: 'center', gap: .8 }}><WorkIcon sx={{ fontSize: 16 }} />{!isMobile && 'Jobs'}<Chip label={jobs.length} size="small" sx={{ fontSize: 9, fontWeight: 700, background: T.infoBg, color: T.info, height: 18, ml: .5 }} /></Box>} />
           </Tabs>
-        </Box>
+        </Box> */}
 
         {/* ── RECRUITERS TAB ────────────────────────────────────── */}
-        {activeTab === 0 && (
+       {/*  {activeTab === 0 && (
           <SC title="Recruiters" count={filteredR.length} action={
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField size="small" placeholder="Search…" value={searchR} onChange={e => setSearchR(e.target.value)}
@@ -1141,10 +1158,10 @@ const AdminDashboard = () => {
               </Box>
             )}
           </SC>
-        )}
+        )} */}
 
         {/* ── CANDIDATES TAB ────────────────────────────────────── */}
-        {activeTab === 1 && (
+      {/*   {activeTab === 1 && (
           <SC title="Candidates" count={filteredC.length} action={
             <TextField size="small" placeholder="Search…" value={searchC} onChange={e => setSearchC(e.target.value)}
               InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 15, color: T.textMuted }} /></InputAdornment>, sx: { borderRadius: '9px', background: T.bg, fontSize: 12 } }}
@@ -1162,10 +1179,10 @@ const AdminDashboard = () => {
               )}
             </Box>
           </SC>
-        )}
+        )} */}
 
         {/* ── INTERVIEWS TAB ────────────────────────────────────── */}
-        {activeTab === 2 && (
+       {/*  {activeTab === 2 && (
           <SC title="Interviews" count={filteredI.length} action={
             <TextField size="small" placeholder="Search…" value={searchI} onChange={e => setSearchI(e.target.value)}
               InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 15, color: T.textMuted }} /></InputAdornment>, sx: { borderRadius: '9px', background: T.bg, fontSize: 12 } }}
@@ -1224,10 +1241,10 @@ const AdminDashboard = () => {
               </Table>
             </Box>
           </SC>
-        )}
+        )} */}
 
         {/* ── VENDORS TAB ───────────────────────────────────────── */}
-        {activeTab === 3 && (
+      {/*   {activeTab === 3 && (
           <SC title="Vendors" count={filteredV.length} action={
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField size="small" placeholder="Search…" value={searchV} onChange={e => setSearchV(e.target.value)}
@@ -1294,10 +1311,10 @@ const AdminDashboard = () => {
               </Box>
             )}
           </SC>
-        )}
+        )} */}
 
         {/* ── JOBS TAB ──────────────────────────────────────────── */}
-        {activeTab === 4 && (
+     {/*    {activeTab === 4 && (
           <SC title="Jobs" count={filteredJ.length} action={
             <TextField size="small" placeholder="Search…" value={searchJ} onChange={e => setSearchJ(e.target.value)}
               InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 15, color: T.textMuted }} /></InputAdornment>, sx: { borderRadius: '9px', background: T.bg, fontSize: 12 } }}
@@ -1374,7 +1391,7 @@ const AdminDashboard = () => {
               </Table>
             </Box>
           </SC>
-        )}
+        )} */}
 
         {/* ══════════ DIALOGS ══════════ */}
 
