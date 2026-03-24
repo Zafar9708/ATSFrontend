@@ -1748,7 +1748,7 @@ const CandidateDetailsPage = () => {
             </Card>
 
             {/* Quick Actions Card */}
-            <Card>
+          {/*   <Card>
               <CardContent sx={{ p: isMobile ? 2 : 3 }}>
                 <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold" gutterBottom>Quick Actions</Typography>
                 <Grid container spacing={isMobile ? 0.5 : 1}>
@@ -1802,9 +1802,9 @@ const CandidateDetailsPage = () => {
                   </Grid>
                 </Grid>
               </CardContent>
-            </Card>
+            </Card> */}
 
-            <Card>
+           {/*  <Card>
                 <List dense={isMobile} sx={{ mt: 2 }}>
                   {remarks?.comments?.length > 0 ? (
                     remarks.comments.map((remark, i) => (
@@ -1826,7 +1826,7 @@ const CandidateDetailsPage = () => {
                     </Typography>
                   )}
                 </List>
-            </Card>
+            </Card> */}
           </Box>
         </Grid>
       </Grid>
