@@ -1018,8 +1018,6 @@ const CandidateDetailsPage = () => {
           <BackIcon />
         </IconButton>
         <Breadcrumbs sx={{ flex: 1, fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
-          <Link color="inherit" onClick={() => navigate('/')} sx={{ cursor: 'pointer' }}>Dashboard</Link>
-          <Link color="inherit" onClick={() => navigate('/candidates')} sx={{ cursor: 'pointer' }}>Candidates</Link>
           <Typography color="text.primary" noWrap sx={{ maxWidth: isMobile ? 150 : 'none' }}>
             {candidate.firstName} {candidate.lastName}
           </Typography>
