@@ -1804,10 +1804,7 @@ const CandidateDetailsPage = () => {
               </CardContent>
             </Card>
 
-            {/* HR Remarks Card */}
             <Card>
-            
-               
                 <List dense={isMobile} sx={{ mt: 2 }}>
                   {remarks?.comments?.length > 0 ? (
                     remarks.comments.map((remark, i) => (
@@ -1829,7 +1826,6 @@ const CandidateDetailsPage = () => {
                     </Typography>
                   )}
                 </List>
-              </CardContent>
             </Card>
           </Box>
         </Grid>
