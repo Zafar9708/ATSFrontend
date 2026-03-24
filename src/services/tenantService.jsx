@@ -241,7 +241,7 @@ api.interceptors.request.use((config) => {
 
 export const getTenants = async () => {
   try {
-    const response = await api.get('/');
+    const response = await api.get('');
     return response.data;
   } catch (error) {
     console.error('Get tenants error:', error.response?.data || error.message);
@@ -253,7 +253,7 @@ export const getTenants = async () => {
 export const createTenant = async (tenantData) => {
   try {
     console.log('▶ createTenant sending:', JSON.stringify(tenantData, null, 2));
-    const response = await api.post('/', tenantData);
+    const response = await api.post('', tenantData);
     return response.data;
   } catch (error) {
     // Expanded logging — check browser console for which field is rejected
