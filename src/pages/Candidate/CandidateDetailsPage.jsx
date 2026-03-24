@@ -1114,18 +1114,7 @@ const CandidateDetailsPage = () => {
                         <List dense={isMobile}>
                           <ListItem>
                             <ListItemIcon><DateIcon color="primary" /></ListItemIcon>
-                            <ListItemText
-                              primary="Date of Birth"
-                              secondary={
-                                candidate.dob
-                                  ? new Date(candidate.dob).toLocaleDateString(undefined, {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })
-                                  : 'Not specified'
-                              }
-                            />
+                          
                           </ListItem>
                           <ListItem>
                             <ListItemIcon><LocationIcon color="primary" /></ListItemIcon>
@@ -1817,10 +1806,7 @@ const CandidateDetailsPage = () => {
 
             {/* HR Remarks Card */}
             <Card>
-              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold">HR Team Comments</Typography>
-                </Box>
+            
                
                 <List dense={isMobile} sx={{ mt: 2 }}>
                   {remarks?.comments?.length > 0 ? (
