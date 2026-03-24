@@ -2,9 +2,9 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://hireonboard-env.eba-5dbu6mza.us-east-1.elasticbeanstalk.com/api/:path*"
+      "destination": "http://recruitment-env.eba-pbqqvdsq.us-east-1.elasticbeanstalk.com/api/:path*"
     },
-     {
+    {
       "source": "/(.*)",
       "destination": "/"
     }
