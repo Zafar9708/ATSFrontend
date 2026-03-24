@@ -1668,148 +1668,84 @@ const CandidateDetailsPage = () => {
         <Grid item xs={12} md={getSidebarGridColumns()}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Hiring Status Card */}
-           <Card sx={{ 
-  width: '100%',
-  borderLeft: '4px solid', 
-  borderLeftColor: 'primary.main',
-  borderRadius: 2,
-  boxShadow: 1
-}}>
-  <CardContent sx={{ 
-    p: { xs: 2, sm: 3 },
-    '&:last-child': { pb: { xs: 2, sm: 3 } }
-  }}>
-    <Box sx={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      mb: 3,
-      flexWrap: 'wrap',
-      gap: 1
-    }}>
-      <Typography variant={{ xs: "subtitle1", sm: "h6" }} fontWeight="bold">
-        Hiring Status
-      </Typography>
-      <StatusChip 
-        label={candidate.stage?.name} 
-        status={candidate.stage?.name} 
-        size={{ xs: "small", sm: "medium" }}
-      />
-    </Box>
+            <Card sx={{ borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
+              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                  <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold">Hiring Status</Typography>
+                  <StatusChip label={candidate.stage?.name} status={candidate.stage?.name} size={isMobile ? "small" : "medium"} />
+                </Box>
 
-    <Box sx={{ 
-      mb: 2,
-      overflowX: 'auto',
-      pb: 1,
-      '&::-webkit-scrollbar': {
-        height: 6,
-      },
-      '&::-webkit-scrollbar-track': {
-        bgcolor: 'grey.100',
-        borderRadius: 3,
-      },
-      '&::-webkit-scrollbar-thumb': {
-        bgcolor: 'grey.400',
-        borderRadius: 3,
-      }
-    }}>
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        position: 'relative',
-        mb: 1.5,
-        minWidth: { xs: '500px', sm: 'auto' },
-        px: { xs: 0, sm: 1 }
-      }}>
-        {/* Background track */}
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: 0,
-          right: 0,
-          height: 3,
-          bgcolor: 'grey.200',
-          transform: 'translateY(-50%)',
-          zIndex: 0,
-          borderRadius: 1.5
-        }} />
+                <Box sx={{ mb: 3, overflowX: 'auto', pb: 2 }}>
+                  <Box sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    mb: 1,
+                    minWidth: isMobile ? '500px' : 'auto'
+                  }}>
+                    <Box sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 0,
+                      right: 0,
+                      height: 4,
+                      bgcolor: 'grey.200',
+                      transform: 'translateY(-50%)',
+                      zIndex: 0
+                    }} />
 
-        {/* Progress fill */}
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: 0,
-          width: `${(currentStageIndex + 1) / hiringStages.length * 100}%`,
-          height: 3,
-          bgcolor: 'primary.main',
-          transform: 'translateY(-50%)',
-          zIndex: 1,
-          transition: 'width 0.5s ease',
-          borderRadius: 1.5
-        }} />
+                    <Box sx={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: 0,
+                      width: `${(currentStageIndex + 1) / hiringStages.length * 100}%`,
+                      height: 4,
+                      bgcolor: 'primary.main',
+                      transform: 'translateY(-50%)',
+                      zIndex: 1,
+                      transition: 'width 0.5s ease'
+                    }} />
 
-        {/* Stage markers */}
-        {hiringStages.map((stage, index) => (
-          <Box key={stage} sx={{
-            position: 'relative',
-            zIndex: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            flex: 1,
-            maxWidth: '80px'
-          }}>
-            <Box sx={{
-              width: { xs: 28, sm: 36 },
-              height: { xs: 28, sm: 36 },
-              borderRadius: '50%',
-              bgcolor: index <= currentStageIndex ? 'primary.main' : 'grey.300',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: index <= currentStageIndex ? 'common.white' : 'text.secondary',
-              mb: 1,
-              transition: 'all 0.3s ease',
-              boxShadow: index === currentStageIndex ? '0 0 0 2px rgba(25, 118, 210, 0.2)' : 'none'
-            }}>
-              {index < currentStageIndex ? (
-                <CheckCircleIcon fontSize="small" />
-              ) : (
-                <Typography variant="caption" fontWeight="bold" fontSize={{ xs: '0.7rem', sm: '0.75rem' }}>
-                  {index + 1}
-                </Typography>
-              )}
-            </Box>
-            <Typography 
-              variant="caption" 
-              fontWeight={index === currentStageIndex ? 'bold' : 'normal'}
-              sx={{
-                textAlign: 'center',
-                fontSize: { xs: '0.65rem', sm: '0.75rem' },
-                color: index === currentStageIndex ? 'primary.main' : 'text.primary'
-              }}
-            >
-              {stage}
-            </Typography>
-          </Box>
-        ))}
-      </Box>
+                    {hiringStages.map((stage, index) => (
+                      <Box key={stage} sx={{
+                        position: 'relative',
+                        zIndex: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center'
+                      }}>
+                        <Box sx={{
+                          width: isMobile ? 24 : 32,
+                          height: isMobile ? 24 : 32,
+                          borderRadius: '50%',
+                          bgcolor: index <= currentStageIndex ? 'primary.main' : 'grey.300',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: index <= currentStageIndex ? 'common.white' : 'text.secondary',
+                          mb: 0.5
+                        }}>
+                          {index < currentStageIndex ? (
+                            <CheckCircleIcon fontSize={isMobile ? "small" : "small"} />
+                          ) : (
+                            <Typography variant="caption" fontWeight="bold">
+                              {index + 1}
+                            </Typography>
+                          )}
+                        </Box>
+                        <Typography variant="caption" fontWeight={index === currentStageIndex ? 'bold' : 'normal'}>
+                          {stage}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
 
-      <Typography 
-        variant="caption" 
-        color="text.secondary"
-        sx={{ 
-          display: 'block',
-          textAlign: 'center',
-          mt: 1,
-          fontSize: { xs: '0.7rem', sm: '0.75rem' }
-        }}
-      >
-        {currentStageIndex + 1} of {hiringStages.length} stages completed
-      </Typography>
-    </Box>
-  </CardContent>
-</Card>
+                  <Typography variant="caption" color="text.secondary">
+                    {currentStageIndex + 1} of {hiringStages.length} stages completed
+                  </Typography>
+                </Box>
+              </CardContent>
+            </Card>
 
             {/* Quick Actions Card */}
           {/*   <Card>
