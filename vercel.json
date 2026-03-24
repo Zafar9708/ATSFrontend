@@ -2,9 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
+
       "destination": "http://recruitats-env.eba-qeizvfiz.ap-south-1.elasticbeanstalk.com/api/:path*"
+
     },
-     {
+    {
       "source": "/(.*)",
       "destination": "/"
     }
