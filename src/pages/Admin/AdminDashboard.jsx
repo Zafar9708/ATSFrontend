@@ -890,7 +890,7 @@ if (loading && !refreshing) return (
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box sx={{ minHeight: '100vh', p: { xs: 1.5, sm: 2, md: 2.5 }, ml: ML, mt: { xs: 7, sm: 8, md: 9 }, boxSizing: 'border-box' }}>
+      <Box sx={{ minHeight: '100vh', p: { xs: 1.5, sm: 2, md: 2.5 },  mt: { xs: 7, sm: 8, md: 9 }, boxSizing: 'border-box' }}>
 
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5, flexWrap: 'wrap', gap: 1.5 }}>
