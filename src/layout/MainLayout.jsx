@@ -15,9 +15,7 @@ const LayoutContent = ({ children }) => {
   const { currentThemeName } = useAppTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Fixed dimensions
-  const SIDEBAR_WIDTH = 260; // Fixed sidebar width
-  const HEADER_HEIGHT = 70;  // Fixed header height
+  const SIDEBAR_WIDTH = 180;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -27,106 +25,98 @@ const LayoutContent = ({ children }) => {
     <ThemeProvider theme={themes[currentThemeName] || themes.default}>
       <CssBaseline />
 
-        
-        {/* ── SIDEBAR (Fixed) ─────────────────────────────────────────── */}
+      {/* ── MAIN LAYOUT WRAPPER ───────────────────────── */}
+      <Box
+        sx={{
+          display: "flex",
+          height: "100vh",
+          overflow: "hidden", // ⭐ IMPORTANT (stops full page scroll)
+        }}
+      >
+        {/* ── DESKTOP SIDEBAR (FIXED) ─────────────────── */}
         <Box
-          component="aside"
           sx={{
-            
             position: "fixed",
             top: 0,
             left: 0,
-            bottom: 0,
-            height: "100vh",
-            overflowY: "auto",
-           bgcolor: "background.paper", 
-            borderRight: "1px solid",
-            borderColor: "divider",
-            zIndex: 1200,
-          
-            display: { xs: "none", md: "block" }, // Hide on mobile, show on desktop
-            boxShadow: "0 0 20px rgba(0,0,0,0.05)",
-          }}
-        >
-          <Sidebar />
-        </Box>
-
-        {/* ── MOBILE SIDEBAR (Drawer) ─────────────────────────────────── */}
-        <Box
-          component="aside"
-          sx={{
-            display: { xs: mobileOpen ? "block" : "none", md: "none" },
-            position: "fixed",
-            top: 0,
-            left: 0,
-            bottom: 0,
             width: SIDEBAR_WIDTH,
-            
-            bgcolor: "background.paper", 
-            borderRight: "1px solid",
-            borderColor: "divider",
-            zIndex: 1300,
-            overflowY: "auto",
-            boxShadow: "0 0 20px rgba(0,0,0,0.1)",
-            animation: "slideIn 0.3s ease",
-            "@keyframes slideIn": {
-              "0%": { transform: "translateX(-100%)" },
-              "100%": { transform: "translateX(0)" },
-            },
+            height: "100dvh",
+            display: { xs: "none", sm: "block" },
+            zIndex: 1200,
           }}
         >
           <Sidebar />
         </Box>
 
-        {/* ── OVERLAY for mobile sidebar ──────────────────────────────── */}
+        {/* ── MOBILE SIDEBAR ─────────────────────────── */}
         {mobileOpen && (
-          <Box
-            sx={{
-              display: { xs: "block", md: "none" },
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-             bgcolor: "rgba(0,0,0,0.5)",
-             
-              zIndex: 1250,
-              animation: "fadeIn 0.3s ease",
-              "@keyframes fadeIn": {
-                "0%": { opacity: 0 },
-                "100%": { opacity: 1 },
-              },
-            }}
-            onClick={handleDrawerToggle}
-          />
+          <>
+            <Box
+              sx={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: SIDEBAR_WIDTH,
+                height: "100dvh",
+                zIndex: 1300,
+                bgcolor: "background.paper",
+              }}
+            >
+              <Sidebar />
+            </Box>
+
+            {/* Overlay */}
+            <Box
+              sx={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                bgcolor: "rgba(0,0,0,0.5)",
+                zIndex: 1250,
+              }}
+              onClick={handleDrawerToggle}
+            />
+          </>
         )}
 
-        {/* ── MAIN CONTENT AREA (with left margin for sidebar) ────────── */}
+        {/* ── MAIN CONTENT AREA ───────────────────────── */}
+        <Box
+          sx={{
+            marginLeft: { md: `${SIDEBAR_WIDTH}px` }, // push content
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            height: "100vh",
+          }}
+        >
+          {/* HEADER */}
+          <Header onMenuClick={handleDrawerToggle} />
 
-          {/* ── HEADER (Fixed) ────────────────────────────────────────── */}
-     
-            <Header onMenuClick={handleDrawerToggle} />
-      
-
-          {/* ── PAGE CONTENT with OUTLET ──────────────────────────────── */}
-          
-            {/* Use Outlet for nested routes */}
+          {/* SCROLLABLE CONTENT */}
+          <Box
+            sx={{
+              flexGrow: 1,
+              overflowY: "auto", // ⭐ ONLY THIS SCROLLS
+              p: 2,
+            }}
+          >
             <Outlet />
-            {/* Also support children prop for backward compatibility */}
             {children}
-        
+          </Box>
+        </Box>
+      </Box>
 
-          {/* ── CHATBOT ────────────────────────────────────────────────── */}
-          <AtsChatbot />
-       
-  
+      {/* CHATBOT */}
+      <AtsChatbot />
     </ThemeProvider>
   );
 };
 
 const MainLayout = ({ children }) => (
   <CustomThemeProvider>
-    <LayoutContent children={children} />
+    <LayoutContent>{children}</LayoutContent>
   </CustomThemeProvider>
 );
 
