@@ -20,6 +20,8 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  Breadcrumbs,
+  Link,
   Tooltip,
   Fab,
   IconButton,
@@ -47,6 +49,8 @@ import {
   LocationOn as LocationIcon,
   CalendarToday as DateIcon,
   Person as PersonIcon,
+  Description as NotesIcon,
+  ArrowBack as BackIcon,
   Schedule as ScheduleIcon,
   Chat as MessageIcon,
   WhatsApp as WhatsAppIcon,
@@ -55,23 +59,31 @@ import {
   Verified as VerifiedIcon,
   MonetizationOn as SalaryIcon,
   Flag as NoticePeriodIcon,
+  NoteAdd as NoteAddIcon,
   Description as DocumentIcon,
   VideoCall as VideoIcon,
   Timeline as TimelineIcon,
   BarChart as BarChartIcon,
+  CheckCircle as HiredIcon,
+  Delete as RejectIcon,
+  Error as OnHoldIcon,
   GetApp as DownloadIcon,
   InsertDriveFile as FileIcon,
   PictureAsPdf as PdfIcon,
   Send as SendIcon,
+  Close as CloseIcon,
   ThumbUp as SelectedIcon,
   ThumbDown as RejectedIcon,
   Star as StarIcon,
   StarHalf as StarHalfIcon,
   StarBorder as StarBorderIcon,
   CheckCircle as CheckCircleIcon,
+  MoreVert as MoreIcon,
   Delete as DeleteIcon,
   Update as UpdateIcon,
   School as EducationIcon,
+  WorkHistory as ExperienceIcon,
+  Menu as MenuOpenIcon
 } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -79,7 +91,7 @@ import { styled } from '@mui/material/styles';
 import { candidateService, externalServices } from '../../services/Candidates/candidatesDetailsSerivess';
 import axios from 'axios';
 
-// Styled components
+// Styled components remain the same as before...
 const GradientCard = styled(Card)(({ theme }) => ({
   background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
   color: theme.palette.common.white,
@@ -208,7 +220,7 @@ const RatingStars = ({ value }) => {
   );
 };
 
-// DUMMY DATA
+// DUMMY DATA (keep as is)...
 const DUMMY_CANDIDATE = {
   _id: "dummy123",
   firstName: "John",
@@ -261,6 +273,30 @@ const DUMMY_STAGE_HISTORY = {
     }
   ]
 };
+
+const DUMMY_MESSAGES = [
+  {
+    _id: "msg1",
+    content: "Hi John, we'd like to schedule an interview for next week.",
+    sender: "Recruiter",
+    timestamp: "2024-01-12T09:30:00.000Z",
+    sent: false
+  },
+  {
+    _id: "msg2",
+    content: "That sounds great! I'm available on Tuesday or Thursday.",
+    sender: "John Doe",
+    timestamp: "2024-01-12T10:15:00.000Z",
+    sent: true
+  },
+  {
+    _id: "msg3",
+    content: "Perfect! Let's schedule for Tuesday at 2 PM.",
+    sender: "Recruiter",
+    timestamp: "2024-01-12T10:30:00.000Z",
+    sent: false
+  }
+];
 
 const DUMMY_REMARKS = {
   comments: [
@@ -316,7 +352,7 @@ const DUMMY_FEEDBACK = {
   overallFeedback: "Excellent candidate with strong technical skills and good problem-solving abilities. Good cultural fit for our team. Recommended for hire."
 };
 
-// API functions
+// API functions (keep as is)...
 const fetchCandidateById = async (id) => {
   try {
     const response = await candidateService.getCandidate(id);
@@ -334,6 +370,16 @@ const fetchCandidateStageHistory = async (id) => {
   } catch (error) {
     console.warn('Using dummy stage history:', error.message);
     return DUMMY_STAGE_HISTORY;
+  }
+};
+
+const fetchCandidateMessages = async (id) => {
+  try {
+    const response = await externalServices.getMessages(id);
+    return response.data;
+  } catch (error) {
+    console.warn('Using dummy messages:', error.message);
+    return { data: DUMMY_MESSAGES };
   }
 };
 
@@ -379,7 +425,7 @@ const createCandidateNote = async (noteData) => {
       createdAt: new Date().toISOString(),
       createdBy: { name: "Current User" }
     };
-    return { data: newNote };
+    return newNote;
   }
 };
 
@@ -443,6 +489,7 @@ const CandidateDetailsPage = () => {
   // Responsive breakpoints
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
+  const isLaptop = useMediaQuery(theme.breakpoints.between('md', 'lg'));
   const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   
   const [tabValue, setTabValue] = React.useState(0);
@@ -453,16 +500,18 @@ const CandidateDetailsPage = () => {
   const [resumeBlobUrl, setResumeBlobUrl] = React.useState(null);
   const [isResumeLoading, setIsResumeLoading] = React.useState(false);
   const [newMessage, setNewMessage] = React.useState('');
+  const [newRemark, setNewRemark] = React.useState('');
   const [newNote, setNewNote] = React.useState('');
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [selectedNote, setSelectedNote] = React.useState(null);
   const [editNoteId, setEditNoteId] = React.useState(null);
   const [editNoteText, setEditNoteText] = React.useState('');
   const [useDummyData, setUseDummyData] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
-  const hiringStages = ['Sourced', 'Screening', 'Interview', 'Preboarding', 'Hired', 'Rejected', 'Archived'];
+  const hiringStages = ['Sourced', 'Screening', 'Interview','Rejected', 'Preboarding', 'Hired',  'Archived'];
 
-  // Check if we should use dummy data
+  // Check if we should use dummy data (for development)
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const dummyParam = params.get('dummy');
@@ -475,7 +524,7 @@ const CandidateDetailsPage = () => {
     queryKey: ['candidate', id, useDummyData],
     queryFn: () => fetchCandidateById(id),
     staleTime: 1000 * 60 * 5,
-    enabled: !!id && (!useDummyData || id === 'dummy')
+    enabled: !useDummyData || id === 'dummy'
   });
 
   const candidate = useDummyData ? DUMMY_CANDIDATE : candidateData?.candidate;
@@ -483,32 +532,41 @@ const CandidateDetailsPage = () => {
   const { data: stageHistoryData } = useQuery({
     queryKey: ['candidateStageHistory', id, useDummyData],
     queryFn: () => fetchCandidateStageHistory(id),
-    enabled: !useDummyData && !!id && tabValue === 2,
+    enabled: (tabValue === 2 && !useDummyData) || (useDummyData && id === 'dummy'),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: messagesData } = useQuery({
+    queryKey: ['candidateMessages', id, useDummyData],
+    queryFn: () => fetchCandidateMessages(id),
+    enabled: (tabValue === 4 && !useDummyData) || (useDummyData && id === 'dummy'),
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: remarksData } = useQuery({
     queryKey: ['candidateRemarks', id, useDummyData],
     queryFn: () => fetchCandidateRemarks(id),
-    enabled: !useDummyData && !!id,
+    enabled: (!useDummyData) || (useDummyData && id === 'dummy'),
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: notesData } = useQuery({
     queryKey: ['candidateNotes', id, useDummyData],
     queryFn: () => fetchCandidateNotes(id),
-    enabled: !useDummyData && !!id,
+    enabled: (!useDummyData) || (useDummyData && id === 'dummy'),
     staleTime: 1000 * 60 * 5,
   });
 
   const { data: feedbackData } = useQuery({
     queryKey: ['candidateFeedback', id, useDummyData],
     queryFn: () => fetchCandidateFeedback(id),
-    enabled: !useDummyData && !!id && (candidate?.stage?.name === 'Hired' || candidate?.stage?.name === 'Rejected'),
+    enabled: (!!candidate && (candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected') && !useDummyData) || 
+             (useDummyData && id === 'dummy'),
     staleTime: 1000 * 60 * 5,
   });
 
   const stageHistory = useDummyData ? DUMMY_STAGE_HISTORY : stageHistoryData;
+  const messages = useDummyData ? DUMMY_MESSAGES : messagesData?.data || [];
   const remarks = useDummyData ? DUMMY_REMARKS : remarksData || {};
   const notes = useDummyData ? DUMMY_NOTES : notesData?.data?.candidateNotes || [];
   const feedback = useDummyData ? DUMMY_FEEDBACK : feedbackData?.data?.[0];
@@ -565,7 +623,7 @@ const CandidateDetailsPage = () => {
 
   React.useEffect(() => {
     const loadResumePreview = async () => {
-      if (candidate?.resume?.url && tabValue === 1 && id) {
+      if (candidate?.resume?.url && tabValue === 1) {
         setIsResumeLoading(true);
         try {
           const response = await previewCandidateResume(id);
@@ -575,7 +633,7 @@ const CandidateDetailsPage = () => {
         } catch (err) {
           console.error("Failed to load resume preview:", err);
           setResumeBlobUrl(null);
-          setSnackbarMessage('Failed to load resume preview');
+          setSnackbarMessage(err.response?.data?.error || 'Failed to load resume preview');
           setSnackbarSeverity('error');
           setSnackbarOpen(true);
         } finally {
@@ -598,7 +656,7 @@ const CandidateDetailsPage = () => {
   };
 
   const handleDownloadResume = async () => {
-    if (!candidate?.resume || !id) {
+    if (!candidate?.resume) {
       setSnackbarMessage('No resume available to download');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -634,7 +692,7 @@ const CandidateDetailsPage = () => {
       setSnackbarOpen(true);
     } catch (error) {
       console.error('Download error:', error);
-      setSnackbarMessage('Failed to download resume');
+      setSnackbarMessage(error.response?.data?.error || 'Failed to download resume');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
     } finally {
@@ -643,14 +701,12 @@ const CandidateDetailsPage = () => {
   };
 
   const handlePreviewResume = async () => {
-    if (!id) return;
     setIsResumeLoading(true);
     try {
       const response = await previewCandidateResume(id);
       const blob = new Blob([response.data], { type: "application/pdf" });
       const fileURL = URL.createObjectURL(blob);
       window.open(fileURL, "_blank");
-      setTimeout(() => URL.revokeObjectURL(fileURL), 10000);
     } catch (error) {
       console.error("Preview error:", error);
       setSnackbarMessage("Failed to preview resume");
@@ -670,7 +726,7 @@ const CandidateDetailsPage = () => {
   };
 
   const handleShareResume = async (method = 'clipboard') => {
-    if (!candidate?.resume || !id) {
+    if (!candidate?.resume) {
       setSnackbarMessage('No resume available to share');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -705,8 +761,38 @@ const CandidateDetailsPage = () => {
     setSnackbarOpen(false);
   };
 
+  const handleSendMessage = async () => {
+    if (!newMessage.trim()) return;
+
+    try {
+      const phone = candidate.mobile.replace(/\D/g, '');
+      const message = `Hi ${candidate.firstName}, ${newMessage}`;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+
+      if (!useDummyData) {
+        await axios.post(`https://hire-onboardbackend-production.up.railway.app/api/messages`, {
+          candidateId: id,
+          content: newMessage,
+          sender: 'Admin',
+          sent: true
+        });
+      }
+
+      setNewMessage('');
+      setSnackbarMessage('Message sent via WhatsApp!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setSnackbarMessage('Failed to send message');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
+  };
+
   const handleAddNote = () => {
-    if (!newNote.trim() || !id) return;
+    if (!newNote.trim()) return;
     createNoteMutation.mutate({
       candidateId: id,
       note: newNote
@@ -714,7 +800,7 @@ const CandidateDetailsPage = () => {
   };
 
   const handleUpdateNote = () => {
-    if (!editNoteText.trim() || !editNoteId) return;
+    if (!editNoteText.trim()) return;
     updateNoteMutation.mutate({
       id: editNoteId,
       noteData: { note: editNoteText }
@@ -722,7 +808,6 @@ const CandidateDetailsPage = () => {
   };
 
   const handleDeleteNote = (noteId) => {
-    if (!noteId) return;
     deleteNoteMutation.mutate(noteId);
     setAnchorEl(null);
   };
@@ -738,10 +823,8 @@ const CandidateDetailsPage = () => {
   };
 
   const handleEditNote = () => {
-    if (selectedNote) {
-      setEditNoteId(selectedNote._id);
-      setEditNoteText(selectedNote.note);
-    }
+    setEditNoteId(selectedNote._id);
+    setEditNoteText(selectedNote.note);
     handleMenuClose();
   };
 
@@ -771,9 +854,10 @@ const CandidateDetailsPage = () => {
   };
 
   const handleMessageClick = () => {
-    setSnackbarMessage('Messaging feature coming soon!');
-    setSnackbarSeverity('info');
-    setSnackbarOpen(true);
+    setTabValue(4);
+    if (isMobile) {
+      setMobileMenuOpen(false);
+    }
   };
 
   const handleVideoCallClick = () => {
@@ -793,31 +877,29 @@ const CandidateDetailsPage = () => {
     navigate(-1);
   };
 
-  // Responsive layout configuration - INCREASED WIDTH
+  // Responsive container padding
+  const getContainerPadding = () => {
+    if (isMobile) return { xs: 1, sm: 2 };
+    if (isTablet) return { xs: 2, sm: 3 };
+    return { xs: 2, sm: 3, md: 4 };
+  };
+
+  // Responsive grid columns
+  const getMainGridColumns = () => {
+    if (isMobile || isTablet) return 12; // Full width for mobile and tablet
+    return 8; // 8 columns for laptop and desktop
+  };
+
+  const getSidebarGridColumns = () => {
+    if (isMobile || isTablet) return 12; // Full width for mobile and tablet
+    return 4; // 4 columns for laptop and desktop
+  };
+
+  // Responsive spacing
   const getGridSpacing = () => {
     if (isMobile) return 2;
-    if (isTablet) return 3;
-    return 4; // Increased spacing for desktop
-  };
-
-  const getMainColumnWidth = () => {
-    // Increased width for main content
-    if (isMobile) return 12;
-    if (isTablet) return 8;
-    return 9; // Increased from 8.5 to 9 for more width
-  };
-
-  const getSidebarColumnWidth = () => {
-    // Adjusted sidebar width
-    if (isMobile) return 12;
-    if (isTablet) return 4;
-    return 3; // Reduced from 3.5 to 3 to give more space to main content
-  };
-
-  const getContainerMaxWidth = () => {
-    if (isDesktop) return '100%'; // Increased from 95% to 98% for more width
-    if (isTablet) return '100%';
-    return '100%';
+    if (isTablet) return 2.5;
+    return 3;
   };
 
   if (isLoading && !useDummyData) {
@@ -867,37 +949,33 @@ const CandidateDetailsPage = () => {
 
   return (
     <Container 
-      maxWidth={false}
+      maxWidth="xl" 
       sx={{ 
         py: isMobile ? 2 : 3, 
-        px: isMobile ? 1 : isTablet ? 2 : 3,
-        mt: isDesktop ? 5 : 0,
-        ml: isDesktop ? 8 : 0,
-        transition: 'margin-left 0.3s ease',
-        maxWidth: getContainerMaxWidth(),
-        width: '100%'
+        px: getContainerPadding(),
+        ml: isDesktop ? 25 : 0, // Sidebar margin only for desktop
+        transition: 'margin-left 0.3s ease'
       }}
     >
-      <Box sx={{ mb: isMobile ? 1 : 2 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={handleBackClick}
-          sx={{
-            color: 'text.primary',
-            '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.04)',
-            },
-            fontSize: isMobile ? '0.9rem' : '1rem',
-            fontWeight: 500,
-            textTransform: 'none',
-            px: isMobile ? 1 : 2,
-            py: isMobile ? 0.5 : 1,
-          }}
-        >
-          Back 
-        </Button>
-      </Box>
-
+                  <Box sx={{ mb: isMobile ? 1 : 2 }}>
+                      <Button
+                          startIcon={<ArrowBackIcon />}
+                          onClick={handleBackClick}
+                          sx={{
+                              color: 'text.primary',
+                              '&:hover': {
+                                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                              },
+                              fontSize: isMobile ? '0.9rem' : '1rem',
+                              fontWeight: 500,
+                              textTransform: 'none',
+                              px: isMobile ? 1 : 2,
+                              py: isMobile ? 0.5 : 1,
+                          }}
+                      >
+                          Back 
+                      </Button>
+                  </Box>
       {/* Development Mode Indicator */}
       {useDummyData && (
         <Paper 
@@ -920,6 +998,7 @@ const CandidateDetailsPage = () => {
             size={isMobile ? "small" : "medium"} 
             variant="outlined" 
             onClick={handleToggleDummyData}
+            sx={{ ml: isMobile ? 0 : 2 }}
             fullWidth={isMobile}
           >
             Switch to Real Data
@@ -927,9 +1006,27 @@ const CandidateDetailsPage = () => {
         </Paper>
       )}
 
+      {/* Header with Back Button and Breadcrumbs */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        mb: 2,
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? 1 : 0
+      }}>
+        <IconButton onClick={handleBackClick} sx={{ mr: isMobile ? 0 : 1 }}>
+          <BackIcon />
+        </IconButton>
+        <Breadcrumbs sx={{ flex: 1, fontSize: isMobile ? '0.75rem' : '0.875rem' }}>
+          <Typography color="text.primary" noWrap sx={{ maxWidth: isMobile ? 150 : 'none' }}>
+            {candidate.firstName} {candidate.lastName}
+          </Typography>
+        </Breadcrumbs>
+      </Box>
+
       <Grid container spacing={getGridSpacing()}>
-        {/* Left Column - Main Content - INCREASED WIDTH */}
-        <Grid item xs={12} md={getMainColumnWidth()} lg={getMainColumnWidth()}>
+        {/* Left Column - Main Content */}
+        <Grid item xs={12} md={getMainGridColumns()}>
           <GradientCard sx={{ mb: 3 }}>
             <CardContent sx={{ p: isMobile ? 2 : 3 }}>
               <Box sx={{ 
@@ -999,6 +1096,7 @@ const CandidateDetailsPage = () => {
             {(candidate.stage?.name === 'Hired' || candidate.stage?.name === 'Rejected') && (
               <StyledTab label={isMobile ? "" : "Interview Feedback"} icon={<SelectedIcon />} iconPosition="start" />
             )}
+            <StyledTab label={isMobile ? "" : "Messages"} icon={<MessageIcon />} iconPosition="start" />
           </StyledTabs>
 
           {/* Tab Content */}
@@ -1016,18 +1114,7 @@ const CandidateDetailsPage = () => {
                         <List dense={isMobile}>
                           <ListItem>
                             <ListItemIcon><DateIcon color="primary" /></ListItemIcon>
-                            <ListItemText
-                              primary="Date of Birth"
-                              secondary={
-                                candidate.dob
-                                  ? new Date(candidate.dob).toLocaleDateString(undefined, {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })
-                                  : 'Not specified'
-                              }
-                            />
+                          
                           </ListItem>
                           <ListItem>
                             <ListItemIcon><LocationIcon color="primary" /></ListItemIcon>
@@ -1068,90 +1155,140 @@ const CandidateDetailsPage = () => {
                 <Card sx={{ mb: 3 }}>
                   <CardContent sx={{ p: isMobile ? 2 : 3 }}>
                     <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <BarChartIcon color="primary" /> AI Resume Analysis
+                      <BarChartIcon color="primary" /> Skills & Expertise
                     </Typography>
                     <Divider sx={{ my: 2 }} />
-                    
-                    {candidate.resume?.aiAnalysis ? (
-                      <>
-                        <Box sx={{ mb: 3 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                            <Typography variant={isMobile ? "body2" : "body1"}>Match Percentage</Typography>
-                            <Typography variant={isMobile ? "body2" : "body1"} fontWeight="bold">
-                              {candidate.resume.aiAnalysis.matchPercentage}%
-                            </Typography>
-                          </Box>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={candidate.resume.aiAnalysis.matchPercentage} 
-                            sx={{ height: isMobile ? 6 : 10, borderRadius: 5 }}
-                            color={
-                              candidate.resume.aiAnalysis.matchPercentage >= 80 ? 'success' :
-                              candidate.resume.aiAnalysis.matchPercentage >= 60 ? 'warning' : 'error'
-                            }
+                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                      {candidate.skills && candidate.skills.length > 0 ? (
+                        candidate.skills.map((skill, index) => (
+                          <Chip
+                            key={index}
+                            label={skill}
+                            color={index % 2 === 0 ? "primary" : "secondary"}
+                            variant={index % 3 === 0 ? "filled" : "outlined"}
+                            sx={{ borderRadius: 1, fontSize: isMobile ? '0.75rem' : '0.875rem' }}
+                            size={isMobile ? "small" : "medium"}
                           />
-                        </Box>
-
-                        <Grid container spacing={isMobile ? 1 : 3}>
-                          <Grid item xs={12} md={6}>
-                            <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
-                              Matching Skills
-                            </Typography>
-                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mb: 2 }}>
-                              {candidate.resume.aiAnalysis.matchingSkills.map((skill, index) => (
-                                <SkillChip
-                                  key={index}
-                                  label={skill.skill}
-                                  level={skill.level || "high"}
-                                  size={isMobile ? "small" : "small"}
-                                />
-                              ))}
-                            </Box>
-                          </Grid>
-
-                          <Grid item xs={12} md={6}>
-                            <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
-                              Missing Skills
-                            </Typography>
-                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mb: 2 }}>
-                              {candidate.resume.aiAnalysis.missingSkills.slice(0, 5).map((skill, index) => (
-                                <SkillChip
-                                  key={index}
-                                  label={skill}
-                                  level="low"
-                                  size={isMobile ? "small" : "small"}
-                                />
-                              ))}
-                              {candidate.resume.aiAnalysis.missingSkills.length > 5 && (
-                                <Typography variant="body2" color="text.secondary">
-                                  +{candidate.resume.aiAnalysis.missingSkills.length - 5} more
-                                </Typography>
-                              )}
-                            </Box>
-                          </Grid>
-
-                          <Grid item xs={12}>
-                            <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
-                              Recommendation
-                            </Typography>
-                            <Typography variant={isMobile ? "body2" : "body1"} sx={{ mb: 2 }}>
-                              {candidate.resume.aiAnalysis.recommendation}
-                            </Typography>
-                            
-                            <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
-                              Analysis
-                            </Typography>
-                            <Typography variant={isMobile ? "body2" : "body1"}>
-                              {candidate.resume.aiAnalysis.analysis}
-                            </Typography>
-                          </Grid>
-                        </Grid>
-                      </>
-                    ) : (
-                      <Typography>No AI analysis available</Typography>
-                    )}
+                        ))
+                      ) : (
+                        <Typography>No skills listed</Typography>
+                      )}
+                    </Box>
                   </CardContent>
                 </Card>
+
+                <Card sx={{ mb: 3 }}>
+                  <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                    <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <EducationIcon color="primary" /> Education & Experience
+                    </Typography>
+                    <Divider sx={{ my: 2 }} />
+                    <Grid container spacing={isMobile ? 1 : 2}>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
+                          Education
+                        </Typography>
+                        <Typography variant={isMobile ? "body2" : "body1"}>
+                          {candidate.education || 'Not specified'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
+                          Experience
+                        </Typography>
+                        <Typography variant={isMobile ? "body2" : "body1"}>
+                          {candidate.experience || 'Not specified'}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+
+                {candidate.resume?.aiAnalysis && (
+                  <Card sx={{ mb: 3 }}>
+                    <CardContent sx={{ p: isMobile ? 2 : 3 }}>
+                      <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <BarChartIcon color="primary" /> AI Resume Analysis
+                      </Typography>
+                      <Divider sx={{ my: 2 }} />
+                      
+                      <Box sx={{ mb: 3 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                          <Typography variant={isMobile ? "body2" : "body1"}>Match Percentage</Typography>
+                          <Typography variant={isMobile ? "body2" : "body1"} fontWeight="bold">
+                            {candidate.resume.aiAnalysis.matchPercentage}%
+                          </Typography>
+                        </Box>
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={candidate.resume.aiAnalysis.matchPercentage} 
+                          sx={{ height: isMobile ? 6 : 10, borderRadius: 5 }}
+                          color={
+                            candidate.resume.aiAnalysis.matchPercentage >= 80 ? 'success' :
+                            candidate.resume.aiAnalysis.matchPercentage >= 60 ? 'warning' : 'error'
+                          }
+                        />
+                      </Box>
+
+                      <Grid container spacing={isMobile ? 1 : 3}>
+                        <Grid item xs={12} md={6}>
+                          <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
+                            Matching Skills
+                          </Typography>
+                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mb: 2 }}>
+                            {candidate.resume.aiAnalysis.matchingSkills.map((skill, index) => (
+                              <SkillChip
+                                key={index}
+                                label={skill.skill}
+                                level="high"
+                                size={isMobile ? "small" : "small"}
+                              />
+                            ))}
+                          </Box>
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
+                            Missing Skills
+                          </Typography>
+                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mb: 2 }}>
+                            {candidate.resume.aiAnalysis.missingSkills.slice(0, 5).map((skill, index) => (
+                              <SkillChip
+                                key={index}
+                                label={skill}
+                                level="low"
+                                size={isMobile ? "small" : "small"}
+                              />
+                            ))}
+                            {candidate.resume.aiAnalysis.missingSkills.length > 5 && (
+                              <Typography variant="body2" color="text.secondary">
+                                +{candidate.resume.aiAnalysis.missingSkills.length - 5} more
+                              </Typography>
+                            )}
+                          </Box>
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
+                            Recommendation
+                          </Typography>
+                          <Typography variant={isMobile ? "body2" : "body1"} sx={{ mb: 2 }}>
+                            {candidate.resume.aiAnalysis.recommendation}
+                          </Typography>
+                          
+                          <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
+                            Analysis
+                          </Typography>
+                          <Typography variant={isMobile ? "body2" : "body1"}>
+                            {candidate.resume.aiAnalysis.analysis}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                )}
+
+       
               </Box>
             )}
 
@@ -1239,7 +1376,6 @@ const CandidateDetailsPage = () => {
                         ) : (
                           <object
                             type="application/pdf"
-                            data={resumeBlobUrl}
                             style={{ width: '100%', height: '100%' }}
                           >
                             <Box textAlign="center" pt={4}>
@@ -1307,7 +1443,7 @@ const CandidateDetailsPage = () => {
                                 {index < currentStageIndex ? (
                                   `Completed`
                                 ) : index === currentStageIndex ? (
-                                  `Currently in this stage since ${stageHistory.currentStageSince ? new Date(stageHistory.currentStageSince).toLocaleDateString() : 'Not available'}`
+                                  `Currently in this stage since ${new Date(stageHistory.currentStageSince).toLocaleDateString()}`
                                 ) : (
                                   'Pending'
                                 )}
@@ -1464,16 +1600,77 @@ const CandidateDetailsPage = () => {
                 </CardContent>
               </Card>
             )}
+
+            {tabValue === 4 && (
+              <Card>
+                <CardContent sx={{ p: isMobile ? 1 : 2 }}>
+                  <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold" gutterBottom>
+                    Messages with {candidate.firstName}
+                  </Typography>
+                  <Divider sx={{ mb: 2 }} />
+
+                  <Box sx={{
+                    height: isMobile ? '300px' : '400px',
+                    overflowY: 'auto',
+                    p: 2,
+                    bgcolor: 'background.default',
+                    borderRadius: 1,
+                    mb: 2,
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    {messages.length > 0 ? (
+                      messages.map((message, index) => (
+                        <MessageBubble key={index} sent={message.sent}>
+                          <Typography variant={isMobile ? "caption" : "body2"}>{message.content}</Typography>
+                          <Typography variant="caption" display="block" textAlign="right" mt={1}>
+                            {new Date(message.timestamp).toLocaleString()} • {message.sender}
+                          </Typography>
+                        </MessageBubble>
+                      ))
+                    ) : (
+                      <Box textAlign="center" py={4}>
+                        <Typography color="text.secondary">
+                          No messages yet with this candidate
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <TextField
+                      fullWidth
+                      variant="outlined"
+                      placeholder="Type your message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      size={isMobile ? "small" : "medium"}
+                      InputProps={{
+                        startAdornment: <MessageIcon color="primary" sx={{ mr: 1, fontSize: isMobile ? 20 : 24 }} />,
+                      }}
+                    />
+                    <Button
+                      variant="contained"
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim()}
+                      size={isMobile ? "small" : "medium"}
+                    >
+                      <SendIcon fontSize={isMobile ? "small" : "medium"} />
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
           </Box>
         </Grid>
 
-        {/* Right Column - Sidebar Content - ADJUSTED WIDTH */}
-        <Grid item xs={12} md={getSidebarColumnWidth()} lg={getSidebarColumnWidth()}>
+        {/* Right Column - Sidebar Content */}
+        <Grid item xs={12} md={getSidebarGridColumns()}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Hiring Status Card */}
             <Card sx={{ borderLeft: '4px solid', borderLeftColor: 'primary.main' }}>
               <CardContent sx={{ p: isMobile ? 2 : 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold">Hiring Status</Typography>
                   <StatusChip label={candidate.stage?.name} status={candidate.stage?.name} size={isMobile ? "small" : "medium"} />
                 </Box>
@@ -1536,11 +1733,7 @@ const CandidateDetailsPage = () => {
                             </Typography>
                           )}
                         </Box>
-                        <Typography 
-                          variant="caption" 
-                          fontWeight={index === currentStageIndex ? 'bold' : 'normal'}
-                          sx={{ fontSize: isMobile ? '0.65rem' : '0.75rem', textAlign: 'center' }}
-                        >
+                        <Typography variant="caption" fontWeight={index === currentStageIndex ? 'bold' : 'normal'}>
                           {stage}
                         </Typography>
                       </Box>
@@ -1555,16 +1748,16 @@ const CandidateDetailsPage = () => {
             </Card>
 
             {/* Quick Actions Card */}
-            <Card>
+          {/*   <Card>
               <CardContent sx={{ p: isMobile ? 2 : 3 }}>
                 <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold" gutterBottom>Quick Actions</Typography>
-                <Grid container spacing={isMobile ? 1 : 1.5}>
+                <Grid container spacing={isMobile ? 0.5 : 1}>
                   <Grid item xs={6}>
                     <Button
                       variant="outlined"
                       startIcon={<ScheduleIcon />}
                       fullWidth
-                      sx={{ py: isMobile ? 1 : 1.5, textTransform: 'none' }}
+                      sx={{ py: isMobile ? 1 : 1.5 }}
                       onClick={handleScheduleClick}
                       size={isMobile ? "small" : "medium"}
                     >
@@ -1576,7 +1769,7 @@ const CandidateDetailsPage = () => {
                       variant="outlined"
                       startIcon={<MessageIcon />}
                       fullWidth
-                      sx={{ py: isMobile ? 1 : 1.5, textTransform: 'none' }}
+                      sx={{ py: isMobile ? 1 : 1.5 }}
                       onClick={handleMessageClick}
                       size={isMobile ? "small" : "medium"}
                     >
@@ -1588,7 +1781,7 @@ const CandidateDetailsPage = () => {
                       variant="outlined"
                       startIcon={<VideoIcon />}
                       fullWidth
-                      sx={{ py: isMobile ? 1 : 1.5, textTransform: 'none' }}
+                      sx={{ py: isMobile ? 1 : 1.5 }}
                       onClick={handleVideoCallClick}
                       size={isMobile ? "small" : "medium"}
                     >
@@ -1600,7 +1793,7 @@ const CandidateDetailsPage = () => {
                       variant="outlined"
                       startIcon={<WhatsAppIcon />}
                       fullWidth
-                      sx={{ py: isMobile ? 1 : 1.5, textTransform: 'none' }}
+                      sx={{ py: isMobile ? 1 : 1.5 }}
                       onClick={handleWhatsAppClick}
                       size={isMobile ? "small" : "medium"}
                     >
@@ -1609,61 +1802,31 @@ const CandidateDetailsPage = () => {
                   </Grid>
                 </Grid>
               </CardContent>
-            </Card>
+            </Card> */}
 
-            {/* Skills Card */}
-            <Card>
-              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
-                <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <BarChartIcon color="primary" /> Skills & Expertise
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {candidate.skills && candidate.skills.length > 0 ? (
-                    candidate.skills.map((skill, index) => (
-                      <Chip
-                        key={index}
-                        label={skill}
-                        color={index % 2 === 0 ? "primary" : "secondary"}
-                        variant={index % 3 === 0 ? "filled" : "outlined"}
-                        sx={{ borderRadius: 1, fontSize: isMobile ? '0.75rem' : '0.875rem' }}
-                        size={isMobile ? "small" : "medium"}
-                      />
+           {/*  <Card>
+                <List dense={isMobile} sx={{ mt: 2 }}>
+                  {remarks?.comments?.length > 0 ? (
+                    remarks.comments.map((remark, i) => (
+                      <ListItem key={i} sx={{ px: 0 }}>
+                        <ListItemIcon sx={{ minWidth: 32 }}>
+                          <NotesIcon color="primary" fontSize={isMobile ? "small" : "small"} />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={remark.text}
+                          secondary={`${new Date(remark.date).toLocaleString()}`}
+                          primaryTypographyProps={{ variant: isMobile ? 'body2' : 'body1' }}
+                          secondaryTypographyProps={{ variant: isMobile ? 'caption' : 'body2' }}
+                        />
+                      </ListItem>
                     ))
                   ) : (
-                    <Typography>No skills listed</Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2, textAlign: 'center' }}>
+                      No remarks yet from HR team
+                    </Typography>
                   )}
-                </Box>
-              </CardContent>
-            </Card>
-
-            {/* Education & Experience Card */}
-            <Card>
-              <CardContent sx={{ p: isMobile ? 2 : 3 }}>
-                <Typography variant={isMobile ? "subtitle1" : "h6"} fontWeight="bold" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <EducationIcon color="primary" /> Education & Experience
-                </Typography>
-                <Divider sx={{ my: 2 }} />
-                <Grid container spacing={isMobile ? 1 : 2}>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
-                      Education
-                    </Typography>
-                    <Typography variant={isMobile ? "body2" : "body1"}>
-                      {candidate.education || 'Not specified'}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant={isMobile ? "body2" : "subtitle1"} fontWeight="bold" gutterBottom>
-                      Experience
-                    </Typography>
-                    <Typography variant={isMobile ? "body2" : "body1"}>
-                      {candidate.experience || 'Not specified'}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
+                </List>
+            </Card> */}
           </Box>
         </Grid>
       </Grid>
@@ -1680,7 +1843,7 @@ const CandidateDetailsPage = () => {
           </ListItemIcon>
           <ListItemText>Edit</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => handleDeleteNote(selectedNote?._id)}>
+        <MenuItem onClick={() => handleDeleteNote(selectedNote._id)}>
           <ListItemIcon>
             <DeleteIcon fontSize="small" color="error" />
           </ListItemIcon>
@@ -1745,7 +1908,7 @@ const CandidateDetailsPage = () => {
           position: 'fixed', 
           bottom: 16, 
           right: 16,
-          display: { xs: 'none', sm: 'flex' }
+          display: { xs: 'none', sm: 'flex' } // Hide on mobile, show on larger screens
         }}
         onClick={handleToggleDummyData}
         size={isMobile ? "small" : "medium"}
