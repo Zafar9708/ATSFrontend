@@ -153,7 +153,7 @@ function RecruiterPanel({ weeks, onUpdateWeek }) {
   useEffect(() => { setAnimated(false); const t = setTimeout(() => setAnimated(true), 100); return () => clearTimeout(t); }, [activeWeek]);
  
   return (
-    <div style={{background:"#fff" ,borderRadius:16,boxShadow:"0 2px 14px rgba(30,58,95,0.09)",overflow:"hidden", height:"100%" }}>
+    <div style={{ background:"#fff",borderRadius:16,boxShadow:"0 2px 14px rgba(30,58,95,0.09)",overflow:"hidden" }}>
       <div style={{ background:"linear-gradient(135deg,#1e3a5f,#1D4ED8)",padding:"16px 20px" }}>
         <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10 }}>
           <div>
@@ -165,7 +165,7 @@ function RecruiterPanel({ weeks, onUpdateWeek }) {
             ✎ Edit
           </button>
         </div>
-        <div style={{ display:"flex",gap:4,flexWrap:"wrap" }}>
+        <div style={{ display:"flex",gap:4 }}>
           {weeks.map((w, i) => (
             <button key={i} onClick={() => setActiveWeek(i)}
               style={{ padding:"5px 10px",borderRadius:6,fontSize:11,fontWeight:500,cursor:"pointer",
@@ -183,7 +183,7 @@ function RecruiterPanel({ weeks, onUpdateWeek }) {
             <div style={{ fontSize:28,marginBottom:10 }}>📋</div>
             <p style={{ fontSize:13,fontWeight:600,color:"#1e3a5f",margin:0,marginBottom:6 }}>No recruiters yet</p>
             <p style={{ fontSize:12,color:"#94a3b8",margin:0,marginBottom:16,lineHeight:1.6 }}>
-              Click <strong style={{ color:"#2563eb" }}>✎ Edit</strong> above to add recruiters and their hire counts.
+              Click <strong style={{ color:"#fff" }}>✎ Edit</strong> above to add recruiters and their hire counts.
             </p>
           </div>
         ) : (
@@ -200,39 +200,37 @@ function RecruiterPanel({ weeks, onUpdateWeek }) {
               <span style={{ fontSize:11,fontWeight:700,color:"#1e3a5f",textTransform:"uppercase",letterSpacing:".06em" }}>Rankings</span>
               <span style={{ fontSize:10,color:"#94a3b8" }}>{week.label}</span>
             </div>
-            <div style={{ maxHeight: "calc(100vh - 380px)", overflowY: "auto" }}>
-              {sorted.map((r, i) => {
-                const av = AVATARS[i % AVATARS.length];
-                const diff = r.hires - r.prev;
-                const barW = Math.round((r.hires / maxHires) * 100);
-                return (
-                  <div key={r.name} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 8px",borderRadius:10,cursor:"pointer",marginBottom:2,transition:"background .15s" }}
-                    onMouseEnter={e => e.currentTarget.style.background="#f1f5f9"}
-                    onMouseLeave={e => e.currentTarget.style.background="transparent"}>
-                    <div style={{ width:18,textAlign:"center",fontSize:i<3?14:11,fontWeight:700,color:i<3?"inherit":"#94a3b8",flexShrink:0 }}>{i<3?RANK_MEDALS[i]:i+1}</div>
-                    <div style={{ width:30,height:30,borderRadius:"50%",background:av.bg,color:av.txt,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,flexShrink:0 }}>{initials(r.name)}</div>
-                    <div style={{ flex:1,minWidth:0 }}>
-                      <div style={{ fontSize:12,fontWeight:600,color:"#1e293b",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis" }}>{r.name}</div>
-                      <div style={{ fontSize:9,color:"#94a3b8" }}>{r.dept}</div>
-                    </div>
-                    <div style={{ flexShrink:0 }}>
-                      {diff > 0 ? <span style={{ background:"#dcfce7",color:"#16a34a",borderRadius:999,padding:"2px 6px",fontSize:9,fontWeight:600 }}>▲{diff}</span>
-                       : diff < 0 ? <span style={{ background:"#fee2e2",color:"#dc2626",borderRadius:999,padding:"2px 6px",fontSize:9,fontWeight:600 }}>▼{Math.abs(diff)}</span>
-                       : <span style={{ fontSize:9,color:"#94a3b8" }}>—</span>}
-                    </div>
-                    <div style={{ textAlign:"right",flexShrink:0 }}>
-                      <div style={{ fontSize:14,fontWeight:700,color:"#1e3a5f" }}>{r.hires}</div>
-                      <div style={{ fontSize:9,color:"#94a3b8" }}>hires</div>
-                    </div>
-                    <div style={{ width:52,flexShrink:0 }}>
-                      <div style={{ height:3,borderRadius:999,background:"#e2e8f0",overflow:"hidden",marginTop:2 }}>
-                        <div style={{ height:"100%",borderRadius:999,background:av.txt,width:animated?`${barW}%`:"0%",transition:`width 0.8s ease ${i*0.06}s` }} />
-                      </div>
+            {sorted.map((r, i) => {
+              const av = AVATARS[i % AVATARS.length];
+              const diff = r.hires - r.prev;
+              const barW = Math.round((r.hires / maxHires) * 100);
+              return (
+                <div key={r.name} style={{ display:"flex",alignItems:"center",gap:8,padding:"8px 8px",borderRadius:10,cursor:"pointer",marginBottom:2,transition:"background .15s" }}
+                  onMouseEnter={e => e.currentTarget.style.background="#f1f5f9"}
+                  onMouseLeave={e => e.currentTarget.style.background="transparent"}>
+                  <div style={{ width:18,textAlign:"center",fontSize:i<3?14:11,fontWeight:700,color:i<3?"inherit":"#94a3b8",flexShrink:0 }}>{i<3?RANK_MEDALS[i]:i+1}</div>
+                  <div style={{ width:30,height:30,borderRadius:"50%",background:av.bg,color:av.txt,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,flexShrink:0 }}>{initials(r.name)}</div>
+                  <div style={{ flex:1,minWidth:0 }}>
+                    <div style={{ fontSize:12,fontWeight:600,color:"#1e293b",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis" }}>{r.name}</div>
+                    <div style={{ fontSize:9,color:"#94a3b8" }}>{r.dept}</div>
+                  </div>
+                  <div style={{ flexShrink:0 }}>
+                    {diff > 0 ? <span style={{ background:"#dcfce7",color:"#16a34a",borderRadius:999,padding:"2px 6px",fontSize:9,fontWeight:600 }}>▲{diff}</span>
+                     : diff < 0 ? <span style={{ background:"#fee2e2",color:"#dc2626",borderRadius:999,padding:"2px 6px",fontSize:9,fontWeight:600 }}>▼{Math.abs(diff)}</span>
+                     : <span style={{ fontSize:9,color:"#94a3b8" }}>—</span>}
+                  </div>
+                  <div style={{ textAlign:"right",flexShrink:0 }}>
+                    <div style={{ fontSize:14,fontWeight:700,color:"#1e3a5f" }}>{r.hires}</div>
+                    <div style={{ fontSize:9,color:"#94a3b8" }}>hires</div>
+                  </div>
+                  <div style={{ width:52,flexShrink:0 }}>
+                    <div style={{ height:3,borderRadius:999,background:"#e2e8f0",overflow:"hidden",marginTop:2 }}>
+                      <div style={{ height:"100%",borderRadius:999,background:av.txt,width:animated?`${barW}%`:"0%",transition:`width 0.8s ease ${i*0.06}s` }} />
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </>
         )}
       </div>
@@ -300,36 +298,12 @@ export default function RecruitmentDashboard() {
   useEffect(() => { setAnimated(false); const t = setTimeout(() => setAnimated(true), 80); return () => clearTimeout(t); }, [stages]);
  
   return (
-    <div style={{ 
-      background: "#f1f5f9", 
-      padding: 16, 
-      width: "100%", 
-      maxWidth: "100vw",
-      minHeight: "100%", 
-      fontFamily: "'DM Sans',system-ui,sans-serif",
-      boxSizing: "border-box",
-      overflowX: "hidden"
-    }}>
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "1fr 1fr",  // Equal columns
-        gap: 14, 
-        alignItems: "start", 
-        width: "100%",
-        maxWidth: "100%",
-        boxSizing: "border-box"
-      }}>
+    <div style={{ background:"#f1f5f9", padding:16, width:"100%", minHeight:"100%", fontFamily:"'DM Sans',system-ui,sans-serif" }}>
+      <div style={{ display:"grid", gridTemplateColumns:"1fr 340px", gap:14, alignItems:"start", width:"100%" }}>
  
         {/* LEFT: Pipeline Card */}
-        <div style={{ 
-          background: "#fff",
-          borderRadius: 16,
-          boxShadow: "0 2px 14px rgba(30,58,95,0.09)",
-          overflow: "hidden",
-          minWidth: 0,  // Prevents overflow
-          width: "100%"
-        }}>
-          <div style={{ background:"linear-gradient(135deg,#2563EB,#1D4ED8)",padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10 }}>
+        <div style={{ background:"#fff",borderRadius:16,boxShadow:"0 2px 14px rgba(30,58,95,0.09)",overflow:"hidden" }}>
+          <div style={{ background:"linear-gradient(135deg,#2563EB,#1D4ED8)",padding:"16px 20px",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
             <div>
               <p style={{ fontSize:9,fontWeight:700,letterSpacing:".12em",textTransform:"uppercase",color:"#bfdbfe",margin:0,marginBottom:2 }}>Recruitment Analytics</p>
               <h2 style={{ fontSize:17,fontWeight:700,color:"#fff",margin:0 }}>Candidate Pipeline</h2>
@@ -338,10 +312,10 @@ export default function RecruitmentDashboard() {
           </div>
  
           {/* Strip */}
-          <div style={{ background:"#1e3a5f",display:"grid",gridTemplateColumns:`repeat(${stages.length},1fr)`,gap:1,overflowX:"auto" }}>
+          <div style={{ background:"#1e3a5f",display:"grid",gridTemplateColumns:`repeat(${stages.length},1fr)`,gap:1 }}>
             {segments.map((seg,i) => (
               <div key={seg.stage} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
-                style={{ padding:"10px 4px",textAlign:"center",cursor:"pointer",borderBottom:`3px solid ${hovered===i?seg.color:"transparent"}`,transition:"border-color .18s",minWidth:0 }}>
+                style={{ padding:"10px 4px",textAlign:"center",cursor:"pointer",borderBottom:`3px solid ${hovered===i?seg.color:"transparent"}`,transition:"border-color .18s" }}>
                 <div style={{ fontSize:15,fontWeight:700,color:hovered===i?seg.color:isEmpty?"#64748b":"#fff",transition:"color .18s" }}>
                   {seg.count === 0 ? "—" : seg.count.toLocaleString()}
                 </div>
@@ -351,8 +325,8 @@ export default function RecruitmentDashboard() {
           </div>
  
           {/* Body side-by-side */}
-          <div style={{ display:"flex",flexDirection:"row",alignItems:"flex-start",padding:"18px 16px",flexWrap:"wrap",gap:14 }}>
-            <div style={{ flexShrink:0,width:200,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto" }}>
+          <div style={{ display:"flex",flexDirection:"row",alignItems:"flex-start",padding:"18px 16px" }}>
+            <div style={{ flexShrink:0,width:200,display:"flex",alignItems:"center",justifyContent:"center" }}>
               <DonutChart segments={segments} hovered={hovered} onHover={setHovered} />
             </div>
             <div style={{ flex:1,minWidth:0,paddingLeft:14 }}>

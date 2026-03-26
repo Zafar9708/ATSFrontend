@@ -41,8 +41,7 @@ import {
   Drawer,
   Fab,
   Badge,
-  Tooltip,
-    Avatar,
+  Tooltip
 } from "@mui/material";
 import {
   Star as StarIcon,
@@ -68,11 +67,7 @@ import {
   FilterAlt as FilterAltIcon,
   Search as SearchIcon,
   Add as AddIcon,
-  ArrowBack as ArrowBackIcon,
-  Dashboard as DashboardIcon,
-  TrendingUp as TrendingUpIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon2
+  ArrowBack as ArrowBackIcon
 } from "@mui/icons-material";
 import { parseISO, format, isAfter } from "date-fns";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
@@ -91,7 +86,7 @@ const statusOptions = {
 const businessUnitOptions = ["Internal", "External"];
 
 // API Base URL
-const API_BASE_URL = "http://ats-env.eba-9hjpmsgu.us-east-1.elasticbeanstalk.com/api/v1";
+const API_BASE_URL = "/api/v1";
 
 const JobsPage = () => {
   const theme = useTheme();
@@ -396,7 +391,7 @@ const handleBack = () => {
               return job.department === value;
             case 'recruiter':
               const jobRecruiters = job.jobFormId?.recruitingPerson || [];
-                return Array.isArray(jobRecruiters) ?
+              return Array.isArray(jobRecruiters) ?
                 jobRecruiters.includes(value) :
                 jobRecruiters === value;
             case 'location':
@@ -412,7 +407,6 @@ const handleBack = () => {
     setFilteredJobs(result);
   }, [jobs, archivedJobs, showArchived, showPriority, showActiveOnly, searchTerm, filters]);
 
-  // FIXED: Use the isJobActive function for accurate active count
   const activeJobsCount = jobs.filter(job => isJobActive(job)).length;
   const priorityJobsCount = jobs.filter(job => job.jobFormId?.markPriority && isJobActive(job)).length;
 
@@ -925,53 +919,25 @@ const handleBack = () => {
     return Object.keys(filters).filter(key => filters[key]).length;
   };
 
-
-  // and include Closed Own jobs in inactive count
-  const getJobStats = () => {
-    const totalJobs = jobs.length;
-    // Use isJobActive for accurate active count
-    const activeJobs = jobs.filter(job => isJobActive(job)).length;
-    const onHoldJobs = jobs.filter(job => job.status === 'On Hold').length;
-    const closedJobs = jobs.filter(job => job.status === 'Closed Own').length;
-      // FIXED: Include both 'Inactive' AND 'Closed Own' as inactive jobs
-    const inactiveJobs = jobs.filter(job => job.status === 'Inactive' || job.status === 'Closed Own').length;
-    const priorityJobs = jobs.filter(job => job.jobFormId?.markPriority).length;
-    const externalJobs = jobs.filter(job => job.jobFormId?.BusinessUnit === 'external').length;
-    const internalJobs = jobs.filter(job => job.jobFormId?.BusinessUnit === 'internal').length;
-
-    return {
-      total: totalJobs,
-      active: activeJobs,
-      inactive: inactiveJobs, 
-      onHold: onHoldJobs,
-      closed: closedJobs,
-      priority: priorityJobs,
-      external: externalJobs,
-      internal: internalJobs
-    };
-  };
-
-if (loading && jobs.length === 0) {
-  return (
-    <MainLayout>
-      <Box
-        sx={{
+  if (loading && jobs.length === 0) {
+    return (
+      <MainLayout>
+        <Box sx={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          minHeight: '100vh',
-          width: '100%',
-          position: 'relative',
-        }}
-      >
-        <CircularProgress size={isMobile ? 40 : 50} thickness={3} />
-      </Box>
-    </MainLayout>
-  );
-}
+          minHeight: '60vh',
+          width: getMainContentWidth(),
+          ml: { xs: 0, sm: 0, md: sidebarOpen ? '240px' : '65px' },
+          transition: 'margin-left 0.3s ease, width 0.3s ease',
+        }}>
+          <CircularProgress size={isMobile ? 40 : 60} thickness={4} />
+        </Box>
+      </MainLayout>
+    );
+  }
 
   const hasExternalJobs = jobs.some(job => job.jobFormId?.BusinessUnit === 'external');
-  const jobStats = getJobStats();
 
   // Mobile Filter Drawer Component
   const MobileFilterDrawer = () => (
@@ -1042,215 +1008,48 @@ if (loading && jobs.length === 0) {
     <MainLayout>
       <Box
         sx={{
-
           width: getMainContentWidth(),
           minHeight: '100vh',
-          background: '#f8f9fa', 
+          background: '#f8f9fa',
           p: getContainerPadding(),
+          ml: { xs: 0, sm: 0, md: sidebarOpen ? '200px' : '65px' },
           transition: 'margin-left 0.3s ease, width 0.3s ease',
-          mt: { xs: 5, sm: 2, md: 3},
+          mt: { xs: 7, sm: 8, md: 9 },
           overflowX: 'hidden',
         }}
       >
         {/* Back Button */}
-        <Box sx={{ mb: isMobile ? 1 : 2 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={handleBack}
-            sx={{
-              color: '#1976d2',
-              '&:hover': {
-                backgroundColor: '#f5f5f5',
-                color: '#1565C0',
-              },
-              fontSize: isMobile ? '0.9rem' : '1rem',
-              fontWeight: 500,
-              textTransform: 'none',
-              px: isMobile ? 1 : 2,
-              py: isMobile ? 0.5 : 1,
-              transition: 'all 0.2s ease',
-              backgroundColor: 'transparent',
-            }}
-          >
-            Back  
-          </Button>
-        </Box>
-
-      {/* Job Statistics Card - All cards have equal height and width */}
-<Grid container spacing={4} sx={{ mb: 4, px: { xs: 0, md: 2 } }}>
-  {[
-    { 
-      label: 'Total Jobs', 
-      value: jobStats.total, 
-      sub: `${jobStats.priority} priority jobs`, 
-      icon: <WorkIcon sx={{ fontSize: 28 }} />, 
-      gradientStart: '#1976d2',
-      gradientEnd: '#1565c0',
-    },
-    { 
-      label: 'Active Jobs', 
-      value: jobStats.active, 
-      sub: `${jobStats.total > 0 ? Math.round((jobStats.active / jobStats.total) * 100) : 0}% of total`, 
-      icon: <CheckCircleIcon2 sx={{ fontSize: 28 }} />, 
-      gradientStart: '#1976d2',
-      gradientEnd: '#1565c0',
-    },
-    { 
-      label: 'Business Units', 
-      value: jobStats.internal + jobStats.external, 
-      sub: `${jobStats.internal} Internal · ${jobStats.external} External`, 
-      icon: <BusinessIcon sx={{ fontSize: 28 }} />, 
-      gradientStart: '#1976d2',
-      gradientEnd: '#1565c0',
-    },
-  ].map((s, i) => (
-    <Grid 
-      item 
-      xs={12}     // Full width on mobile
-      sm={6}      // 2 cards per row on tablet
-      md={4}      // 3 cards per row on desktop (equal width: 33.33%)
-      lg={4}      // Maintain 3 cards on large screens
-      key={i} 
-      sx={{ 
-        display: 'flex',
-        // Ensure all grid items have equal width
-        flexGrow: 1,
-      }}
-    >
-      <Card 
-        sx={{ 
-          width: '100%',     // Take full width of grid item
-          height: '100%',    // Take full height of grid item
-          display: 'flex',
-          flexDirection: 'column',
-          background: `linear-gradient(145deg, ${s.gradientStart} 0%, ${s.gradientEnd} 100%)`,
-          borderRadius: 4,
-          boxShadow: 'none',
-          border: 'none',
-          position: 'relative',
-          overflow: 'hidden',
-          transition: 'transform 0.3s ease',
-          // Ensure consistent dimensions
-          minHeight: 180,    // Set minimum height for consistency
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 50%)',
-            pointerEvents: 'none',
-          },
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: -10,
-            right: -10,
-            width: 100,
-            height: 100,
-            background: 'radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%)',
-            borderRadius: '50%',
-            pointerEvents: 'none',
-          },
-          '&:hover': {
-            transform: 'translateY(-6px) scale(1.02)',
-          }
-        }}
-      >
-        <CardContent sx={{ 
-          p: 2,
-          flex: 1, 
-          display: 'flex', 
-          flexDirection: 'column',
-          // Ensure content fills card evenly
-          justifyContent: 'space-between',
-        }}>
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'flex-start',
-            mb: 1.5,
-            position: 'relative',
-            zIndex: 1,
-            flex: 1,
-          }}>
-            <Box sx={{ flex: 1 }}>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontWeight: 600,
-                  letterSpacing: 0.8,
-                  textTransform: 'uppercase',
-                  fontSize: '0.75rem',
-                  mb: 1
-                }}
-              >
-                {s.label}
-              </Typography>
-              <Typography 
-                variant="h2" 
-                sx={{ 
-                  fontWeight: 800, 
-                  color: '#ffffff',
-                  fontSize: { xs: '2rem', sm: '2.2rem', md: '2.5rem' },
-                  lineHeight: 1.1,
-                  mb: 0.5,
-                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                }}
-              >
-                {s.value}
-              </Typography>
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  fontWeight: 500,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.8,
-                  fontSize: '0.85rem',
-                  '& svg': {
-                    fontSize: 16,
-                    color: 'rgba(255, 255, 255, 0.9)'
-                  }
-                }}
-              >
-                {s.sub}
-              </Typography>
-            </Box>
-            <Box sx={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              ml: 2
-            }}>
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'rgba(255, 255, 255, 0.2)', 
-                  color: '#ffffff', 
-                  width: { xs: 48, sm: 52, md: 56 },  // Responsive avatar size
-                  height: { xs: 48, sm: 52, md: 45 },
-                  boxShadow: 'none',
-                  transition: 'all 0.3s ease',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  '&:hover': {
-                    transform: 'scale(1.1) rotate(5deg)',
-                    bgcolor: 'rgba(255, 255, 255, 0.3)',
-                    borderColor: 'rgba(255, 255, 255, 0.5)',
-                  }
-                }}
-              >
-                {s.icon}
-              </Avatar>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
-    </Grid>
-  ))}
-</Grid>
+<Box sx={{ mb: isMobile ? 1 : 2 }}>
+  <Button
+    startIcon={<ArrowBackIcon />}
+    onClick={handleBack}
+    sx={{
+      // Text and icon color - blue
+      color: '#1976d2',
+      
+      // Hover effect - blue text with light grey background
+      '&:hover': {
+        backgroundColor: '#f5f5f5',  // Light grey background on hover
+        color: '#1565C0',  // Slightly darker blue on hover
+      },
+      
+      // Responsive styles
+      fontSize: isMobile ? '0.9rem' : '1rem',
+      fontWeight: 500,
+      textTransform: 'none',
+      px: isMobile ? 1 : 2,
+      py: isMobile ? 0.5 : 1,
+      
+      // Optional: smooth transition for hover effect
+      transition: 'all 0.2s ease',
+      
+      // Remove default background
+      backgroundColor: 'transparent',
+    }}
+  >
+    Back  
+  </Button>
+</Box>
 
         {/* All Dialogs */}
         <Dialog 
@@ -1682,365 +1481,367 @@ if (loading && jobs.length === 0) {
         </Paper>
 
         {/* Filters Section - Responsive */}
-        {!showArchived && (
-          <>
-            {isMobile ? (
-              // Mobile Filter Bar
-              <Paper sx={{ p: 1.5, mb: 2, borderRadius: 2 ,}}>
-                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', }}>
-                  <InputBase
-                    fullWidth
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    placeholder="Search jobs..."
-                    sx={{
-                      p: '6px 12px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      fontSize: '14px',
-                      backgroundColor: 'white',
-                      flex: 1
-                    }}
-                    startAdornment={
-                      <SearchIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+     {/* Filters Section - Responsive with visible labels */}
+{/* Filters Section - Responsive with full-width labels */}
+{!showArchived && (
+  <>
+    {isMobile ? (
+      // Mobile Filter Bar
+      <Paper sx={{ p: 1.5, mb: 2, borderRadius: 2 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <InputBase
+            fullWidth
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder="Search jobs..."
+            sx={{
+              p: '6px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px',
+              backgroundColor: 'white',
+              flex: 1
+            }}
+            startAdornment={
+              <SearchIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+            }
+          />
+          <Badge badgeContent={getFilterCount()} color="primary">
+            <IconButton 
+              onClick={() => {
+                setTempFilters(filters);
+                setMobileFilterOpen(true);
+              }}
+              sx={{ border: '1px solid #ddd', borderRadius: 1 }}
+            >
+              <FilterAltIcon />
+            </IconButton>
+          </Badge>
+        </Box>
+      </Paper>
+    ) : (
+      // Desktop/Tablet Filters - Full width with increased margins
+      <Paper sx={{ p: { xs: 2, sm: 2.5, md: 3 }, mb: 2.5, borderRadius: 2 }}>
+        <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
+          {filtersConfig.map((filter) => (
+            <Grid item xs={12} sm={6} md={4} lg={2.4} key={filter.id}>
+              <FormControl fullWidth size="small">
+                <InputLabel 
+                  sx={{ 
+                    fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                    fontWeight: 500,
+                    color: '#1e293b',
+                    transform: 'translate(14px, -9px) scale(0.85)',
+                    '&.MuiInputLabel-shrink': {
+                      transform: 'translate(14px, -9px) scale(0.85)'
+                    },
+                    backgroundColor: 'white',
+                    px: 0.5,
+                    zIndex: 1
+                  }}
+                >
+                  {filter.label}
+                </InputLabel>
+                <Select
+                  value={filters[filter.id] || ""}
+                  onChange={(e) => handleFilterChange(filter.id, e.target.value)}
+                  label={filter.label}
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected) {
+                      return <em style={{ color: '#64748b', fontSize: '0.9rem' }}>Select {filter.label}</em>;
                     }
-                  />
-                  <Badge badgeContent={getFilterCount()} color="primary">
-                    <IconButton 
-                      onClick={() => {
-                        setTempFilters(filters);
-                        setMobileFilterOpen(true);
-                      }}
-                      sx={{ border: '1px solid #ddd', borderRadius: 1 }}
-                    >
-                      <FilterAltIcon />
-                    </IconButton>
-                  </Badge>
-                </Box>
-              </Paper>
-            ) : (
-              // Desktop/Tablet Filters - Full width with increased margins
-              <Paper sx={{ p: { xs: 2, sm: 2.5, md: 3 }, mb: 2.5, borderRadius: 2 }}>
-                <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
-                  {filtersConfig.map((filter) => (
-                    <Grid item xs={12} sm={6} md={4} lg={2.4} key={filter.id}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel 
-                          sx={{ 
-                            fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
-                            fontWeight: 500,
-                            color: '#1e293b',
-                            transform: 'translate(14px, -9px) scale(0.85)',
-                            '&.MuiInputLabel-shrink': {
-                              transform: 'translate(14px, -9px) scale(0.85)'
-                            },
-                            backgroundColor: 'white',
-                            px: 0.5,
-                            zIndex: 1
-                          }}
-                        >
-                          {filter.label}
-                        </InputLabel>
-                        <Select
-                          value={filters[filter.id] || ""}
-                          onChange={(e) => handleFilterChange(filter.id, e.target.value)}
-                          label={filter.label}
-                          displayEmpty
-                          renderValue={(selected) => {
-                            if (!selected) {
-                              return <em style={{ color: '#64748b', fontSize: '0.9rem' }}>Select {filter.label}</em>;
-                            }
-                            return selected;
-                          }}
-                          sx={{
-                            '& .MuiSelect-select': {
-                              fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
-                              py: { xs: 1.2, sm: 1.4, md: 1.6 },
-                              px: { xs: 1.5, sm: 2 },
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              '& em': {
-                                color: '#64748b',
-                                fontStyle: 'normal'
-                              }
-                            },
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#cbd5e1',
-                              borderWidth: '1.5px'
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#2563eb'
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#2563eb',
-                              borderWidth: '2px'
-                            }
-                          }}
-                          MenuProps={{
-                            PaperProps: {
-                              sx: {
-                                maxHeight: 300,
-                                '& .MuiMenuItem-root': {
-                                  fontSize: '0.9rem',
-                                  py: 1,
-                                  px: 2
-                                }
-                              }
-                            }
-                          }}
-                        >
-                          <MenuItem value="">
-                            <em style={{ fontSize: '0.9rem', color: '#64748b' }}>None</em>
-                          </MenuItem>
-                          {filter.options.map((option) => (
-                            <MenuItem key={option} value={option}>
-                              <span style={{ fontSize: '0.9rem' }}>{option}</span>
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  ))}
-                  <Grid item xs={12} sm={6} md={4} lg={2.4}>
-                    <Button
-                      variant="outlined"
-                      onClick={handleResetFilters}
-                      fullWidth
-                      size="medium"
-                      sx={{ 
-                        height: { xs: '44px', sm: '48px', md: '52px' },
-                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
-                        fontWeight: 500,
-                        ml:"60px",
-                        whiteSpace: 'nowrap',
-                        borderColor: '#cbd5e1',
-                        borderWidth: '1.5px',
-                        color: '#475569',
-                        '&:hover': {
-                          borderColor: '#2563eb',
-                          backgroundColor: '#f0f9ff',
-                          color: '#2563eb'
-                        },
-                        '&.Mui-disabled': {
-                          borderColor: '#e2e8f0',
-                          color: '#94a3b8'
-                        }
-                      }}
-                      disabled={Object.keys(filters).length === 0 && !searchTerm && !showPriority && !showActiveOnly}
-                    >
-                      Reset All Filters
-                    </Button>
-                  </Grid>
-                </Grid>
-
-                <Box sx={{ 
-                  mt: { xs: 2, sm: 2.5, md: 3 }, 
-                  display: 'flex', 
-                  maxWidth: '100%' 
-                }}>
-                  <InputBase
-                    fullWidth
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    placeholder={`Search ${showArchived ? 'archived' : ''} jobs...`}
-                    sx={{
-                      p: { xs: '8px 14px', sm: '10px 16px', md: '12px 18px' },
-                      border: '1.5px solid #cbd5e1',
-                      borderRadius: '8px',
-                      fontSize: { xs: '0.9rem', sm: '0.95rem', md: '1rem' },
-                      backgroundColor: 'white',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        borderColor: '#2563eb'
-                      },
-                      '&:focus-within': {
-                        borderColor: '#2563eb',
-                        borderWidth: '2px'
-                      },
-                      '& input::placeholder': {
-                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
-                        color: '#94a3b8'
+                    return selected;
+                  }}
+                  sx={{
+                    '& .MuiSelect-select': {
+                      fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                      py: { xs: 1.2, sm: 1.4, md: 1.6 },
+                      px: { xs: 1.5, sm: 2 },
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      '& em': {
+                        color: '#64748b',
+                        fontStyle: 'normal'
                       }
-                    }}
-                    startAdornment={
-                      <SearchIcon sx={{ 
-                        mr: 1.5, 
-                        fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }, 
-                        color: '#64748b' 
-                      }} />
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#cbd5e1',
+                      borderWidth: '1.5px'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#2563eb'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#2563eb',
+                      borderWidth: '2px'
                     }
-                  />
-                </Box>
-              </Paper>
-            )}
-
-            {/* Mobile Filter Drawer - Enhanced */}
-            <Drawer
-              anchor="bottom"
-              open={mobileFilterOpen}
-              onClose={() => setMobileFilterOpen(false)}
-              PaperProps={{
-                sx: {
-                  maxHeight: '90vh',
-                  borderTopLeftRadius: 24,
-                  borderTopRightRadius: 24,
-                  p: { xs: 2.5, sm: 3 }
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        maxHeight: 300,
+                        '& .MuiMenuItem-root': {
+                          fontSize: '0.9rem',
+                          py: 1,
+                          px: 2
+                        }
+                      }
+                    }
+                  }}
+                >
+                  <MenuItem value="">
+                    <em style={{ fontSize: '0.9rem', color: '#64748b' }}>None</em>
+                  </MenuItem>
+                  {filter.options.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      <span style={{ fontSize: '0.9rem' }}>{option}</span>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          ))}
+          <Grid item xs={12} sm={6} md={4} lg={2.4}>
+            <Button
+              variant="outlined"
+              onClick={handleResetFilters}
+              fullWidth
+              size="medium"
+              sx={{ 
+                height: { xs: '44px', sm: '48px', md: '52px' },
+                fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                fontWeight: 500,
+                ml:"60px",
+                whiteSpace: 'nowrap',
+                borderColor: '#cbd5e1',
+                borderWidth: '1.5px',
+                color: '#475569',
+                '&:hover': {
+                  borderColor: '#2563eb',
+                  backgroundColor: '#f0f9ff',
+                  color: '#2563eb'
+                },
+                '&.Mui-disabled': {
+                  borderColor: '#e2e8f0',
+                  color: '#94a3b8'
                 }
               }}
+              disabled={Object.keys(filters).length === 0 && !searchTerm && !showPriority && !showActiveOnly}
             >
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                mb: 3,
-                pb: 1,
-                borderBottom: '2px solid #f1f5f9'
-              }}>
-                <Typography variant="h6" sx={{ 
-                  fontSize: '1.2rem', 
-                  fontWeight: 600,
-                  color: '#0f172a'
-                }}>
-                  Filter Jobs
-                </Typography>
-                <IconButton onClick={() => setMobileFilterOpen(false)} size="small">
-                  <CloseIcon />
-                </IconButton>
-              </Box>
-              
-              <Box sx={{ 
-                maxHeight: 'calc(90vh - 180px)', 
-                overflowY: 'auto', 
-                px: 0.5,
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: '#f1f5f9',
-                  borderRadius: '10px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: '#94a3b8',
-                  borderRadius: '10px',
-                },
-              }}>
-                {filtersConfig.map((filter) => (
-                  <Box key={filter.id} sx={{ mb: 3 }}>
-                    <FormControl fullWidth>
-                      <InputLabel 
-                        sx={{ 
-                          fontSize: '1rem',
-                          fontWeight: 500,
-                          color: '#1e293b',
-                          backgroundColor: 'white',
-                          px: 1,
-                          zIndex: 1
-                        }}
-                      >
-                        {filter.label}
-                      </InputLabel>
-                      <Select
-                        value={tempFilters[filter.id] || ""}
-                        onChange={(e) => setTempFilters(prev => ({ ...prev, [filter.id]: e.target.value }))}
-                        label={filter.label}
-                        displayEmpty
-                        renderValue={(selected) => {
-                          if (!selected) {
-                            return <em style={{ color: '#64748b', fontSize: '0.95rem' }}>Select {filter.label}</em>;
-                          }
-                          return selected;
-                        }}
-                        sx={{
-                          '& .MuiSelect-select': {
-                            fontSize: '0.95rem',
-                            py: 1.6,
-                            px: 2,
-                          },
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1',
-                            borderWidth: '1.5px'
-                          }
-                        }}
-                        MenuProps={{
-                          PaperProps: {
-                            sx: {
-                              maxHeight: 300,
-                              '& .MuiMenuItem-root': {
-                                fontSize: '0.95rem',
-                                py: 1.2,
-                                px: 2
-                              }
-                            }
-                          }
-                        }}
-                      >
-                        <MenuItem value="">
-                          <em style={{ fontSize: '0.95rem', color: '#64748b' }}>None</em>
-                        </MenuItem>
-                        {filter.options.map((option) => (
-                          <MenuItem key={option} value={option}>
-                            <span style={{ fontSize: '0.95rem' }}>{option}</span>
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                ))}
-              </Box>
-              
-              <Box sx={{ 
-                display: 'flex', 
-                gap: 2, 
-                mt: 3, 
-                pt: 2.5, 
-                borderTop: '2px solid #f1f5f9'
-              }}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  onClick={() => {
-                    setTempFilters({});
-                    handleMobileFilterClear();
-                  }}
-                  sx={{ 
-                    py: 1.5,
+              Reset All Filters
+            </Button>
+          </Grid>
+        </Grid>
+
+        <Box sx={{ 
+          mt: { xs: 2, sm: 2.5, md: 3 }, 
+          display: 'flex', 
+          maxWidth: '100%' 
+        }}>
+          <InputBase
+            fullWidth
+            value={searchTerm}
+            onChange={handleSearchChange}
+            placeholder={`Search ${showArchived ? 'archived' : ''} jobs...`}
+            sx={{
+              p: { xs: '8px 14px', sm: '10px 16px', md: '12px 18px' },
+              border: '1.5px solid #cbd5e1',
+              borderRadius: '8px',
+              fontSize: { xs: '0.9rem', sm: '0.95rem', md: '1rem' },
+              backgroundColor: 'white',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                borderColor: '#2563eb'
+              },
+              '&:focus-within': {
+                borderColor: '#2563eb',
+                borderWidth: '2px'
+              },
+              '& input::placeholder': {
+                fontSize: { xs: '0.85rem', sm: '0.9rem', md: '0.95rem' },
+                color: '#94a3b8'
+              }
+            }}
+            startAdornment={
+              <SearchIcon sx={{ 
+                mr: 1.5, 
+                fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' }, 
+                color: '#64748b' 
+              }} />
+            }
+          />
+        </Box>
+      </Paper>
+    )}
+
+    {/* Mobile Filter Drawer - Enhanced */}
+    <Drawer
+      anchor="bottom"
+      open={mobileFilterOpen}
+      onClose={() => setMobileFilterOpen(false)}
+      PaperProps={{
+        sx: {
+          maxHeight: '90vh',
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          p: { xs: 2.5, sm: 3 }
+        }
+      }}
+    >
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 3,
+        pb: 1,
+        borderBottom: '2px solid #f1f5f9'
+      }}>
+        <Typography variant="h6" sx={{ 
+          fontSize: '1.2rem', 
+          fontWeight: 600,
+          color: '#0f172a'
+        }}>
+          Filter Jobs
+        </Typography>
+        <IconButton onClick={() => setMobileFilterOpen(false)} size="small">
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      
+      <Box sx={{ 
+        maxHeight: 'calc(90vh - 180px)', 
+        overflowY: 'auto', 
+        px: 0.5,
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#f1f5f9',
+          borderRadius: '10px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#94a3b8',
+          borderRadius: '10px',
+        },
+      }}>
+        {filtersConfig.map((filter) => (
+          <Box key={filter.id} sx={{ mb: 3 }}>
+            <FormControl fullWidth>
+              <InputLabel 
+                sx={{ 
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  color: '#1e293b',
+                  backgroundColor: 'white',
+                  px: 1,
+                  zIndex: 1
+                }}
+              >
+                {filter.label}
+              </InputLabel>
+              <Select
+                value={tempFilters[filter.id] || ""}
+                onChange={(e) => setTempFilters(prev => ({ ...prev, [filter.id]: e.target.value }))}
+                label={filter.label}
+                displayEmpty
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return <em style={{ color: '#64748b', fontSize: '0.95rem' }}>Select {filter.label}</em>;
+                  }
+                  return selected;
+                }}
+                sx={{
+                  '& .MuiSelect-select': {
                     fontSize: '0.95rem',
-                    fontWeight: 500,
-                    borderRadius: 2,
+                    py: 1.6,
+                    px: 2,
+                  },
+                  '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#cbd5e1',
-                    borderWidth: '1.5px',
-                    color: '#475569',
-                    '&:hover': {
-                      borderColor: '#2563eb',
-                      backgroundColor: '#f0f9ff',
-                      color: '#2563eb'
+                    borderWidth: '1.5px'
+                  }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      maxHeight: 300,
+                      '& .MuiMenuItem-root': {
+                        fontSize: '0.95rem',
+                        py: 1.2,
+                        px: 2
+                      }
                     }
-                  }}
-                >
-                  Clear All
-                </Button>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  onClick={handleMobileFilterApply}
-                  sx={{ 
-                    py: 1.5,
-                    fontSize: '0.95rem',
-                    fontWeight: 500,
-                    borderRadius: 2,
-                    backgroundColor: '#2563eb',
-                    '&:hover': {
-                      backgroundColor: '#1e40af'
-                    }
-                  }}
-                >
-                  Apply Filters {getFilterCount() > 0 && `(${getFilterCount()})`}
-                </Button>
-              </Box>
-            </Drawer>
-          </>
-        )}
+                  }
+                }}
+              >
+                <MenuItem value="">
+                  <em style={{ fontSize: '0.95rem', color: '#64748b' }}>None</em>
+                </MenuItem>
+                {filter.options.map((option) => (
+                  <MenuItem key={option} value={option}>
+                    <span style={{ fontSize: '0.95rem' }}>{option}</span>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        ))}
+      </Box>
+      
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 2, 
+        mt: 3, 
+        pt: 2.5, 
+        borderTop: '2px solid #f1f5f9'
+      }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={() => {
+            setTempFilters({});
+            handleMobileFilterClear();
+          }}
+          sx={{ 
+            py: 1.5,
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            borderRadius: 2,
+            borderColor: '#cbd5e1',
+            borderWidth: '1.5px',
+            color: '#475569',
+            '&:hover': {
+              borderColor: '#2563eb',
+              backgroundColor: '#f0f9ff',
+              color: '#2563eb'
+            }
+          }}
+        >
+          Clear All
+        </Button>
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleMobileFilterApply}
+          sx={{ 
+            py: 1.5,
+            fontSize: '0.95rem',
+            fontWeight: 500,
+            borderRadius: 2,
+            backgroundColor: '#2563eb',
+            '&:hover': {
+              backgroundColor: '#1e40af'
+            }
+          }}
+        >
+          Apply Filters {getFilterCount() > 0 && `(${getFilterCount()})`}
+        </Button>
+      </Box>
+    </Drawer>
+  </>
+)}
 
         {/* Jobs Display Section - Responsive */}
         {filteredJobs.length === 0 ? (
