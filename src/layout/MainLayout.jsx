@@ -25,18 +25,11 @@ const LayoutContent = ({ children }) => {
     <ThemeProvider theme={themes[currentThemeName] || themes.default}>
       <CssBaseline />
 
-      {/* ── MAIN LAYOUT WRAPPER ───────────────────────── */}
-      <Box
-        sx={{
-          display: "flex",
-          height: "100vh",
-          overflow: "hidden", // ⭐ IMPORTANT (stops full page scroll)
-        }}
-      >
         {/* ── DESKTOP SIDEBAR (FIXED) ─────────────────── */}
         <Box
           sx={{
             position: "fixed",
+            overflowX:"hidden",
             top: 0,
             left: 0,
             width: SIDEBAR_WIDTH,
@@ -53,6 +46,7 @@ const LayoutContent = ({ children }) => {
           <>
             <Box
               sx={{
+                display: { xs: "block", sm: "none" }, 
                 position: "fixed",
                 top: 0,
                 left: 0,
@@ -65,9 +59,9 @@ const LayoutContent = ({ children }) => {
               <Sidebar />
             </Box>
 
-            {/* Overlay */}
             <Box
               sx={{
+                display: { xs: "block", sm: "none" },
                 position: "fixed",
                 top: 0,
                 left: 0,
@@ -80,11 +74,10 @@ const LayoutContent = ({ children }) => {
             />
           </>
         )}
-
         {/* ── MAIN CONTENT AREA ───────────────────────── */}
         <Box
           sx={{
-            marginLeft: { md: `${SIDEBAR_WIDTH}px` }, // push content
+            marginLeft: { md: `${SIDEBAR_WIDTH / 2}px` }, // push content
             width: "100%",
             display: "flex",
             flexDirection: "column",
@@ -106,7 +99,7 @@ const LayoutContent = ({ children }) => {
             {children}
           </Box>
         </Box>
-      </Box>
+   
 
       {/* CHATBOT */}
       <AtsChatbot />
