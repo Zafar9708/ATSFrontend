@@ -1153,7 +1153,7 @@ const Dashboard = () => {
                           />
                         </TableCell>
                         <TableCell sx={{ py: 1 }}>
-                          <Typography variant="body2" sx={{ fontSize: "0.7rem" }}>
+                          <Typography variant="body2" sx={{ fontSize: "0.8rem" }}>
                             {candidate.appliedDate}
                           </Typography>
                         </TableCell>
