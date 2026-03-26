@@ -635,7 +635,7 @@ const AdminDashboard = () => {
           maxWidth: "90%",
           overflowX: "hidden",
           p: { xs: 1.5, sm: 2, md: 2.5 }, 
-          mt: { xs: 7, sm: 8, md: 6 }, 
+          mt: { xs: 7, sm: 8, md: 5}, 
           boxSizing: "border-box",
           // ✅ Add this to prevent any child from causing overflow
           "& > *": { maxWidth: "100%" }
